@@ -8,6 +8,10 @@
 */
 
 
+// This file is a copy of the original mujoco code
+// of the file /sample/simulate.cpp, for easier
+// include in projects
+
 #include "mjxmacro.h"
 #include "uitools.h"
 #include "stdio.h"
@@ -2000,6 +2004,7 @@ void init(void)
 
 
 
+/*
 // run event loop
 int main(int argc, const char** argv)
 {
@@ -2062,3 +2067,4 @@ int main(int argc, const char** argv)
 
     return 0;
 }
+*/
