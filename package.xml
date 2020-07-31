@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pam_mujoco</name>
+  <version>1.0.0</version>
+  <description>interfacing PAM and mujoco</description>
+  <author email="vincent.berenz@tuebingen.mpg.de">Vincent Berenz</author>
+  <maintainer email="vincent.berenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>mujoco200</depend>
+  <depend>pam_models</depend>
+  <depend>mpi_cmake_modules</depend>
+  <depend>json_helper</depend>
+  
+  <export>
+  </export>
+</package>
