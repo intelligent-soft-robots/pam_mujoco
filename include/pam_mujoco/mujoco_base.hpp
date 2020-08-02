@@ -2020,48 +2020,16 @@ namespace pam_mujoco
 
   }
 
-  class MusclesController
+
+  bool run_g = true;
+  std::string error_message_g("no error");
+  
+  void exit(const char* text)
   {
-  public:
-    MusclesController(int nb_dofs,
-		      std::string &json_params1,
-		      std::String &json_params2,
-		      std::vector<double>& a_init)
-      : nb_dofs_{nb_dofs}
-    {
-      for(size_t i=0;i<nb_dofs;i++)
-	{
-	  muscles_.push_back(pam_models::hill:from_json(json_params1,
-							a_init[i],0));
-	}
-      for(size_t i=0;i<nb_dofs;i++)
-	{
-	  muscles_.push_back(pam_models::hill:from_json(json_params2,
-							a_init[nb_dofs+i],0));
-	}
-      muscles.resize(nb_dofs*2);
-    }
-    void operator()(const mjModel* m,
-		    mjData* d)
-    {
-      for(int i=0;i<nb_dofs_*2;i++)
-	{
-	  int id_activation = i;
-	  int id_pam = i + N_MUSCLES;
-	  double l_MTC = d->actuator_length[id_pam];
-	  double dot_l_MTC = d->actuator_velocity[id_pam];
-	  double a = d->act[id_activation];
-	  double l_CE = d->act[id_pam];
-	  std::tuple<double,double> f_dot_lce = muscle.get(l_MTC,dot_l_MTC,
-							   a,l_CE);
-	  d->ctrl[id_pam]=std::get<1>(f_dot_lce);
-	}
-    }
-    
-  private:
-    int nb_dofs_;
-    std::vector<pam_models::hill::Muscle> muscles_;
-  };
+    run_g = false;
+    error_message_g = std::string(text);
+  }
+
   
   void run(int nb_dofs,
 	   std::vector<double> a_init,
@@ -2069,14 +2037,14 @@ namespace pam_mujoco
 	   std::string json_params2)
   {
 
-    MusclesController muscles_controller(nb_dofs,
-					 json_params1,
-					 json_params2,
-					 a_init);
+    MusclesController<1,1> muscles_controller(nb_dofs,
+					      json_params1,
+					      json_params2,
+					      a_init);
     
-    mjcb_control = muscles_controller;
-    mjcb_act_bias = getForce;
-    mju_user_warning = show_warning_and_set_flag_for_exit;
+    mjcb_control = control<1>;
+    mjcb_act_bias = get_force<1>;
+    mju_user_warning = exit;
 
 
   }
