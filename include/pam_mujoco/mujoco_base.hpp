@@ -12,6 +12,8 @@
 // of the file /sample/simulate.cpp, for easier
 // include in projects
 
+#pragma once
+
 #include "mjxmacro.h"
 #include "uitools.h"
 #include "stdio.h"
@@ -2008,49 +2010,6 @@ namespace mujoco
 }
 
 
-namespace pam_mujoco
-{
-
-  template<typename Container<double> muscles>
-  void muscles_controllers(const mjModel* m,
-			   mjData* d,
-			   Container& muscles)
-  {
-
-
-  }
-
-
-  bool run_g = true;
-  std::string error_message_g("no error");
-  
-  void exit(const char* text)
-  {
-    run_g = false;
-    error_message_g = std::string(text);
-  }
-
-  
-  void run(int nb_dofs,
-	   std::vector<double> a_init,
-	   std::string json_params1,
-	   std::string json_params2)
-  {
-
-    MusclesController<1,1> muscles_controller(nb_dofs,
-					      json_params1,
-					      json_params2,
-					      a_init);
-    
-    mjcb_control = control<1>;
-    mjcb_act_bias = get_force<1>;
-    mju_user_warning = exit;
-
-
-  }
-  
-
-}
 
 
 

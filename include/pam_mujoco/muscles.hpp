@@ -1,41 +1,13 @@
 #pragma once
 
-#include <map>
-#include <vector>
-#include "pam_mujoco/mujoco_base.hpp"
+#include "pam_mujoco/controllers.hpp"
+#include "pam_mujoco/force_compute.hpp"
+
 
 namespace pam_mujoco
 {
 
-  class ControllerBase;
-  
-  typedef std::map<int,ControllerBase*> ControllerInstances;
-  ControllerInstances controller_instances_g;
 
-  class ControllerBase
-  {
-  public:
-    ControllerBase(int controller_index)
-    {
-      controller_instances_g.insert(
-				    std::pair<int,
-				    ControllerBase*>(controller_index,
-						     this) );
-    }
-    virtual void control(const mjModel* m,
-			 mjData* d)=0;
-  };
-
-  template<int CONTROLLER_INDEX>
-  virtual void control(const mjModel* m,
-		       mjData* d)
-  {
-    static ControllerBase* controller =
-      controller_instances_g[CONTROLLER_INDEX];
-    controller->control(m,d);
-  }
-
-  
   typedef std::vector<std::tuple<double,double>> FDotLCE;
   
   class MusclesController : public ControllerBase,
@@ -93,6 +65,5 @@ namespace pam_mujoco
     FDotLCE f_dot_lce_;
   };
 
-  
-  
+
 }

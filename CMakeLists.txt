@@ -10,6 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   mpi_cmake_modules
 )
 
+search_for_pthread()
+
 catkin_package(
  LIBRARIES pam_models
  INCLUDE_DIRS include
@@ -19,6 +21,12 @@ catkin_package(
 DEFINE_OS()
 
 include_directories(include ${catkin_INCLUDE_DIRS})
+
+add_executable(mujoco_simulate_example
+  src/mujoco_simulate_example.cpp)
+target_link_libraries(mujoco_simulate_example
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${catkin_LIBRARIES})
 
 
 
