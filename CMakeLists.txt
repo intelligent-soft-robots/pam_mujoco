@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   mujoco200
   pam_models
   mpi_cmake_modules
+  pam_interface
 )
 
 search_for_pthread()
@@ -16,7 +17,7 @@ search_for_eigen()
 catkin_package(
  LIBRARIES pam_models
  INCLUDE_DIRS include
- CATKIN_DEPENDS mujoco200 pam_models mpi_cmake_modules
+ CATKIN_DEPENDS mujoco200 pam_models mpi_cmake_modules pam_interface
 )
 
 DEFINE_OS()
