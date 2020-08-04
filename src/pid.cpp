@@ -7,68 +7,71 @@ namespace pam_mujoco
 	   std::vector<double> kd,
 	   std::vector<double> ki)
     : nb_dofs_(kp.size()),
-	previous_time_(-1),
-	kp_(kp),kd_(kd),ki_(ki)
+      previous_time_(-1),
+      desired_(Eigen::VectorXd::Zero(nb_dofs_)),
+      error_sum_(Eigen::VectorXd::Zero(nb_dofs_)),
+      previous_error_(Eigen::VectorXd::Zero(nb_dofs_)),
+      u_(Eigen::VectorXd::Zero(nb_dofs_)),
+      kp_(Eigen::MatrixXd::Zero(nb_dofs_,nb_dofs_)),
+      ki_(Eigen::MatrixXd::Zero(nb_dofs_,nb_dofs_)),
+      kd_(Eigen::MatrixXd::Zero(nb_dofs_,nb_dofs_))
     {
-      desired_.resize(nb_dofs_);
-      error_sum_.resize(nb_dofs_);
-      previous_error_.resize(nb_dofs);
-      std::fill(desired_.begin(), desired_.end(), 0);
-      std::fill(error_sum_.begin(), error_sum_.end(), 0);
-      std::fill(previous_error_.begin(), previous_error_.end(), 0);
-      u_.resize(nb_dofs_);
+      for(uint dof=0;dof<nb_dofs_;dof++)
+	{
+	  kp_(dof,dof)=kp[dof];
+	  ki_(dof,dof)=ki[dof];
+	  kd_(dof,dof)=kd[dof];
+	}
     }
 
-  void PID::set_desired(const std::vector& desired)
+  void PID::set_desired(const std::vector<double>& desired)
     {
-      desired_ = desired;
+      for(std::size_t dof=0;dof<nb_dofs_;dof++)
+	{
+	  desired_(dof)=desired[dof];
+	}
     }
-  
-  void PID::control(const double *position, double time,
-		    double *ctrl)
+
+  void PID::raw_control(const Eigen::VectorXd position,
+			Eigen::VectorXd ctrl,
+			double time)
   {
     if(previous_time_<0)
       previous_time_ = time;
     double delta_time = time - previous_time_;
-    for(size_t dof=0;dof<nb_dofs;dof++)
+    Eigen::VectorXd error = desired_ - position;
+    Eigen::VectorXd error_d = (error - previous_error_) / delta_time;
+    error_sum_ = error_sum_ + error * delta_time;
+    ctrl = kp_ *  error + ki_ * error_sum_ + kd_ * error_d;
+  }
+    
+  
+  void PID::pam_control(const double *position, double time,
+			double *ctrl)
+  {
+
+    Eigen::VectorXd e_position = Eigen::Map<const Eigen::VectorXd>(position,nb_dofs_);
+    Eigen::VectorXd e_ctrl = Eigen::Map<Eigen::VectorXd>(ctrl,nb_dofs_);
+
+    raw_control(e_position,e_ctrl,time);
+    
+    for(size_t dof=0;dof<nb_dofs_;dof++)
       {
-	double u = control_(kp[dof],kd[dof],ki[dof],
-			    position[dof],desired_[dof],
-			    delta_time,previous_error_[dof],
-			    error_sum_[dof]);
-	if(u<0)
+	double *c = &e_ctrl[dof];
+	if(*c<0)
 	  {
-	    ctrl[dof*2]= std::abs(u)+0.1;
+	    ctrl[dof*2]= std::abs(*c)+0.1;
 	    ctrl[dof*2+1]= 0.1;
 	  }
 	else
 	  {
-	    ctrl[dof*2+1]= std::abs(u)+0.1;
+	    ctrl[dof*2+1]= std::abs(*c)+0.1;
 	    ctrl[dof*2]= 0.1;
 	  }
-	previous_time_ = time;
       }
+    previous_time_ = time;
+    
   }
 
 
-  double PID::control_(double kp, double kd, double ki,
-		       double position,
-		       double desired,
-		       double delta_time,
-		       double& previous_error,
-		       double& error_sum)
-  {
-    double error = desired-position;
-    double error_d = (error-previous_error)/delta_time;
-    error_sum += error*delta_time;
-    
-    double u =
-      (error*kp)+
-      error_sum*ki+
-      error_d*kd;
-    
-    previous_error = error;
-    
-    return u;
-    
-  }
+}

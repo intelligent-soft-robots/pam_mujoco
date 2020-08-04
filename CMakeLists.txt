@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 search_for_pthread()
+search_for_eigen()
 
 catkin_package(
  LIBRARIES pam_models
@@ -20,7 +21,9 @@ catkin_package(
 
 DEFINE_OS()
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include
+  ${catkin_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS})
 
 add_executable(mujoco_simulate_example
   src/mujoco_simulate_example.cpp)
@@ -28,5 +31,12 @@ target_link_libraries(mujoco_simulate_example
   ${CMAKE_THREAD_LIBS_INIT}
   ${catkin_LIBRARIES})
 
+add_library(pam_mujoco
+  src/pid.cpp)
+target_link_libraries(pam_mujoco ${catkin_LIBRARIES})
 
+catkin_add_gtest(pam_mujoco_tests
+  tests/main.cpp
+  tests/unit_tests.cpp)
+target_link_libraries(pam_mujoco_tests pam_mujoco ${catkin_libraries})
 

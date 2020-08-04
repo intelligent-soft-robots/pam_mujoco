@@ -1,8 +1,8 @@
-
 #pragma once
 
 #include <vector>
 #include <algorithm>
+#include <Eigen/Dense>
 
 namespace pam_mujoco
 {
@@ -16,29 +16,26 @@ namespace pam_mujoco
 	std::vector<double> kd,
 	std::vector<double> ki);
     
-    void set_desired(const std::vector& desired);
-    void control(const double *position, double time,
-		 double *ctrl);
+    void set_desired(const std::vector<double>& desired);
+
+    void raw_control(const Eigen::VectorXd position,
+		     Eigen::VectorXd ctrl,
+		     double time);
+    
+    void pam_control(const double *position, double time,
+		     double *ctrl);
     
   private:
-    
-   static double control_(double kp, double kd, double ki,
-			  double position,
-			  double desired,
-			  double delta_time,
-			  double& previous_error,
-			  double& error_sum)
-  private:
-    
-    int nb_dofs;
+
+    int nb_dofs_;
     double previous_time_;
-    std::vector<double> desired_;
-    std::vector<double> kp_;
-    std::vector<double> kd_;
-    std::vector<double> ki_;
-    std::vector<double> error_sum_;
-    std::vector<double> previous_error_;
-    std::vector<double> u_;
+    Eigen::VectorXd desired_;
+    Eigen::VectorXd error_sum_;
+    Eigen::VectorXd previous_error_;
+    Eigen::VectorXd u_;
+    Eigen::MatrixXd kp_;
+    Eigen::MatrixXd ki_;
+    Eigen::MatrixXd kd_;
     
   };
   
