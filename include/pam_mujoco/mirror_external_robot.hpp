@@ -1,15 +1,18 @@
 #pragma once
 
+#include "o80/memory_clearing"
 #include "o80/backend.hpp"
 #include "pam_interface/state/robot.hpp"
 #include "pam_interface/state/joint.hpp"
 #include "pam_mujoco/mujoco_base.hpp"
+#include "pam_mujoco/controllers.hpp"
 
 namespace pam_mujoco
 {
 
-  template<int QUEUE_SIZE, int NB_DOFS>
-  class MirrorExternalRobot
+  template<int CONTROLLER_INDEX,
+	   int QUEUE_SIZE, int NB_DOFS>
+  class MirrorExternalRobot : public ControllerBase
   {
     
   private:
@@ -25,7 +28,10 @@ namespace pam_mujoco
 			     int index_qvel_robot,
 			     mjData* d_init);
     void set_state(mjData* d);
-
+    void control(const mjModel* m,
+		 mjData* d);
+  public:
+    static void clear(std::string segment_id);
   private:
     int index_q_robot_;
     int index_qvel_robot_;

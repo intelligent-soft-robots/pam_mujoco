@@ -1,7 +1,10 @@
-#pragma once
 
-#include "pam_mujoco/muscles.hpp"
+#include "pam_mujoco/mirror_external_robot.hpp"
 
+#DEFINE SEGMENT_ID "mujoco_pam"
+#DEFINE NB_DOFS 4
+#DEFINE QUEUE_SIZE 500000
+#DEFINE MODEL_PATH pam_model_file
 
 namespace pam_mujoco
 {
@@ -15,26 +18,27 @@ namespace pam_mujoco
     error_message_g = std::string(text);
   }
 
-  
-  void run(int nb_dofs,
-	   std::vector<double> a_init,
-	   std::string model_path,
-	   std::string json_params1,
-	   std::string json_params2)
+  void run(std::string segment_id,
+	   std::string model_path)
   {
 
-    MusclesController<1,1> muscles_controller(nb_dofs,
-					      json_params1,
-					      json_params2,
-					      a_init);
+    mju_strncpy(filename, model_path, 1000);
+    loadmodel();
+    int index_q_robot = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
+    int index_qvel_robot = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
+    
+    pam_mujoco::MirrorExternalRobot::clear(segment_id);
+    pam_mujoco::MirrorExternalRobot<1,QUEUE_SIZE,NB_DOFS> mirroring(segment_id,
+								    index_q_robot,
+								    index_qvel_robot
+								    d);
     
     mujoco::mjcb_control = control<1>;
-    mujoco::mjcb_act_bias = get_force<1>;
     mujoco::mju_user_warning = exit;
 
-    mju_strncpy(filename, argv[1], 1000);
-    settings.loadrequest = 2;
-
+    // initialize everything
+    init();
+    
     // start simulation thread
     std::thread simthread(simulate);
 
@@ -43,12 +47,6 @@ namespace pam_mujoco
     {
         // start exclusive access (block simulation thread)
         mtx.lock();
-
-        // load model (not on first pass, to show "loading" label)
-        if( settings.loadrequest==1 )
-            loadmodel();
-        else if( settings.loadrequest>1 )
-            settings.loadrequest = 1;
 
         // handle events (calls all callbacks)
         glfwPollEvents();

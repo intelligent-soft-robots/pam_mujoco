@@ -1,12 +1,13 @@
 
 
-template<int QUEUE_SIZE, int NB_DOFS>
-MirrorExternalRobot<QUEUE_SIZE,
+template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
+MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
 		    NB_DOFS>::MirrorExternalRobot(std::string segment_id,
 						  int index_q_robot,
 						  int index_qvel_robot,
 						  mjData* d_init)
-		      : index_q_robot_{index_q_robot},
+		      : ControllerBase(CONTROLLER_INDEX),
+			index_q_robot_{index_q_robot},
 			index_qvel_robot_{index_qvel_robot},
 			backend_{segment_id}
 {
@@ -19,8 +20,8 @@ MirrorExternalRobot<QUEUE_SIZE,
     }
 }
 
-template<int QUEUE_SIZE, int NB_DOFS>
-MirrorExternalRobot<QUEUE_SIZE,
+template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
+void MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
 		    NB_DOFS>::set_state(mjData* d)
 {
   States states = backend_.pulse(o80::TimePoint(0),
@@ -32,4 +33,19 @@ MirrorExternalRobot<QUEUE_SIZE,
       d[index_qvel_robot_+dof]= states.get(dof).velocity;
     }
   states_ = states;
+}
+
+template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
+void MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
+		    NB_DOFS>::control(const mjModel* m,
+				      mjData* d)
+{
+  set_state(d);
+}
+
+template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
+void MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
+			 NB_DOFS>::clear(std::string segment_id)
+{
+  o80::clear_shared_memory(segment_id);
 }
