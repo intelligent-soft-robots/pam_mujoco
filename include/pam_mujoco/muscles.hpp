@@ -14,14 +14,11 @@ namespace pam_mujoco
 			    public ForceComputeBase
   {
   public:
-    template<int CONTROLLER_INDEX, int FORCE_INDEX>
     MusclesController(int nb_dofs,
 		      std::string &json_params1,
 		      std::String &json_params2,
 		      std::vector<double>& a_init)
-      : ControllerBase(CONTROLLER_INDEX),
-	ForceComputeBase(FORCE_INDEX),
-	nb_dofs_{nb_dofs}
+      : nb_dofs_{nb_dofs}
     {
       for(size_t i=0;i<nb_dofs;i++)
 	{

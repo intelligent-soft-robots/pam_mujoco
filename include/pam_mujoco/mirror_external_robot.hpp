@@ -10,8 +10,7 @@
 namespace pam_mujoco
 {
 
-  template<int CONTROLLER_INDEX,
-	   int QUEUE_SIZE, int NB_DOFS>
+  template<int QUEUE_SIZE, int NB_DOFS>
   class MirrorExternalRobot : public ControllerBase
   {
     
@@ -24,9 +23,7 @@ namespace pam_mujoco
 
   public:
     MirrorExternalRobot(std::string segment_id,
-			     int index_q_robot,
-			     int index_qvel_robot,
-			     mjData* d_init);
+			mjData* d_init);
     void set_state(mjData* d);
     void control(const mjModel* m,
 		 mjData* d);

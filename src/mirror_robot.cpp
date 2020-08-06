@@ -24,16 +24,14 @@ namespace pam_mujoco
 
     mju_strncpy(filename, model_path, 1000);
     loadmodel();
-    int index_q_robot = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
-    int index_qvel_robot = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
     
     pam_mujoco::MirrorExternalRobot::clear(segment_id);
-    pam_mujoco::MirrorExternalRobot<1,QUEUE_SIZE,NB_DOFS> mirroring(segment_id,
-								    index_q_robot,
-								    index_qvel_robot
-								    d);
+    pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS> mirroring(segment_id,
+								  d);
+
+    pam_mujoco::Controllers::add(mirroring);
     
-    mujoco::mjcb_control = control<1>;
+    mujoco::mjcb_control = pam_mujoco::Controllers::apply;
     mujoco::mju_user_warning = exit;
 
     // initialize everything

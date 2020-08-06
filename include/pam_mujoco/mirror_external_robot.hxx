@@ -1,15 +1,10 @@
 
 
-template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
-MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
+template<int QUEUE_SIZE, int NB_DOFS>
+MirrorExternalRobot<QUEUE_SIZE,
 		    NB_DOFS>::MirrorExternalRobot(std::string segment_id,
-						  int index_q_robot,
-						  int index_qvel_robot,
 						  mjData* d_init)
-		      : ControllerBase(CONTROLLER_INDEX),
-			index_q_robot_{index_q_robot},
-			index_qvel_robot_{index_qvel_robot},
-			backend_{segment_id}
+		      : backend_{segment_id}
 {
   pam_interface::JointState joint_state;
   for(std::size_t dof=0; dof<NB_DOFS; dof++)
@@ -18,10 +13,12 @@ MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
       joint_state.velocity = d_init[index_qvel_robot_+dof];
       states_.set(dof,joint_state);
     }
+  index_q_robot_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
+  index_qvel_robot_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
 }
 
-template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
-void MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
+template<int QUEUE_SIZE, int NB_DOFS>
+void MirrorExternalRobot<QUEUE_SIZE,
 		    NB_DOFS>::set_state(mjData* d)
 {
   States states = backend_.pulse(o80::TimePoint(0),
@@ -35,16 +32,16 @@ void MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
   states_ = states;
 }
 
-template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
-void MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
+template<int QUEUE_SIZE, int NB_DOFS>
+void MirrorExternalRobot<QUEUE_SIZE,
 		    NB_DOFS>::control(const mjModel* m,
 				      mjData* d)
 {
   set_state(d);
 }
 
-template<int CONTROLLER_INDEX, int QUEUE_SIZE, int NB_DOFS>
-void MirrorExternalRobot<CONTROLLER_INDEX, QUEUE_SIZE,
+template<int QUEUE_SIZE, int NB_DOFS>
+void MirrorExternalRobot<QUEUE_SIZE,
 			 NB_DOFS>::clear(std::string segment_id)
 {
   o80::clear_shared_memory(segment_id);
