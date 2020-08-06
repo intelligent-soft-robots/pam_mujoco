@@ -27,12 +27,16 @@ include_directories(include
   ${Eigen_INCLUDE_DIRS})
 
 add_executable(mujoco_simulate_example
+  src/mujoco_base.cpp
   src/mujoco_simulate_example.cpp)
 target_link_libraries(mujoco_simulate_example
   ${CMAKE_THREAD_LIBS_INIT}
   ${catkin_LIBRARIES})
 
 add_library(pam_mujoco
+  src/mujoco_base.cpp
+  src/force_computes.cpp
+  src/controllers.cpp
   src/pid.cpp)
 target_link_libraries(pam_mujoco ${catkin_LIBRARIES})
 

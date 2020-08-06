@@ -6,21 +6,22 @@
 namespace pam_mujoco
 {
 
-  class ControllerBase
+  class ForceComputeBase
   {
   public:
     virtual void apply(const mjModel* m,
-			 mjData* d)=0;
+		       mjData* d)=0;
   };
 
-  class Controllers
+  class ForceComputes
   {
   public:
-    static void add(ControllerBase& controller);
+    static void add(ForceComputeBase& force_compute);
     static void apply(const mjModel* m,
 		      mjData* d);
   private:
-    static std::vector<ControllerBase*> controllers_;
+    static std::vector<ForceComputeBase*> force_computes_;
   };
+
   
 }
