@@ -16,5 +16,7 @@ namespace pam_mujoco
 	force_compute->apply(m,d);
       }
   }
+
+  std::vector<ForceComputeBase*> ForceComputes::force_computes_;
   
 }

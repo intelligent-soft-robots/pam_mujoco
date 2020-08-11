@@ -1,7 +1,9 @@
 #pragma once
 
 #include <vector>
-#include "pam_mujoco/mujoco_base.hpp"
+#include "mjmodel.h"
+#include "mjdata.h"
+
 
 namespace pam_mujoco
 {

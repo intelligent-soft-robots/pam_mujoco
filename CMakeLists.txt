@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 2.8.7)
 
 project(pam_mujoco)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 
 find_package(catkin REQUIRED COMPONENTS
+  o80
   mujoco200
   pam_models
   mpi_cmake_modules
@@ -17,7 +18,7 @@ search_for_eigen()
 catkin_package(
  LIBRARIES pam_models
  INCLUDE_DIRS include
- CATKIN_DEPENDS mujoco200 pam_models mpi_cmake_modules pam_interface
+ CATKIN_DEPENDS mujoco200 pam_models mpi_cmake_modules
 )
 
 DEFINE_OS()
@@ -27,7 +28,6 @@ include_directories(include
   ${Eigen_INCLUDE_DIRS})
 
 add_executable(mujoco_simulate_example
-  src/mujoco_base.cpp
   src/mujoco_simulate_example.cpp)
 target_link_libraries(mujoco_simulate_example
   ${CMAKE_THREAD_LIBS_INIT}
@@ -39,6 +39,11 @@ add_library(pam_mujoco
   src/controllers.cpp
   src/pid.cpp)
 target_link_libraries(pam_mujoco ${catkin_LIBRARIES})
+
+add_executable(pam_mujoco_mirror_robot
+  src/mirror_robot.cpp)
+target_link_libraries(pam_mujoco_mirror_robot pam_mujoco ${catkin_LIBRARIES})
+
 
 catkin_add_gtest(pam_mujoco_tests
   tests/main.cpp

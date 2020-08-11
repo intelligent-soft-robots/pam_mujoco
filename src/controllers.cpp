@@ -16,5 +16,8 @@ namespace pam_mujoco
 	controller->apply(m,d);
       }
   }
+
+
+  std::vector<ControllerBase*> Controllers::controllers_;
   
 }
