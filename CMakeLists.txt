@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 2.8.7)
 
 project(pam_mujoco)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 find_package(catkin REQUIRED COMPONENTS
   o80
@@ -44,6 +45,13 @@ add_executable(pam_mujoco_mirror_robot
   src/mirror_robot.cpp)
 target_link_libraries(pam_mujoco_mirror_robot pam_mujoco ${catkin_LIBRARIES})
 
+pybind11_add_module(pam_mujoco_py srcpy/wrappers.cpp)
+target_link_libraries(pam_mujoco_py PRIVATE pam_mujoco ${catkin_LIBRARIES})
+set_target_properties(pam_mujoco_py PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}
+  OUTPUT_NAME pam_mujoco
+  )
+install(TARGETS pam_mujoco_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 catkin_add_gtest(pam_mujoco_tests
   tests/main.cpp
