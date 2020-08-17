@@ -1,4 +1,4 @@
-#include "pam_mujoco/mtest.hpp"
+#include "pam_mujoco/mujoco_base.hpp"
 
 //-------------------------------- global -----------------------------------------------
 
@@ -16,7 +16,8 @@ int main()
         settings.loadrequest = 2;
 	}*/
 
-    run();
+    std::string foo;
+    run(&foo);
     
     return 0;
 

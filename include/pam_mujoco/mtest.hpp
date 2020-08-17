@@ -18,6 +18,7 @@
 #include <thread>
 #include <mutex>
 #include <chrono>
+#include <string>
 
 
 //-------------------------------- global -----------------------------------------------
@@ -2001,13 +2002,16 @@ void init(void)
 }
 
 
-void run()
+void run(void* mujoco_id)
 {
       // start simulation thread
     std::thread simthread(simulate);
 
+    std::string* mid = static_cast<std::string*>(mujoco_id);
+    
     // event loop
-    while( !glfwWindowShouldClose(window) && !settings.exitrequest )
+    while( !glfwWindowShouldClose(window) && !settings.exitrequest
+	   && pam_mujoco::is_stop_requested(*mid) )
     {
         // start exclusive access (block simulation thread)
         mtx.lock();
