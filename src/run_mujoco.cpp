@@ -20,8 +20,10 @@ namespace pam_mujoco
 				 const mjData* d_init)
   {
     pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
-    pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS> mirroring(segment_id,
-								  m,d);
+    typedef pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS> mer;
+    std::shared_ptr<mer> mirroring =
+      std::make_shared<mer>(segment_id,
+			    m,d);
     
     pam_mujoco::Controllers::add(mirroring);
   }
@@ -33,8 +35,10 @@ namespace pam_mujoco
   {
     if(controller_ids.find(MIRROR_EXTERNAL_ROBOT)!=controller_ids.end())
       {
+	std::cout << "adding mirror external robot controller" << std::endl;
 	add_mirror_external_robot(get_mirror_external_robot_segment_id(mujoco_id),
 				  m,d);
+	std::cout << "... controller added" << std::endl;
       }
   }
 
@@ -51,7 +55,9 @@ namespace pam_mujoco
 
     // constructing the requested controllers
     // (m and d are global variables defined in mujoco_base.hpp)
-    construct_controllers(controller_ids,m,d);
+    construct_controllers(mujoco_id,
+			  controller_ids,
+			  m,d);
 
     // setting the constructed controllers as mujoco controllers
     // (how it works: construct_controller aboves populate the (global)
@@ -68,19 +74,23 @@ namespace pam_mujoco
     // the job should run until user code calls the function
     // "request_stop" (see run_management.hpp)
     set_started(mujoco_id);
+
+
+    run(&mujoco_id);
     
     // start simulation thread (run is a function defined mujoco_base.hpp)
-    real_time_tools::RealTimeThread thread;
+    /*real_time_tools::RealTimeThread thread;
     thread.block_memory();
     thread.create_realtime_thread(run,&mujoco_id);
 
     // running until "request_stop" function is called
     while (! is_stop_requested(mujoco_id))
       {
+	std::cout << "looping ... " << std::endl;
 	usleep(2000);
       }
     
-    thread.join();
+      thread.join();*/
 
     
   }

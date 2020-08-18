@@ -23,4 +23,5 @@ PYBIND11_MODULE(pam_mujoco, m)
   m.def("execute",&pam_mujoco::execute);
   m.def("get_mirror_external_robot_segment_id",
 	&pam_mujoco::get_mirror_external_robot_segment_id);
+  m.def("request_stop",&pam_mujoco::request_stop);
 }

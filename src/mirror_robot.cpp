@@ -23,20 +23,27 @@ void execute(std::string segment_id,
 
   // initialize everything
   init();
-    
+
+  // setting the model (pam+ball+table)
   mju_strncpy(filename, model_path.c_str(), 1000);
   loadmodel();
 
+  // creating a controller that will mirror an external
+  // robot (receives position/velocity joint states via o80)
   pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
   pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS> mirroring(segment_id,
   								m,d);
 
+  // adding the mirror controller to the stack of controllers
   pam_mujoco::Controllers::add(mirroring);
-    
+
+  // setting the stack of controller as mujoco controllers
   mjcb_control = pam_mujoco::Controllers::apply;
+
+  // stop on error
   mju_user_warning = exit;
 
-  // start simulation thread
+  // start mujoco simulation thread
   run();
 }
 

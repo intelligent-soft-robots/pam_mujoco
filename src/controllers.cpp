@@ -5,19 +5,24 @@ namespace pam_mujoco
 
   void Controllers::add(ControllerBase& controller)
   {
-    Controllers::controllers_.push_back(&controller);
+    Controllers::controllers_.push_back(std::shared_ptr<ControllerBase>(&controller));
   }
 
-  void Controllers::apply(const mjModel* m,
-	     mjData* d)
+  void Controllers::add(std::shared_ptr<ControllerBase> controller)
   {
-    for(ControllerBase* controller: Controllers::controllers_)
+    Controllers::controllers_.push_back(controller);
+  }
+  
+  void Controllers::apply(const mjModel* m,
+			  mjData* d)
+  {
+    for(std::shared_ptr<ControllerBase> controller: Controllers::controllers_)
       {
 	controller->apply(m,d);
       }
   }
 
 
-  std::vector<ControllerBase*> Controllers::controllers_;
+  std::vector<std::shared_ptr<ControllerBase>> Controllers::controllers_;
   
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <vector>
 #include "mjmodel.h"
 #include "mjdata.h"
@@ -18,11 +19,12 @@ namespace pam_mujoco
   class Controllers
   {
   public:
+    static void add(std::shared_ptr<ControllerBase> controller);
     static void add(ControllerBase& controller);
     static void apply(const mjModel* m,
 		      mjData* d);
   private:
-    static std::vector<ControllerBase*> controllers_;
+    static std::vector<std::shared_ptr<ControllerBase>> controllers_;
   };
   
 }

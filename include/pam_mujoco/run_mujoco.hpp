@@ -31,7 +31,8 @@ namespace pam_mujoco
   void add_mirror_external_robot(std::string segment_id,
 				 const mjModel* m,
 				 const mjData* d_init);
-  void construct_controllers(std::set<int> controller_ids,
+  void construct_controllers(std::string mujoco_id,
+			     std::set<int> controller_ids,
 			     const mjModel* m,
 			     const mjData* d_init);
   void execute(std::string mujoco_id, std::string model_path,
