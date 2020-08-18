@@ -1,5 +1,6 @@
 #pragma once
 
+#include <tuple>
 #include <set>
 #include <string>
 #include "shared_memory/shared_memory.hpp"
@@ -31,11 +32,12 @@ namespace pam_mujoco
   void add_mirror_external_robot(std::string segment_id,
 				 const mjModel* m,
 				 const mjData* d_init);
-  void construct_controllers(std::string mujoco_id,
-			     std::set<int> controller_ids,
-			     const mjModel* m,
-			     const mjData* d_init);
+  std::string construct_controllers(std::string mujoco_id,
+				    std::set<int> controller_ids,
+				    int burster_id,
+				    const mjModel* m,
+				    const mjData* d_init);
   void execute(std::string mujoco_id, std::string model_path,
-	       std::set<int> controller_ids);
+	       std::set<int> controller_ids,int burster_id);
 
 }

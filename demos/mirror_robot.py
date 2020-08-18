@@ -2,62 +2,48 @@ import time
 import o80
 import pam_mujoco
 import numpy as np
+import multiprocessing
 
-frontend = pam_mujoco.FrontEnd("pam_mujoco")
+def execute_mujoco(mujoco_id,model_path):
 
-position = -np.pi/4.0
-velocity = None
+    controllers = set([1])
 
-while position < np.pi/4.0 :
+    pam_mujoco.execute(mujoco_id,model_path,controllers,1)
 
-    if velocity is None:
-        velocity = 0
-    else :
-        velocity = 0.1
-    
-    state = o80.State2d(position,velocity)
-    for dof in range(4):
-        frontend.add_command(dof,state,o80.Mode.OVERWRITE)
-    frontend.pulse()
-
-    time.sleep(0.01)
-
-    position+= 0.01
+    while not pam_mujoco.is_stop_requested(mujoco_id):
+        time.sleep(0.01)
 
 
-state.set(0,np.pi/4.0)
-state.set(1,0)
+mujoco_id = "mj"
+model_path = "/home/vberenz/Workspaces/pam/workspace/src/pam_mujoco/models/pamy.xml"
+
+        
+process  = multiprocessing.Process(target=execute_mujoco,
+                                   args=(mujoco_id,model_path,))
+process.start()
+
+time.sleep(3)
+
+segment_id = pam_mujoco.get_mirror_external_robot_segment_id(mujoco_id)
+frontend = pam_mujoco.MirrorRobotFrontEnd(segment_id)
+
+state = o80.State2d(np.pi/4.0,0)
 for dof in range(4):
     frontend.add_command(dof,state,o80.Mode.OVERWRITE)
-frontend.pulse()
+frontend.burst(1)
 
-velocity = None
-
-while position > -np.pi/4.0 :
-
-    if velocity is None:
-        velocity = 0
-    else :
-        velocity = -0.1
-    
-    state = o80.State2d(position,velocity)
-    for dof in range(4):
-        frontend.add_command(dof,state,o80.Mode.OVERWRITE)
-    frontend.pulse()
-
-    time.sleep(0.01)
-
-    position-= 0.01
-
-
-state.set(0,-np.pi/4.0)
-state.set(1,0)
+state = o80.State2d(-np.pi/4.0,0)
 for dof in range(4):
-    frontend.add_command(dof,state,o80.Mode.OVERWRITE)
-frontend.pulse()
+    frontend.add_command(dof,state,o80.Iteration(1000),o80.Mode.OVERWRITE)
+frontend.burst(1000)
 
+state = o80.State2d(+np.pi/4.0,0)
+for dof in range(4):
+    frontend.add_command(dof,state,o80.Iteration(1000),o80.Mode.OVERWRITE)
+frontend.burst(1000)
 
-
+pam_mujoco.request_stop("mj")
+process.join()
 
 
 

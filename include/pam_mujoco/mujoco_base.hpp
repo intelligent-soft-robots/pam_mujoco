@@ -21,6 +21,7 @@
 #include <string>
 
 #include "real_time_tools/thread.hpp"
+#include "o80/burster.hpp"
 #include "pam_mujoco/run_management.hpp"
 
 
@@ -2005,16 +2006,24 @@ void init(void)
 }
 
 
-THREAD_FUNCTION_RETURN_TYPE run(void* mujoco_id)
+THREAD_FUNCTION_RETURN_TYPE run(void* msids)
 {
+
       // start simulation thread
     std::thread simthread(simulate);
 
-    std::string* mid = static_cast<std::string*>(mujoco_id);
+    std::tuple<std::string,std::string>* mujoco_segment_ids
+      = static_cast<std::tuple<std::string,std::string>*>(msids);
+    std::string mujoco_id = std::get<0>(*mujoco_segment_ids);
+    std::string segment_id = std::get<1>(*mujoco_segment_ids);
+
+    o80::Burster::clear_memory(segment_id);
+    o80::Burster burster(segment_id);
+    o80::Burster::turn_on(segment_id);
     
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest
-	   && pam_mujoco::is_stop_requested(*mid) )
+	   && pam_mujoco::is_stop_requested(mujoco_id) )
       {
         // start exclusive access (block simulation thread)
         mtx.lock();
@@ -2036,6 +2045,8 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mujoco_id)
 
         // render while simulation is running
         render(window);
+
+	burster.pulse();
     }
 
     // stop simulation thread
@@ -2058,6 +2069,6 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mujoco_id)
     #endif
 
     // indicating end user all is finished
-	pam_mujoco::set_stopped(*mid);
+	pam_mujoco::set_stopped(mujoco_id);
 	
 }

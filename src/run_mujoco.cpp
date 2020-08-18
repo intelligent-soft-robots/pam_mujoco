@@ -28,10 +28,11 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(mirroring);
   }
 
-  void construct_controllers(std::string mujoco_id,
-			     std::set<int> controller_ids,
-			     const mjModel* m,
-			     const mjData* d_init)
+  std::string construct_controllers(std::string mujoco_id,
+				    std::set<int> controller_ids,
+				    int burster_id,
+				    const mjModel* m,
+				    const mjData* d_init)
   {
     if(controller_ids.find(MIRROR_EXTERNAL_ROBOT)!=controller_ids.end())
       {
@@ -40,10 +41,19 @@ namespace pam_mujoco
 				  m,d);
 	std::cout << "... controller added" << std::endl;
       }
+    if(burster_id!=-1)
+      {
+	if(burster_id == MIRROR_EXTERNAL_ROBOT)
+	  {
+	    return get_mirror_external_robot_segment_id(mujoco_id);
+	  }
+	  
+      }
+    return std::string();
   }
 
   void execute(std::string mujoco_id, std::string model_path,
-	       std::set<int> controller_ids)
+	       std::set<int> controller_ids, int burster_id)
   {
 
     // initialize everything
@@ -55,9 +65,10 @@ namespace pam_mujoco
 
     // constructing the requested controllers
     // (m and d are global variables defined in mujoco_base.hpp)
-    construct_controllers(mujoco_id,
-			  controller_ids,
-			  m,d);
+    std::string segment_id = construct_controllers(mujoco_id,
+						   controller_ids,
+						   burster_id,
+						   m,d);
 
     // setting the constructed controllers as mujoco controllers
     // (how it works: construct_controller aboves populate the (global)
@@ -76,7 +87,11 @@ namespace pam_mujoco
     set_started(mujoco_id);
 
 
-    run(&mujoco_id);
+    std::tuple<std::string,std::string> mujoco_segment_ids;
+    std::get<0>(mujoco_segment_ids)=mujoco_id;
+    std::get<1>(mujoco_segment_ids)=segment_id;
+    
+    run(&mujoco_segment_ids);
     
     // start simulation thread (run is a function defined mujoco_base.hpp)
     /*real_time_tools::RealTimeThread thread;
