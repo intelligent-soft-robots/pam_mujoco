@@ -7,6 +7,7 @@
 #include "real_time_tools/thread.hpp"
 #include "pam_mujoco/mujoco_base.hpp"
 #include "pam_mujoco/mirror_external_robot.hpp"
+#include "pam_mujoco/burst_controller.hpp"
 #include "pam_mujoco/run_management.hpp"
 
 
@@ -24,6 +25,9 @@ namespace pam_mujoco
   static constexpr int MIRROR_EXTERNAL_BALL = 2;
   static const std::string MIRROR_EXTERNAL_BALL_SUFFIX("mirror_ball");
 
+  static constexpr int BURST_CONTROLLER = 3;
+
+  
   bool run_g = true;
   std::string error_message_g("no error");
   

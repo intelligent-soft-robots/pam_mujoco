@@ -28,6 +28,13 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(mirroring);
   }
 
+  void add_bursting_controller(std::string segment_id)
+  {
+    std::shared_ptr<BurstController> bc
+      = std::make_shared<BurstController>(segment_id);
+    pam_mujoco::Controllers::add(bc);
+  }
+  
   std::string construct_controllers(std::string mujoco_id,
 				    std::set<int> controller_ids,
 				    int burster_id,
@@ -36,15 +43,14 @@ namespace pam_mujoco
   {
     if(controller_ids.find(MIRROR_EXTERNAL_ROBOT)!=controller_ids.end())
       {
-	std::cout << "adding mirror external robot controller" << std::endl;
 	add_mirror_external_robot(get_mirror_external_robot_segment_id(mujoco_id),
 				  m,d);
-	std::cout << "... controller added" << std::endl;
       }
     if(burster_id!=-1)
       {
 	if(burster_id == MIRROR_EXTERNAL_ROBOT)
 	  {
+	    add_bursting_controller(get_mirror_external_robot_segment_id(mujoco_id));
 	    return get_mirror_external_robot_segment_id(mujoco_id);
 	  }
 	  

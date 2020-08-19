@@ -21,7 +21,6 @@
 #include <string>
 
 #include "real_time_tools/thread.hpp"
-#include "o80/burster.hpp"
 #include "pam_mujoco/run_management.hpp"
 
 
@@ -2017,10 +2016,6 @@ THREAD_FUNCTION_RETURN_TYPE run(void* msids)
     std::string mujoco_id = std::get<0>(*mujoco_segment_ids);
     std::string segment_id = std::get<1>(*mujoco_segment_ids);
 
-    o80::Burster::clear_memory(segment_id);
-    o80::Burster burster(segment_id);
-    o80::Burster::turn_on(segment_id);
-    
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest
 	   && pam_mujoco::is_stop_requested(mujoco_id) )
@@ -2046,7 +2041,6 @@ THREAD_FUNCTION_RETURN_TYPE run(void* msids)
         // render while simulation is running
         render(window);
 
-	burster.pulse();
     }
 
     // stop simulation thread
