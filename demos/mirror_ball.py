@@ -8,7 +8,7 @@ import multiprocessing
 def execute_mujoco(mujoco_id,model):
 
     controllers = set([pam_mujoco.ControllerTypes.MIRROR_ONE_BALL])
-    bursting_segment_id = pam_mujoco.get_mirror_one_ball_segment_id(mujoco_id)
+    bursting_segment_id = "" # i.e. not bursting mode
     pam_mujoco.execute(mujoco_id,model,controllers,
                        bursting_segment_id)
     while not pam_mujoco.is_stop_requested(mujoco_id):
@@ -28,24 +28,21 @@ frontend = pam_mujoco.MirrorOneBallFrontEnd(segment_id)
 
 trajectory_points = list(context.BallTrajectories().random_trajectory())
 
-nb_iterations = 50
-for index,traj_point in enumerate(trajectory_points):
-    iteration = o80.Iteration((index+1)*nb_iterations)
+duration = o80.Duration_us.milliseconds(10)
+for traj_point in trajectory_points:
     for dim in range(3):
         frontend.add_command(2*dim,
                              o80.State1d(traj_point.position[dim]),
-                             iteration,
+                             duration,
                              o80.Mode.QUEUE)
         frontend.add_command(2*dim+1,
                              o80.State1d(traj_point.velocity[dim]),
-                             iteration,
+                             duration,
                              o80.Mode.QUEUE)
 
-frontend.burst(len(trajectory_points)*nb_iterations)
+frontend.pulse_and_wait()
 
 pam_mujoco.request_stop("mj")
-
-frontend.final_burst()
 
 process.join()
 

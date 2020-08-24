@@ -36,7 +36,6 @@ void MirrorExternalBalls<QUEUE_SIZE,
 	= states.get(index_state+3).value;
       d->qvel[index_q_balls_+index_mujoco+2]
       = states.get(index_state+5).value;
-      std::cout << states.get(index_state).value << "\n";
     }
   states_ = states;
 }
