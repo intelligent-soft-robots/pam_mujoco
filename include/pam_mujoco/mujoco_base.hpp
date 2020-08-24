@@ -95,6 +95,10 @@ struct
 
     // rendering: need sync
     int camera = 0;
+
+    // for exiting thread
+  std::string mujoco_id;
+  
 } settings;
 
 
@@ -1833,7 +1837,8 @@ void simulate(void)
     mjtNum simsync = 0;
 
     // run until asked to exit
-    while( !settings.exitrequest )
+    while( (!settings.exitrequest) 
+      	   && (!pam_mujoco::is_stop_requested(settings.mujoco_id)) )
     {
         // sleep for 1 ms or yield, to let main thread run
         //  yield results in busy wait - which has better timing but kills battery life
@@ -1911,6 +1916,7 @@ void simulate(void)
         // end exclusive access
         mtx.unlock();
     }
+
 }
 
 
@@ -2005,20 +2011,19 @@ void init(void)
 }
 
 
-THREAD_FUNCTION_RETURN_TYPE run(void* msids)
+THREAD_FUNCTION_RETURN_TYPE run(void* mid)
 {
 
       // start simulation thread
     std::thread simthread(simulate);
 
-    std::tuple<std::string,std::string>* mujoco_segment_ids
-      = static_cast<std::tuple<std::string,std::string>*>(msids);
-    std::string mujoco_id = std::get<0>(*mujoco_segment_ids);
-    std::string segment_id = std::get<1>(*mujoco_segment_ids);
+    std::string* mujoco_id = static_cast<std::string*>(mid);
 
+    settings.mujoco_id = *mujoco_id;
+    
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest
-	   && pam_mujoco::is_stop_requested(mujoco_id) )
+	   && !pam_mujoco::is_stop_requested(*mujoco_id) )
       {
         // start exclusive access (block simulation thread)
         mtx.lock();
@@ -2046,7 +2051,7 @@ THREAD_FUNCTION_RETURN_TYPE run(void* msids)
     // stop simulation thread
     settings.exitrequest = 1;
     simthread.join();
-
+    
     // delete everything we allocated
     uiClearCallback(window);
     mj_deleteData(d); 
@@ -2063,6 +2068,6 @@ THREAD_FUNCTION_RETURN_TYPE run(void* msids)
     #endif
 
     // indicating end user all is finished
-	pam_mujoco::set_stopped(mujoco_id);
-	
+	pam_mujoco::set_stopped(*mujoco_id);
+
 }

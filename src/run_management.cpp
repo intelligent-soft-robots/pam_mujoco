@@ -22,7 +22,7 @@ namespace pam_mujoco
   {
     bool value;
     shared_memory::get<bool>(mujoco_id,mujoco_id,value);
-    return value;
+    return !value;
   }
 
 }

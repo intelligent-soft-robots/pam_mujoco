@@ -2,26 +2,26 @@
 
 #include "o80/memory_clearing.hpp"
 #include "o80/back_end.hpp"
-#include "o80/state2d.hpp"
+#include "o80/state1d.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
 
 namespace pam_mujoco
 {
 
-  template<int QUEUE_SIZE, int NB_DOFS>
-  class MirrorExternalRobot : public ControllerBase
+  template<int QUEUE_SIZE, int NB_BALLS>
+  class MirrorExternalBalls : public ControllerBase
   {
     
   private:
     typedef o80::BackEnd<QUEUE_SIZE,
-			 NB_DOFS,
-			 o80::State2d,
+			 NB_BALLS*6, // 3d position and 3d velocity per ball
+			 o80::State1d,
 			 o80::VoidExtendedState> Backend;
-    typedef o80::States<NB_DOFS,o80::State2d> States;
+    typedef o80::States<NB_BALLS*6,o80::State1d> States;
 
   public:
-    MirrorExternalRobot(std::string segment_id,
+    MirrorExternalBalls(std::string segment_id,
 			const mjModel* m,
 			const mjData* d_init);
     void set_state(mjData* d);
@@ -30,13 +30,13 @@ namespace pam_mujoco
   public:
     static void clear(std::string segment_id);
   private:
-    int index_q_robot_;
-    int index_qvel_robot_;
+    int index_q_balls_;
+    int index_qvel_balls_;
     Backend backend_;
     States states_;
     
   };
 
-#include "mirror_external_robot.hxx"
+#include "mirror_balls.hxx"
   
 }

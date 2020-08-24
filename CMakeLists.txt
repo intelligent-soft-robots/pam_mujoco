@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 find_package(catkin REQUIRED COMPONENTS
   real_time_tools
   o80
+  context
   mujoco200
   pam_models
   mpi_cmake_modules
@@ -29,6 +30,11 @@ include_directories(include
   ${catkin_INCLUDE_DIRS}
   ${Eigen_INCLUDE_DIRS})
 
+# absolute path to the models folder
+get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
+set(MODELS_PATH "${MODEL_CONFIG_DIR}/")
+
+
 add_executable(mujoco_simulate_example
   src/run_management.cpp
   src/mujoco_simulate_example.cpp)
@@ -41,9 +47,10 @@ add_library(pam_mujoco
   src/run_management.cpp
   src/run_mujoco.cpp
   src/force_computes.cpp
-  src/controllers.cpp
-  src/pid.cpp)
+  src/controllers.cpp )
 target_link_libraries(pam_mujoco ${catkin_LIBRARIES})
+target_compile_definitions(pam_mujoco PRIVATE
+  MODEL_PATHS="${MODELS_PATH}")
 
 #add_executable(pam_mujoco_mirror_robot
 #  src/mirror_robot.cpp)
@@ -56,6 +63,8 @@ set_target_properties(pam_mujoco_py PROPERTIES
   OUTPUT_NAME pam_mujoco
   )
 install(TARGETS pam_mujoco_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
+target_compile_definitions(pam_mujoco_py PRIVATE
+  MODEL_PATHS="${MODELS_PATH}")
 
 catkin_add_gtest(pam_mujoco_tests
   tests/main.cpp

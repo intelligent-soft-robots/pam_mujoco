@@ -9,13 +9,13 @@ namespace pam_mujoco
     error_message_g = std::string(text);
   }
 
-  std::string get_mirror_external_robot_segment_id(std::string mujoco_id)
+  std::string get_mirror_robot_segment_id(std::string mujoco_id)
   {
     return std::string(mujoco_id+std::string("_")+
-		       SEGMENT_ID_PREFIX+MIRROR_EXTERNAL_ROBOT_SUFFIX);
+		       SEGMENT_ID_PREFIX+MIRROR_ROBOT_SUFFIX);
   }
 
-  void add_mirror_external_robot(std::string segment_id,
+  void add_mirror_robot(std::string segment_id,
 				 const mjModel* m,
 				 const mjData* d_init)
   {
@@ -28,53 +28,64 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(mirroring);
   }
 
-  void add_bursting_controller(std::string segment_id)
+  std::string get_mirror_one_ball_segment_id(std::string mujoco_id)
+  {
+    return std::string(mujoco_id+std::string("_")+
+		       SEGMENT_ID_PREFIX+MIRROR_ONE_BALL_SUFFIX);
+  }
+  
+  void add_bursting_controller(std::string mujoco_id,
+			       std::string segment_id)
   {
     std::shared_ptr<BurstController> bc
-      = std::make_shared<BurstController>(segment_id);
+      = std::make_shared<BurstController>(mujoco_id,segment_id);
     pam_mujoco::Controllers::add(bc);
   }
   
-  std::string construct_controllers(std::string mujoco_id,
-				    std::set<int> controller_ids,
-				    int burster_id,
-				    const mjModel* m,
-				    const mjData* d_init)
+  void construct_controllers(std::string mujoco_id,
+			     std::set<ControllerTypes> controller_types,
+			     std::string burster_segment_id,
+			     const mjModel* m,
+			     const mjData* d_init)
   {
-    if(controller_ids.find(MIRROR_EXTERNAL_ROBOT)!=controller_ids.end())
+    if(controller_types.find(ControllerTypes::MIRROR_ROBOT)!=controller_types.end())
       {
-	add_mirror_external_robot(get_mirror_external_robot_segment_id(mujoco_id),
+	add_mirror_robot(get_mirror_robot_segment_id(mujoco_id),
 				  m,d);
       }
-    if(burster_id!=-1)
+    if(controller_types.find(ControllerTypes::MIRROR_ONE_BALL)!=controller_types.end())
       {
-	if(burster_id == MIRROR_EXTERNAL_ROBOT)
-	  {
-	    add_bursting_controller(get_mirror_external_robot_segment_id(mujoco_id));
-	    return get_mirror_external_robot_segment_id(mujoco_id);
-	  }
-	  
+	add_mirror_balls<1>(get_mirror_one_ball_segment_id(mujoco_id),
+				     m,d);
       }
-    return std::string();
+    if(std::string("").compare(burster_segment_id)!=0)
+      {
+	add_bursting_controller(mujoco_id,burster_segment_id);
+      }
   }
 
-  void execute(std::string mujoco_id, std::string model_path,
-	       std::set<int> controller_ids, int burster_id)
+  void execute(std::string mujoco_id, std::string model_name,
+	       std::set<ControllerTypes> controller_types,
+	       std::string burster_segment_id)
   {
 
     // initialize everything
     init();
 
     // reading model from file and loading it
+    // (MODEL_PATH set in the CMakeLists.txt file
+    // as the abs path to the models folder of the pam_mujoco
+    // catkin package)
+    std::string model_path = MODEL_PATHS+model_name+std::string(".xml");
     mju_strncpy(filename, model_path.c_str(), 1000);
     loadmodel();
 
     // constructing the requested controllers
     // (m and d are global variables defined in mujoco_base.hpp)
-    std::string segment_id = construct_controllers(mujoco_id,
-						   controller_ids,
-						   burster_id,
-						   m,d);
+    construct_controllers(mujoco_id,
+			  controller_types,
+			  burster_segment_id,
+			  m,d);
 
     // setting the constructed controllers as mujoco controllers
     // (how it works: construct_controller aboves populate the (global)
@@ -93,26 +104,9 @@ namespace pam_mujoco
     set_started(mujoco_id);
 
 
-    std::tuple<std::string,std::string> mujoco_segment_ids;
-    std::get<0>(mujoco_segment_ids)=mujoco_id;
-    std::get<1>(mujoco_segment_ids)=segment_id;
+    // running mujoco (run defined in mujoco_base.hpp)
+    run(&mujoco_id);
     
-    run(&mujoco_segment_ids);
-    
-    // start simulation thread (run is a function defined mujoco_base.hpp)
-    /*real_time_tools::RealTimeThread thread;
-    thread.block_memory();
-    thread.create_realtime_thread(run,&mujoco_id);
-
-    // running until "request_stop" function is called
-    while (! is_stop_requested(mujoco_id))
-      {
-	std::cout << "looping ... " << std::endl;
-	usleep(2000);
-      }
-    
-      thread.join();*/
-
     
   }
 
