@@ -9,20 +9,18 @@ import multiprocessing
 mujoco_id = "mj"
 model = "pamy" # i.e pamy.xml in pam_mujoco/models/
 
-# running mujoco thread
+# running mujoco process
+# (note: could be started by another executable) 
 def execute_mujoco(mujoco_id,model):
-    # adding the mirror ball controller
-    controllers = set([pam_mujoco.ControllerTypes.MIRROR_ONE_BALL])
-    # empty string -> not bursting mode
-    bursting_segment_id = "" 
-    # staring the thread
-    pam_mujoco.execute(mujoco_id,model,controllers,
-                       bursting_segment_id)
+    # adding controller for mirroring ball
+    pam_mujoco.add_mirror_one_ball(mujoco_id)
+    # starting mujoco's process
+    pam_mujoco.execute(mujoco_id,model)
     # looping until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)
 
-
+        
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
                                    args=(mujoco_id,model,))
@@ -34,13 +32,11 @@ time.sleep(1)
 segment_id = pam_mujoco.get_mirror_one_ball_segment_id(mujoco_id)
 frontend = pam_mujoco.MirrorOneBallFrontEnd(segment_id)
 
-# reading a random pre-recorded ball trajectory
-trajectory_points = list(context.BallTrajectories().random_trajectory())
-
-# sending the full ball trajectory to the mujoco thread.
+# reading a pre-recorded ball trajectory and 
+# sending it to the mujoco process.
 # duration of 10ms : sampling rate of the trajectory
 duration = o80.Duration_us.milliseconds(10)
-for traj_point in trajectory_points:
+for traj_point in context.BallTrajectories().random_trajectory():
     # looping over x,y,z
     for dim in range(3):
         # setting position for dimension

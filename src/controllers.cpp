@@ -23,6 +23,15 @@ namespace pam_mujoco
   }
 
 
+  void Controllers::construct(const mjModel* m,
+			      mjData* d)
+  {
+    for(std::shared_ptr<ControllerBase> controller: Controllers::controllers_)
+      {
+	controller->construct(m,d);
+      }
+  }
+  
   std::vector<std::shared_ptr<ControllerBase>> Controllers::controllers_;
   
 }
