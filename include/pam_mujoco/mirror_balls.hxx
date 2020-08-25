@@ -1,8 +1,8 @@
 
 
 template<int QUEUE_SIZE, int NB_BALLS>
-MirrorExternalBalls<QUEUE_SIZE,
-		    NB_BALLS>::MirrorExternalBalls(std::string segment_id)
+MirrorBalls<QUEUE_SIZE,
+		    NB_BALLS>::MirrorBalls(std::string segment_id)
 		      : backend_{segment_id},
 			index_q_balls_(-1),
 			index_qvel_balls_(-1)
@@ -10,7 +10,7 @@ MirrorExternalBalls<QUEUE_SIZE,
 }
 
 template<int QUEUE_SIZE, int NB_BALLS>
-void MirrorExternalBalls<QUEUE_SIZE,
+void MirrorBalls<QUEUE_SIZE,
 		    NB_BALLS>::set_state(mjData* d)
 {
   const States& states = backend_.pulse(o80::time_now(),
@@ -39,7 +39,7 @@ void MirrorExternalBalls<QUEUE_SIZE,
 }
 
 template<int QUEUE_SIZE, int NB_BALLS>
-void MirrorExternalBalls<QUEUE_SIZE,
+void MirrorBalls<QUEUE_SIZE,
 		    NB_BALLS>::apply(const mjModel* m,
 				    mjData* d)
 {
@@ -52,7 +52,7 @@ void MirrorExternalBalls<QUEUE_SIZE,
 }
 
 template<int QUEUE_SIZE, int NB_BALLS>
-void MirrorExternalBalls<QUEUE_SIZE,
+void MirrorBalls<QUEUE_SIZE,
 			 NB_BALLS>::clear(std::string segment_id)
 {
   o80::clear_shared_memory(segment_id);

@@ -10,7 +10,7 @@ namespace pam_mujoco
 {
 
   template<int QUEUE_SIZE, int NB_DOFS>
-  class MirrorExternalRobot : public ControllerBase
+  class MirrorRobot : public ControllerBase
   {
     
   private:
@@ -21,7 +21,7 @@ namespace pam_mujoco
     typedef o80::States<NB_DOFS,o80::State2d> States;
 
   public:
-    MirrorExternalRobot(std::string segment_id);
+    MirrorRobot(std::string segment_id);
     void set_state(mjData* d);
     void apply(const mjModel* m,
 		 mjData* d);

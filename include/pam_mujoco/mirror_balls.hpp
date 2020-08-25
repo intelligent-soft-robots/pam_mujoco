@@ -10,7 +10,7 @@ namespace pam_mujoco
 {
 
   template<int QUEUE_SIZE, int NB_BALLS>
-  class MirrorExternalBalls : public ControllerBase
+  class MirrorBalls : public ControllerBase
   {
     
   private:
@@ -21,7 +21,7 @@ namespace pam_mujoco
     typedef o80::States<NB_BALLS*6,o80::State1d> States;
 
   public:
-    MirrorExternalBalls(std::string segment_id);
+    MirrorBalls(std::string segment_id);
     void set_state(mjData* d);
     void apply(const mjModel* m,
 		 mjData* d);

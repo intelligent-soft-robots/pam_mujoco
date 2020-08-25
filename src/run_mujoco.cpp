@@ -17,8 +17,8 @@ namespace pam_mujoco
 
   void add_mirror_robot(std::string segment_id)
   {
-    pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
-    typedef pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS> mer;
+    pam_mujoco::MirrorRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
+    typedef pam_mujoco::MirrorRobot<QUEUE_SIZE,NB_DOFS> mer;
     std::shared_ptr<mer> mirroring =
       std::make_shared<mer>(segment_id);
     pam_mujoco::Controllers::add(mirroring);

@@ -1,8 +1,8 @@
 
 
 template<int QUEUE_SIZE, int NB_DOFS>
-MirrorExternalRobot<QUEUE_SIZE,
-		    NB_DOFS>::MirrorExternalRobot(std::string segment_id)
+MirrorRobot<QUEUE_SIZE,
+		    NB_DOFS>::MirrorRobot(std::string segment_id)
 		      : backend_{segment_id},
 			index_q_robot_(-1),
 			index_qvel_robot_(-1)
@@ -10,7 +10,7 @@ MirrorExternalRobot<QUEUE_SIZE,
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>
-void MirrorExternalRobot<QUEUE_SIZE,
+void MirrorRobot<QUEUE_SIZE,
 		    NB_DOFS>::set_state(mjData* d)
 {
   const States& states = backend_.pulse(o80::time_now(),
@@ -26,7 +26,7 @@ void MirrorExternalRobot<QUEUE_SIZE,
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>
-void MirrorExternalRobot<QUEUE_SIZE,
+void MirrorRobot<QUEUE_SIZE,
 		    NB_DOFS>::apply(const mjModel* m,
 				    mjData* d)
 {
@@ -46,7 +46,7 @@ void MirrorExternalRobot<QUEUE_SIZE,
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>
-void MirrorExternalRobot<QUEUE_SIZE,
+void MirrorRobot<QUEUE_SIZE,
 			 NB_DOFS>::clear(std::string segment_id)
 {
   o80::clear_shared_memory(segment_id);
