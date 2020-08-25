@@ -21,9 +21,7 @@ namespace pam_mujoco
     typedef o80::States<NB_DOFS,o80::State2d> States;
 
   public:
-    MirrorExternalRobot(std::string segment_id,
-			const mjModel* m,
-			const mjData* d_init);
+    MirrorExternalRobot(std::string segment_id);
     void set_state(mjData* d);
     void apply(const mjModel* m,
 		 mjData* d);

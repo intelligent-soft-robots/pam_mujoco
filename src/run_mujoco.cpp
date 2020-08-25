@@ -15,15 +15,12 @@ namespace pam_mujoco
 		       SEGMENT_ID_PREFIX+MIRROR_ROBOT_SUFFIX);
   }
 
-  void add_mirror_robot(std::string segment_id,
-			const mjModel* m,
-			const mjData* d_init)
+  void add_mirror_robot(std::string segment_id)
   {
     pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
     typedef pam_mujoco::MirrorExternalRobot<QUEUE_SIZE,NB_DOFS> mer;
     std::shared_ptr<mer> mirroring =
-      std::make_shared<mer>(segment_id,
-			    m,d);
+      std::make_shared<mer>(segment_id);
     pam_mujoco::Controllers::add(mirroring);
   }
 
@@ -49,13 +46,11 @@ namespace pam_mujoco
   {
     if(controller_types.find(ControllerTypes::MIRROR_ROBOT)!=controller_types.end())
       {
-	add_mirror_robot(get_mirror_robot_segment_id(mujoco_id),
-				  m,d);
+	add_mirror_robot(get_mirror_robot_segment_id(mujoco_id));
       }
     if(controller_types.find(ControllerTypes::MIRROR_ONE_BALL)!=controller_types.end())
       {
-	add_mirror_balls<1>(get_mirror_one_ball_segment_id(mujoco_id),
-				     m,d);
+	add_mirror_balls<1>(get_mirror_one_ball_segment_id(mujoco_id));
       }
     if(std::string("").compare(burster_segment_id)!=0)
       {

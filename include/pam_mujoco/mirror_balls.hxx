@@ -2,13 +2,11 @@
 
 template<int QUEUE_SIZE, int NB_BALLS>
 MirrorExternalBalls<QUEUE_SIZE,
-		    NB_BALLS>::MirrorExternalBalls(std::string segment_id,
-						  const mjModel* m,
-						  const mjData* d_init)
-		      : backend_{segment_id}
+		    NB_BALLS>::MirrorExternalBalls(std::string segment_id)
+		      : backend_{segment_id},
+			index_q_balls_(-1),
+			index_qvel_balls_(-1)
 {
-  index_q_balls_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "ball_free_jnt")];
-  index_qvel_balls_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "ball_free_jnt")];
 }
 
 template<int QUEUE_SIZE, int NB_BALLS>
@@ -45,6 +43,11 @@ void MirrorExternalBalls<QUEUE_SIZE,
 		    NB_BALLS>::apply(const mjModel* m,
 				    mjData* d)
 {
+  if(index_q_balls_<0)
+    {
+      index_q_balls_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "ball_free_jnt")];
+      index_qvel_balls_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "ball_free_jnt")];
+    }
   set_state(d);
 }
 

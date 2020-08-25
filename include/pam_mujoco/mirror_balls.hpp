@@ -21,9 +21,7 @@ namespace pam_mujoco
     typedef o80::States<NB_BALLS*6,o80::State1d> States;
 
   public:
-    MirrorExternalBalls(std::string segment_id,
-			const mjModel* m,
-			const mjData* d_init);
+    MirrorExternalBalls(std::string segment_id);
     void set_state(mjData* d);
     void apply(const mjModel* m,
 		 mjData* d);

@@ -2,20 +2,11 @@
 
 template<int QUEUE_SIZE, int NB_DOFS>
 MirrorExternalRobot<QUEUE_SIZE,
-		    NB_DOFS>::MirrorExternalRobot(std::string segment_id,
-						  const mjModel* m,
-						  const mjData* d_init)
-		      : backend_{segment_id}
+		    NB_DOFS>::MirrorExternalRobot(std::string segment_id)
+		      : backend_{segment_id},
+			index_q_robot_(-1),
+			index_qvel_robot_(-1)
 {
-  index_q_robot_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
-  index_qvel_robot_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
-  o80::State2d joint_state;
-  for(std::size_t dof=0; dof<NB_DOFS; dof++)
-    {
-      joint_state.set<0>(d_init->qpos[index_q_robot_+dof]);
-      joint_state.set<1>(d_init->qvel[index_qvel_robot_+dof]);
-      states_.set(dof,joint_state);
-    }
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>
@@ -39,6 +30,18 @@ void MirrorExternalRobot<QUEUE_SIZE,
 		    NB_DOFS>::apply(const mjModel* m,
 				    mjData* d)
 {
+  if(index_q_robot_<0)
+    {
+      index_q_robot_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
+      index_qvel_robot_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
+      o80::State2d joint_state;
+      for(std::size_t dof=0; dof<NB_DOFS; dof++)
+	{
+	  joint_state.set<0>(d->qpos[index_q_robot_+dof]);
+	  joint_state.set<1>(d->qvel[index_qvel_robot_+dof]);
+	  states_.set(dof,joint_state);
+	}
+    }
   set_state(d);
 }
 
