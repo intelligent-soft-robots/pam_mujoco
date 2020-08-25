@@ -36,21 +36,19 @@ namespace pam_mujoco
   void exit(const char* text);
   
   std::string get_mirror_robot_segment_id(std::string mujoco_id);
-  void add_mirror_robot(std::string segment_id);
-
   std::string get_mirror_one_ball_segment_id(std::string mujoco_id);
+  
+  void add_mirror_robot(std::string mujoco_id);
+
   template<int NB_BALLS>
   void add_mirror_balls(std::string segment_id);
 
-  void construct_controllers(std::string mujoco_id,
-			     std::set<ControllerTypes> controller_types,
-			     std::string burster_segment_id,
-			     const mjModel* m,
-			     const mjData* d_init);
+  void add_mirror_one_ball(std::string mujoco_id);
+
+  void add_bursting(std::string mujoco_id,std::string segment_id);
   
-  void execute(std::string mujoco_id, std::string model_path,
-	       std::set<ControllerTypes> controller_types,
-	       std::string burster_segment_id=std::string(""));
+  void init_mujoco();
+  void execute(std::string mujoco_id, std::string model_path);
 
   #include "run_mujoco.hxx"
   

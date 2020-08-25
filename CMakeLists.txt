@@ -52,6 +52,17 @@ target_link_libraries(pam_mujoco ${catkin_LIBRARIES})
 target_compile_definitions(pam_mujoco PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
 
+
+add_executable(test_run
+  src/test_run.cpp)
+target_link_libraries(test_run
+  pam_mujoco
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${catkin_LIBRARIES})
+target_compile_definitions(test_run PRIVATE
+  MODEL_PATHS="${MODELS_PATH}")
+
+
 #add_executable(pam_mujoco_mirror_robot
 #  src/mirror_robot.cpp)
 #target_link_libraries(pam_mujoco_mirror_robot pam_mujoco ${catkin_LIBRARIES})

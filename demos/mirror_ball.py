@@ -11,13 +11,12 @@ model = "pamy" # i.e pamy.xml in pam_mujoco/models/
 
 # running mujoco thread
 def execute_mujoco(mujoco_id,model):
+    # init mujoco
+    pam_mujoco.init_mujoco()
     # adding the mirror ball controller
-    controllers = set([pam_mujoco.ControllerTypes.MIRROR_ONE_BALL])
-    # empty string -> not bursting mode
-    bursting_segment_id = "" 
+    pam_mujoco.add_mirror_one_ball_robot(mujoco_id)
     # staring the thread
-    pam_mujoco.execute(mujoco_id,model,controllers,
-                       bursting_segment_id)
+    pam_mujoco.execute(mujoco_id,model)
     # looping until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)
@@ -43,12 +42,12 @@ duration = o80.Duration_us.milliseconds(10)
 for traj_point in trajectory_points:
     # looping over x,y,z
     for dim in range(3):
-        # setting position for dimension
+        # setting position for dimension (x, y or z)
         frontend.add_command(2*dim,
                              o80.State1d(traj_point.position[dim]),
                              duration,
                              o80.Mode.QUEUE)
-        # setting velocity for dimension
+        # setting velocity for dimension (x, y or z)
         frontend.add_command(2*dim+1,
                              o80.State1d(traj_point.velocity[dim]),
                              duration,
