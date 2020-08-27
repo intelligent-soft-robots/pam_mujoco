@@ -43,6 +43,7 @@ target_link_libraries(mujoco_simulate_example
   ${catkin_LIBRARIES})
 
 add_library(pam_mujoco
+  src/contacts.cpp
   src/burst_controller.cpp
   src/run_management.cpp
   src/run_mujoco.cpp
