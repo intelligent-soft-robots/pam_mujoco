@@ -1,6 +1,8 @@
 #pragma once
 
+#include "mujoco.h"
 #include <algorithm>
+#include "shared_memory/shared_memory.hpp"
 #include "shared_memory/serializer.hpp"
 #include "pam_mujoco/controllers.hpp"
 
@@ -11,7 +13,7 @@ namespace pam_mujoco
    * Encapsulate the state (i.e. position and velocity)
    * of a ball and another object (i.e. racket and table)
    */
-  class ContactsStates
+  class ContactStates
   {
   public:
     template <class Archive>
@@ -25,7 +27,7 @@ namespace pam_mujoco
 	      time_stamp);
     }
   public:
-    ContactsStates();
+    ContactStates();
   public:
     // contactee: likely to be a racket or a table
     std::array<double,9> contactee_orientation;
@@ -69,10 +71,10 @@ namespace pam_mujoco
    *                          with the resulting velocity of the ball
    */
   void recompute_state_after_contact(const RecomputeStateConfig& config,
-				     const ContactsStates& pre_contact,
-				     const ContactsStates& current,
-				     double[3] get_ball_position,
-				     double[3] get_ball_velocity);
+				     const ContactStates& pre_contact,
+				     const ContactStates& current,
+				     double get_ball_position[3],
+				     double get_ball_velocity[3]);
 
   /**
    * extract information from d to update the instance
@@ -86,45 +88,85 @@ namespace pam_mujoco
    */
   void save_state(const mjData* d,
 		  int index_q_ball,
+		  int index_qvel_ball,
 		  int index_geom_ball,
 		  int index_geom_contactee,
-		  ContactsStates& get_states);
+		  ContactStates& get_states);
+
 
   /**
-   * class for managing the contact between the ball
-   * and the contactee (i.e. racket or table), i.e. 
+   * Encapsulates the information about a contact
+   * (or the abscence of contact). 
+   * position and time_stamp
+   * have meaning only if contact_occured is true.
+   */
+  class ContactInformation
+  {
+  public:
+    ContactInformation();
+    void register_distance(double d);
+    void register_contact(std::array<double,3> position,
+			  double time_stamp);
+    template <class Archive>
+    void serialize(Archive &archive)
+    {
+      archive(position,
+	      contact_occured,
+	      time_stamp,
+	      minimal_distance);
+    }
+  public:
+    std::array<double,3> position;
+    bool contact_occured;
+    double time_stamp;
+    double minimal_distance;
+  };
+
+  /**
+   * controller for managing the contact between the ball
+   * and a contactee (i.e. racket or table), i.e. 
    * detecting contacts and recomputing resulting ball
    * position and velocity
    */
-  class ContactBall
+  class ContactBall : public ControllerBase
   {
 
   public:
-    ContactBall(RecomputeStateConfig config,
-		int index_q_ball,
-		int index_geom_ball,
-		int index_geom_contactee);
-    /**
-     * detect contacts, and if contact is detected,
-     * update the position and velocity of the ball
-     * encapsulated in d.
-     */
-    void manage_contact(const mjModel* m, mjData* d);
+    ContactBall(std::string segment_id_contact_info,
+		std::string segment_id_reset,
+		RecomputeStateConfig config,
+		std::string ball_obj_joint,
+		std::string ball_geom,
+		std::string contactee_geom);
+  public:
+    // ControllerBase function
+    void apply(const mjModel* m,
+	       mjData* d);
   private:
+    void manage_contact(const mjModel* m, mjData* d);
+    void init(const mjModel* m);
     bool is_muted(bool contact_detected);
     bool is_in_contact(const mjModel* m, mjData* d);
+    void reset();
   private:
-    // contactee : racket or table
+    std::string segment_id_contact_info_;
+    std::string segment_id_reset_;
     RecomputeStateConfig config_;
-    ContactsStates previous_;
-    double min_distance_ball_contactee_;
+    ContactInformation contact_information_;
+    ContactStates previous_;
     int index_q_ball_;
-    int index_geom_ball;
-    int index_geom_contactee_;
-    bool contact_detected_;
+    int index_qvel_ball_;
+    int index_geom_ball_;
+    int index_geom_contactee_; // contactee : racket or table
+    std::string ball_obj_joint_;
+    std::string ball_geom_;
+    std::string contactee_geom_;
     bool muted_;
     int muted_count_;
   };
 
 
+
+
+  
 }
