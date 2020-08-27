@@ -9,14 +9,15 @@ model = "pamy" # i.e pamy.xml in pam_mujoco/models/
 
 # running the mujoco thread
 def execute_mujoco(mujoco_id,model):
-    # adding the mirror robot controller
-    controllers = set([pam_mujoco.ControllerTypes.MIRROR_ROBOT])
-    # bursting mode, and burst managed by the mirror robot
-    # o80 frontend (see rest of this script)
-    bursting_segment_id = pam_mujoco.get_mirror_robot_segment_id(mujoco_id)
+    # init mujoco
+    pam_mujoco.init_mujoco()
+    # adding mirroring robot controller
+    pam_mujoco.add_mirror_robot(mujoco_id)
+    # setting bursting mode
+    segment_id = pam_mujoco.get_mirror_robot_segment_id(mujoco_id)
+    pam_mujoco.add_bursting(mujoco_id,segment_id)
     # starting the mujoco thread
-    pam_mujoco.execute(mujoco_id,model,controllers,
-                       bursting_segment_id)
+    pam_mujoco.execute(mujoco_id,model)
     # runnign it until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)

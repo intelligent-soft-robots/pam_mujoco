@@ -22,8 +22,6 @@ namespace pam_mujoco
 
   public:
     MirrorRobot(std::string segment_id);
-    void construct(const mjModel* m,
-		   const mjData* d);
     void set_state(mjData* d);
     void apply(const mjModel* m,
 		 mjData* d);

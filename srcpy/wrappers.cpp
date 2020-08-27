@@ -35,10 +35,13 @@ PYBIND11_MODULE(pam_mujoco, m)
 
   m.def("init_mujoco",&pam_mujoco::init_mujoco);
   m.def("add_mirror_robot",&pam_mujoco::add_mirror_robot);
-  m.def("add_mirror_one_ball",&pam_mujoco::add_mirror_one_ball);
-  m.def("get_mirror_robot_segment_id",&pam_mujoco::get_mirror_robot_segment_id);
-  m.def("get_mirror_one_ball_segment_id",&pam_mujoco::get_mirror_one_ball_segment_id);
+  m.def("add_mirror_one_ball_robot",&pam_mujoco::add_mirror_one_ball);
+  m.def("add_bursting",&pam_mujoco::add_bursting);
   m.def("execute",&pam_mujoco::execute);
+  m.def("get_mirror_robot_segment_id",
+	&pam_mujoco::get_mirror_robot_segment_id);
+  m.def("get_mirror_one_ball_segment_id",
+	&pam_mujoco::get_mirror_one_ball_segment_id);
   m.def("request_stop",&pam_mujoco::request_stop);
   m.def("is_stop_requested",&pam_mujoco::is_stop_requested);
 }
