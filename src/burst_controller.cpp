@@ -10,12 +10,7 @@ namespace pam_mujoco
       burster_(segment_id),
       mujoco_id_(mujoco_id)
   {
-    o80::Burster::turn_on(segment_id);
   }
-
-  void BurstController::construct(const mjModel* m,
-				  const mjData* d)
-  {}
 
   void BurstController::apply(const mjModel* m,
 			      mjData* d)

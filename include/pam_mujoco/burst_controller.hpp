@@ -13,8 +13,6 @@ namespace pam_mujoco
   public:
     BurstController(std::string mujoco_id,
 		    std::string segment_id);
-    void construct(const mjModel* m,
-		   const mjData* d);
     void apply(const mjModel* m,
 	       mjData* d);
   private:
