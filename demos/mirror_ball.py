@@ -14,7 +14,7 @@ def execute_mujoco(mujoco_id,model):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding the mirror ball controller
-    pam_mujoco.add_mirror_one_ball_robot(mujoco_id)
+    pam_mujoco.add_mirror_one_ball_robot(mujoco_id,"ball_free_jnt")
     # staring the thread
     pam_mujoco.execute(mujoco_id,model)
     # looping until requested to stop

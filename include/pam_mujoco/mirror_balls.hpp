@@ -21,13 +21,15 @@ namespace pam_mujoco
     typedef o80::States<NB_BALLS*6,o80::State1d> States;
 
   public:
-    MirrorBalls(std::string segment_id);
+    MirrorBalls(std::string segment_id,
+		std::string ball_obj_joint);
     void set_state(mjData* d);
     void apply(const mjModel* m,
 		 mjData* d);
   public:
     static void clear(std::string segment_id);
   private:
+    std::string ball_obj_joint_;
     int index_q_balls_;
     int index_qvel_balls_;
     Backend backend_;

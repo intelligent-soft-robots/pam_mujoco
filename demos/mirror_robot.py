@@ -12,7 +12,7 @@ def execute_mujoco(mujoco_id,model):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding mirroring robot controller
-    pam_mujoco.add_mirror_robot(mujoco_id)
+    pam_mujoco.add_mirror_robot(mujoco_id,"joint_base_rotation")
     # setting bursting mode
     segment_id = pam_mujoco.get_mirror_robot_segment_id(mujoco_id)
     pam_mujoco.add_bursting(mujoco_id,segment_id)

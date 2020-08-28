@@ -2,8 +2,10 @@
 
 template<int QUEUE_SIZE, int NB_BALLS>
 MirrorBalls<QUEUE_SIZE,
-		    NB_BALLS>::MirrorBalls(std::string segment_id)
+	    NB_BALLS>::MirrorBalls(std::string segment_id,
+				   std::string ball_obj_joint)
 		      : backend_{segment_id},
+			ball_obj_joint_(ball_obj_joint),
 			index_q_balls_(-1),
 			index_qvel_balls_(-1)
 {
@@ -45,8 +47,10 @@ void MirrorBalls<QUEUE_SIZE,
 {
   if(index_q_balls_<0)
     {
-      index_q_balls_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "ball_free_jnt")];
-      index_qvel_balls_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "ball_free_jnt")];
+      index_q_balls_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT,
+						 ball_obj_joint_.c_str())];
+      index_qvel_balls_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT,
+						   ball_obj_joint_.c_str())];
     }
   set_state(d);
 }

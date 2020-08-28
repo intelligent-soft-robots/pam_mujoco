@@ -2,8 +2,10 @@
 
 template<int QUEUE_SIZE, int NB_DOFS>
 MirrorRobot<QUEUE_SIZE,
-		    NB_DOFS>::MirrorRobot(std::string segment_id)
+	    NB_DOFS>::MirrorRobot(std::string segment_id,
+				  std::string robot_joint_base)
 		      : backend_{segment_id},
+			robot_joint_base_(robot_joint_base),
 			index_q_robot_(-1),
 			index_qvel_robot_(-1)
 {
@@ -32,8 +34,10 @@ void MirrorRobot<QUEUE_SIZE,
 {
   if(index_q_robot_<0)
     {
-      index_q_robot_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
-      index_qvel_robot_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, "joint_base_rotation")];
+      index_q_robot_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT,
+						 robot_joint_base_.c_str())];
+      index_qvel_robot_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT,
+						   robot_joint_base_.c_str())];
       o80::State2d joint_state;
       for(std::size_t dof=0; dof<NB_DOFS; dof++)
 	{

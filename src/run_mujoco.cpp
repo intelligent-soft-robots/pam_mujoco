@@ -21,20 +21,20 @@ namespace pam_mujoco
 		       SEGMENT_ID_PREFIX+MIRROR_ONE_BALL_SUFFIX);
   }
   
-  void add_mirror_robot(std::string mujoco_id)
+  void add_mirror_robot(std::string mujoco_id, std::string robot_joint_base)
   {
     std::string segment_id = get_mirror_robot_segment_id(mujoco_id);
     pam_mujoco::MirrorRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
     typedef pam_mujoco::MirrorRobot<QUEUE_SIZE,NB_DOFS> mer;
     std::shared_ptr<mer> mirroring =
-      std::make_shared<mer>(segment_id);
+      std::make_shared<mer>(segment_id,robot_joint_base);
     pam_mujoco::Controllers::add(mirroring);
   }
 
-  void add_mirror_one_ball(std::string mujoco_id)
+  void add_mirror_one_ball(std::string mujoco_id, std::string ball_obj_joint)
   {
     std::string segment_id = get_mirror_one_ball_segment_id(mujoco_id);
-    add_mirror_balls<1>(segment_id);
+    add_mirror_balls<1>(segment_id,ball_obj_joint);
   }
   
   void add_bursting(std::string mujoco_id,

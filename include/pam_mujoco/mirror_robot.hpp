@@ -21,16 +21,19 @@ namespace pam_mujoco
     typedef o80::States<NB_DOFS,o80::State2d> States;
 
   public:
-    MirrorRobot(std::string segment_id);
-    void set_state(mjData* d);
+    MirrorRobot(std::string segment_id,
+		std::string robot_joint_base);
     void apply(const mjModel* m,
 		 mjData* d);
+  private:
+    void set_state(mjData* d);
   public:
     static void clear(std::string segment_id);
   private:
+    Backend backend_;
+    std::string robot_joint_base_;
     int index_q_robot_;
     int index_qvel_robot_;
-    Backend backend_;
     States states_;
     
   };
