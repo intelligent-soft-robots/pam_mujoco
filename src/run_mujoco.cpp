@@ -26,6 +26,17 @@ namespace pam_mujoco
   {
     add_mirror_balls<1>(segment_id,ball_obj_joint);
   }
+
+  void add_mirror_until_contact_one_ball(std::string segment_id,
+					 std::string mujoco_id,
+					 std::string ball_obj_joint,
+					 std::string contact_segment_id)
+  {
+    std::map<int,std::string> ball_index_segment_id;
+    ball_index_segment_id[0]=contact_segment_id;
+    add_mirror_balls<1>(segment_id,ball_obj_joint,
+			ball_index_segment_id);
+  }
   
   void add_bursting(std::string mujoco_id,
 		    std::string segment_id)

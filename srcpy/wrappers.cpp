@@ -60,6 +60,8 @@ PYBIND11_MODULE(pam_mujoco, m)
   m.def("init_mujoco",&pam_mujoco::init_mujoco);
   m.def("add_mirror_robot",&pam_mujoco::add_mirror_robot);
   m.def("add_mirror_one_ball_robot",&pam_mujoco::add_mirror_one_ball);
+  m.def("add_mirror_until_contact_one_ball_robot",
+	&pam_mujoco::add_mirror_until_contact_one_ball);
   m.def("add_contact_ball",&pam_mujoco::add_default_contact_ball);
   m.def("add_bursting",&pam_mujoco::add_bursting);
   m.def("execute",&pam_mujoco::execute);

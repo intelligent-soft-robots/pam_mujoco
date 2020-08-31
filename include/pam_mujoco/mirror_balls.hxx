@@ -14,6 +14,20 @@ MirrorBalls<QUEUE_SIZE,
 }
 
 template<int QUEUE_SIZE, int NB_BALLS>
+MirrorBalls<QUEUE_SIZE,
+	    NB_BALLS>::MirrorBalls(std::string segment_id,
+				   std::string ball_obj_joint,
+				   const std::map<int,
+				   std::string>& ball_index_segment_id)
+		      : MirrorBalls<QUEUE_SIZE,
+				    NB_BALLS>::MirrorBalls{segment_id,
+                                                           ball_obj_joint}
+{
+  set_contact_interrupt(ball_index_segment_id);
+}
+
+
+template<int QUEUE_SIZE, int NB_BALLS>
 void MirrorBalls<QUEUE_SIZE,
 		    NB_BALLS>::set_state(mjData* d)
 {
@@ -48,14 +62,19 @@ void MirrorBalls<QUEUE_SIZE,
   ContactInformation ci;
   for(std::size_t ball=0; ball<NB_BALLS; ball++)
     {
-      if( contact_interrupts_[ball] && !interrupted_[ball] )
+      if(contact_interrupts_[ball])
 	{
 	  shared_memory::deserialize(segment_id_contacts_[ball],
 				    segment_id_contacts_[ball],
 				    ci);
-	  if(ci.contact_occured)
+	  if(ci.contact_occured && !interrupted_[ball])
 	    {
 	      interrupted_[ball]=true;
+	    }
+	  if(interrupted_[ball] && !ci.contact_occured)
+	    {
+	      // contact has been reset
+	      interrupted_[ball]=false;
 	    }
 	}
     }
@@ -86,9 +105,6 @@ void MirrorBalls<QUEUE_SIZE,
     }
 }
 
-
-
-
 template<int QUEUE_SIZE, int NB_BALLS>
 void MirrorBalls<QUEUE_SIZE,
 		 NB_BALLS>::set_contact_interrupt(int ball_index,
@@ -97,8 +113,17 @@ void MirrorBalls<QUEUE_SIZE,
   contact_interrupts_[ball_index]=true;
   segment_id_contacts_[ball_index]=segment_id;
 }
-  
 
+template<int QUEUE_SIZE, int NB_BALLS>
+void MirrorBalls<QUEUE_SIZE,
+		 NB_BALLS>::set_contact_interrupt(const std::map<int,
+						                 std::string>& ball_index_segment_id)
+{
+  for (std::pair<std::string, int> element : ball_index_segment_id)
+    {
+      set_contact_interrupt(element.first,element.second);
+    }
+}
 
 template<int QUEUE_SIZE, int NB_BALLS>
 void MirrorBalls<QUEUE_SIZE,
