@@ -47,6 +47,7 @@ namespace pam_mujoco
   class RecomputeStateConfig
   {
   public:
+    RecomputeStateConfig();
     RecomputeStateConfig(bool robot1);
     double epsilon_r;
     double epsilon_t_x;

@@ -171,7 +171,17 @@ namespace pam_mujoco
     }
   }
 
-  
+  RecomputeStateConfig::RecomputeStateConfig()
+    : epsilon_r(0.78),
+      epsilon_t_x(0.73),
+      epsilon_t_z(0.92),
+      y_vel_plus(0),
+      z_vel_plus(0)
+  {
+    rot_matrix_contactee_zero_pos = {0.000, -1.000, -0.000,
+				     -1.000, 0.000, -0.000,
+				     0.000, 0.000, -1.000};
+  }
 
   ContactBall::ContactBall(std::string segment_id_contact_info,
 			   std::string segment_id_reset,

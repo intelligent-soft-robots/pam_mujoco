@@ -9,21 +9,10 @@ namespace pam_mujoco
     error_message_g = std::string(text);
   }
 
-  std::string get_mirror_robot_segment_id(std::string mujoco_id)
+  void add_mirror_robot(std::string segment_id,
+			std::string mujoco_id,
+			std::string robot_joint_base)
   {
-    return std::string(mujoco_id+std::string("_")+
-		       SEGMENT_ID_PREFIX+MIRROR_ROBOT_SUFFIX);
-  }
-
-  std::string get_mirror_one_ball_segment_id(std::string mujoco_id)
-  {
-    return std::string(mujoco_id+std::string("_")+
-		       SEGMENT_ID_PREFIX+MIRROR_ONE_BALL_SUFFIX);
-  }
-  
-  void add_mirror_robot(std::string mujoco_id, std::string robot_joint_base)
-  {
-    std::string segment_id = get_mirror_robot_segment_id(mujoco_id);
     pam_mujoco::MirrorRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
     typedef pam_mujoco::MirrorRobot<QUEUE_SIZE,NB_DOFS> mer;
     std::shared_ptr<mer> mirroring =
@@ -31,9 +20,10 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(mirroring);
   }
 
-  void add_mirror_one_ball(std::string mujoco_id, std::string ball_obj_joint)
+  void add_mirror_one_ball(std::string segment_id,
+			   std::string mujoco_id,
+			   std::string ball_obj_joint)
   {
-    std::string segment_id = get_mirror_one_ball_segment_id(mujoco_id);
     add_mirror_balls<1>(segment_id,ball_obj_joint);
   }
   
@@ -44,7 +34,39 @@ namespace pam_mujoco
       = std::make_shared<BurstController>(mujoco_id,segment_id);
     pam_mujoco::Controllers::add(bc);
   }
-  
+
+  void add_contact_ball(std::string segment_id_contact,
+			std::string segment_id_reset,
+			std::string ball_obj_joint,
+			std::string ball_geom,
+			std::string contactee_geom,
+			const RecomputeStateConfig& config)
+  {
+    std::shared_ptr<ContactBall> cb
+      = std::make_shared<ContactBall>(segment_id_contact,
+				      segment_id_reset,
+				      config,
+				      ball_obj_joint,
+				      ball_geom,
+				      contactee_geom);
+    pam_mujoco::Controllers::add(cb);
+  }
+
+  void add_default_contact_ball(std::string segment_id_contact,
+			std::string segment_id_reset,
+			std::string ball_obj_joint,
+			std::string ball_geom,
+			std::string contactee_geom)
+  {
+    RecomputeStateConfig config;
+    add_contact_ball(segment_id_contact,
+		     segment_id_reset,
+		     ball_obj_joint,
+		     ball_geom,
+		     contactee_geom,
+		     config);
+  }
+
   void init_mujoco()
   {
     init();

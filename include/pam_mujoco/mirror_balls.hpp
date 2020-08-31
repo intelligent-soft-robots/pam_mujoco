@@ -5,6 +5,7 @@
 #include "o80/state1d.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
+#include "pam_mujoco/contacts.hpp"
 
 namespace pam_mujoco
 {
@@ -23,6 +24,8 @@ namespace pam_mujoco
   public:
     MirrorBalls(std::string segment_id,
 		std::string ball_obj_joint);
+    void set_contact_interrupt(int ball_index,
+			       std::string segment_id);
     void set_state(mjData* d);
     void apply(const mjModel* m,
 		 mjData* d);
@@ -34,6 +37,9 @@ namespace pam_mujoco
     int index_qvel_balls_;
     Backend backend_;
     States states_;
+    std::array<bool,NB_BALLS> contact_interrupts_;
+    std::array<bool,NB_BALLS> interrupted_;
+    std::array<std::string,NB_BALLS> segment_id_contacts_;
     
   };
 

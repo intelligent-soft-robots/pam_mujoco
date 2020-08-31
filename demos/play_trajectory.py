@@ -5,16 +5,17 @@ import pam_mujoco
 import numpy as np
 import multiprocessing
 
-
+segment_id = "play_trajectory"
 mujoco_id = "mj"
 model = "pamy" # i.e pamy.xml in pam_mujoco/models/
 
 # running mujoco thread
-def execute_mujoco(mujoco_id,model):
+def execute_mujoco(segment_id,mujoco_id,model):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding the mirror ball controller
-    pam_mujoco.add_mirror_one_ball_robot(mujoco_id,"ball_free_jnt")
+    pam_mujoco.add_mirror_one_ball_robot(segment_id,mujoco_id,
+                                         "ball_free_jnt")
     # staring the thread
     pam_mujoco.execute(mujoco_id,model)
     # looping until requested to stop
@@ -24,13 +25,12 @@ def execute_mujoco(mujoco_id,model):
 
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(mujoco_id,model,))
+                                   args=(segment_id,mujoco_id,model,))
 process.start()
 time.sleep(1)
 
 # initializing o80 frontend for sending ball position/velocity
 # to mujoco thread
-segment_id = pam_mujoco.get_mirror_one_ball_segment_id(mujoco_id)
 frontend = pam_mujoco.MirrorOneBallFrontEnd(segment_id)
 
 # reading a random pre-recorded ball trajectory

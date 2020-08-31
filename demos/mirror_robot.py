@@ -4,17 +4,17 @@ import pam_mujoco
 import numpy as np
 import multiprocessing
 
+segment_id = "mirror_robot"
 mujoco_id = "mj"
 model = "pamy" # i.e pamy.xml in pam_mujoco/models/
 
 # running the mujoco thread
-def execute_mujoco(mujoco_id,model):
+def execute_mujoco(segment_id,mujoco_id,model):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding mirroring robot controller
-    pam_mujoco.add_mirror_robot(mujoco_id,"joint_base_rotation")
+    pam_mujoco.add_mirror_robot(segment_id,mujoco_id,"joint_base_rotation")
     # setting bursting mode
-    segment_id = pam_mujoco.get_mirror_robot_segment_id(mujoco_id)
     pam_mujoco.add_bursting(mujoco_id,segment_id)
     # starting the mujoco thread
     pam_mujoco.execute(mujoco_id,model)
@@ -24,13 +24,12 @@ def execute_mujoco(mujoco_id,model):
 
 # starting the mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(mujoco_id,model,))
+                                   args=(segment_id,mujoco_id,model,))
 process.start()
 time.sleep(2)
 
 # initializing the o80 frontend for sending
 # robot posture commands
-segment_id = pam_mujoco.get_mirror_robot_segment_id(mujoco_id)
 frontend = pam_mujoco.MirrorRobotFrontEnd(segment_id)
 
 # getting to init posture (all joints to pi/4)
