@@ -24,7 +24,8 @@ namespace pam_mujoco
 			   std::string mujoco_id,
 			   std::string ball_obj_joint)
   {
-    add_mirror_balls<1>(segment_id,ball_obj_joint);
+    std::map<int,std::string> empty;
+    add_mirror_balls<1>(segment_id,ball_obj_joint,empty);
   }
 
   void add_mirror_until_contact_one_ball(std::string segment_id,

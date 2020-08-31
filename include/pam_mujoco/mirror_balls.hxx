@@ -119,7 +119,7 @@ void MirrorBalls<QUEUE_SIZE,
 		 NB_BALLS>::set_contact_interrupt(const std::map<int,
 						                 std::string>& ball_index_segment_id)
 {
-  for (std::pair<std::string, int> element : ball_index_segment_id)
+  for (std::pair<int, std::string> element : ball_index_segment_id)
     {
       set_contact_interrupt(element.first,element.second);
     }

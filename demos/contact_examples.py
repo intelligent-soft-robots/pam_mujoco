@@ -25,17 +25,16 @@ def execute_mujoco(segment_id_contacts,
                                 "ball_free_jnt",
                                 "ball1",
                                 "plate")
-
     # adding the mirror ball controller
     # (mirroring will be interrupted upon contact with the table:
     # the contact controller (added right above) will write contact information
     # in the shared memory (segment: segment_id_contacts). The ball mirroring 
     # controller will stop mirroring the ball after the data shared in the memory
     # shows a contact occured).
-    pam_mujoco.add_mirror_until_contact_one_ball_robot(segment_id_ball,
-                                                       mujoco_id,
-                                                       "ball_free_jnt",
-                                                       segment_id_contacts)
+    pam_mujoco.add_mirror_until_contact_one_ball(segment_id_ball,
+                                                 mujoco_id,
+                                                 "ball_free_jnt",
+                                                 segment_id_contacts)
     # starting the thread
     pam_mujoco.execute(mujoco_id,model)
     # looping until requested to stop
