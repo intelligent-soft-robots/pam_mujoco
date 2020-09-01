@@ -26,7 +26,7 @@ def execute_mujoco(segment_id,mujoco_id,model):
 process  = multiprocessing.Process(target=execute_mujoco,
                                    args=(segment_id,mujoco_id,model,))
 process.start()
-time.sleep(2)
+time.sleep(3)
 
 # initializing the o80 frontend for sending
 # robot posture commands

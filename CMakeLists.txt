@@ -34,39 +34,15 @@ include_directories(include
 get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
 set(MODELS_PATH "${MODEL_CONFIG_DIR}/")
 
-
-add_executable(mujoco_simulate_example
-  src/run_management.cpp
-  src/mujoco_simulate_example.cpp)
-target_link_libraries(mujoco_simulate_example
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${catkin_LIBRARIES})
-
 add_library(pam_mujoco
   src/contacts.cpp
   src/burst_controller.cpp
   src/run_management.cpp
   src/run_mujoco.cpp
-  src/force_computes.cpp
   src/controllers.cpp )
-target_link_libraries(pam_mujoco ${catkin_LIBRARIES})
+target_link_libraries(pam_mujoco ${catkin_LIBRARIES} stdc++fs)
 target_compile_definitions(pam_mujoco PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
-
-
-add_executable(test_run
-  src/test_run.cpp)
-target_link_libraries(test_run
-  pam_mujoco
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${catkin_LIBRARIES})
-target_compile_definitions(test_run PRIVATE
-  MODEL_PATHS="${MODELS_PATH}")
-
-
-#add_executable(pam_mujoco_mirror_robot
-#  src/mirror_robot.cpp)
-#target_link_libraries(pam_mujoco_mirror_robot pam_mujoco ${catkin_LIBRARIES})
 
 pybind11_add_module(pam_mujoco_py srcpy/wrappers.cpp)
 target_link_libraries(pam_mujoco_py PRIVATE pam_mujoco ${catkin_LIBRARIES})
@@ -78,8 +54,4 @@ install(TARGETS pam_mujoco_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 target_compile_definitions(pam_mujoco_py PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
 
-catkin_add_gtest(pam_mujoco_tests
-  tests/main.cpp
-  tests/unit_tests.cpp)
-target_link_libraries(pam_mujoco_tests pam_mujoco ${catkin_libraries})
 
