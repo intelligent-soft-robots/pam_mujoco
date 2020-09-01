@@ -54,4 +54,4 @@ install(TARGETS pam_mujoco_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 target_compile_definitions(pam_mujoco_py PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
 
-
+build_sphinx_documentation()
