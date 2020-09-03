@@ -38,6 +38,23 @@ namespace pam_mujoco
     add_mirror_balls<1>(segment_id,ball_obj_joint,
 			ball_index_segment_id);
   }
+
+  void add_4dofs_pressure_controller(std::string segment_id,
+				     int scale_min_pressure, int scale_max_pressure,
+				     int scale_min_activation, int scale_max_activation,
+				     std::string muscle_json_config_path_ago,
+				     std::string muscle_json_config_path_antago,
+				     std::array<double,8> a_init,
+				     std::array<double,8> l_MTC_change_init)
+  {
+    add_pressure_controller<4>(segment_id,
+			       scale_min_pressure, scale_max_pressure,
+			       scale_min_activation, scale_max_activation,
+			       muscle_json_config_path_ago,
+			       muscle_json_config_path_antago,
+			       a_init,
+			       l_MTC_change_init);
+  }
   
   void add_bursting(std::string mujoco_id,
 		    std::string segment_id)

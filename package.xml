@@ -11,6 +11,8 @@
   <depend>real_time_tools</depend>
   <depend>mujoco200</depend>
   <depend>o80</depend>
+  <depend>o80_pam</depend>
+  <depend>pam_interface</depend>
   <depend>context</depend>
   <depend>pam_models</depend>
   <depend>mpi_cmake_modules</depend>
