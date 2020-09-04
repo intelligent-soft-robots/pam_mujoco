@@ -14,8 +14,8 @@ void add_mirror_balls(std::string segment_id,std::string ball_obj_joint,
 
 template<int NB_DOFS>
 void add_pressure_controller(std::string segment_id,
-			     int scale_min_pressure, int scale_max_pressure,
-			     int scale_min_activation, int scale_max_activation,
+			     double scale_min_pressure, double scale_max_pressure,
+			     double scale_min_activation, double scale_max_activation,
 			     std::string muscle_json_config_path_ago,
 			     std::string muscle_json_config_path_antago,
 			     std::array<double,NB_DOFS*2> a_init,
@@ -32,4 +32,5 @@ void add_pressure_controller(std::string segment_id,
 			 a_init,
 			 l_MTC_change_init);
   pam_mujoco::Controllers::add(pressure_controller);
+  pam_mujoco::Controllers::add_bias(pressure_controller);
 }

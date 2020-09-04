@@ -45,7 +45,7 @@ void PressureController<QUEUE_SIZE,
   for (std::size_t dof=0;dof<NB_DOFS;dof++)
     {
       d->ctrl[dof*2]=pressure2activation(states.get(dof*2).get());
-      d->ctrl[dof*2+1]=pressure2activation(states.get(dof*2+2).get());
+      d->ctrl[dof*2+1]=pressure2activation(states.get(dof*2+1).get());
     }
   // applying them to the muscles
   for (std::size_t muscle=0;muscle<NB_DOFS*2;muscle++)
@@ -59,8 +59,18 @@ void PressureController<QUEUE_SIZE,
 							 dot_l_MTC,
 							 a,l_CE);
       d->ctrl[NB_DOFS*2+muscle] = std::get<1>(r);
+      // bias_forces_ will be used by the get_bias method below
+      bias_forces_[NB_DOFS*2+muscle] = std::get<0>(r);
     }
+}
 
+template<int QUEUE_SIZE, int NB_DOFS>
+mjfAct PressureController<QUEUE_SIZE,
+			  NB_DOFS>::get_bias(const mjModel* m, const mjData* d, int id)
+{
+  int i_muscle = id - 2*NB_DOFS; // ???
+  return -bias_forces_[i_muscle]; // computed in the apply function
+  // note: optional filtering performed in the original code, ignored for now 
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>

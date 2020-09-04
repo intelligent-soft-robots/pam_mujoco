@@ -12,6 +12,11 @@ namespace pam_mujoco
   {
     Controllers::controllers_.push_back(controller);
   }
+
+  void Controllers::add_bias(std::shared_ptr<ActuatorBiasBase> bias)
+  {
+    Controllers::biases_.push_back(bias);
+  }
   
   void Controllers::apply(const mjModel* m,
 			  mjData* d)
@@ -24,5 +29,6 @@ namespace pam_mujoco
 
 
   std::vector<std::shared_ptr<ControllerBase>> Controllers::controllers_;
+  std::vector<std::shared_ptr<ActuatorBiasBase>> biases_;
   
 }

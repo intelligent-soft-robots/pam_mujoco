@@ -40,8 +40,8 @@ namespace pam_mujoco
   }
 
   void add_4dofs_pressure_controller(std::string segment_id,
-				     int scale_min_pressure, int scale_max_pressure,
-				     int scale_min_activation, int scale_max_activation,
+				     double scale_min_pressure, double scale_max_pressure,
+				     double scale_min_activation, double scale_max_activation,
 				     std::string muscle_json_config_path_ago,
 				     std::string muscle_json_config_path_antago,
 				     std::array<double,8> a_init,
@@ -117,8 +117,10 @@ namespace pam_mujoco
     // vector pam_mujoco::Controllers::controllers_ with instances of controllers.
     // The pam_mujoco::Controllers::apply has these controllers being called
     // sequentially at each mujoco iteration).
+    // (same principle for biases, also encapsulated by the Controllers static class)
     mjcb_control = pam_mujoco::Controllers::apply;
-
+    mjcb_act_bias = pam_mujoco::Controllers::get_bias;
+    
     // exiting on error
     mju_user_warning = exit;
 
