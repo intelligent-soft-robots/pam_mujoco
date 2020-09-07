@@ -27,8 +27,20 @@ namespace pam_mujoco
       }
   }
 
+  mjtNum Controllers::get_bias(const mjModel* m,
+			       const mjData* d,
+			       int id)
+  {
+    mjtNum b=0;
+    for(std::shared_ptr<ActuatorBiasBase> bias: Controllers::biases_)
+      {
+	b+= bias->get_bias(m,d,id);
+      }
+    return b;
+  }
 
+  
   std::vector<std::shared_ptr<ControllerBase>> Controllers::controllers_;
-  std::vector<std::shared_ptr<ActuatorBiasBase>> biases_;
+  std::vector<std::shared_ptr<ActuatorBiasBase>> Controllers::biases_;
   
 }

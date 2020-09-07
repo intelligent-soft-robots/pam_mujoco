@@ -66,18 +66,24 @@ frontend = o80_pam.FrontEnd(segment_id)
 
 # sending some commands
 
-def go_to(ago_pressure,antago_pressure,duration):
-    for dof in range(4):
+def go_to(ago_pressure,antago_pressure,duration,dofs=[0,1,2,3]):
+    for dof in dofs:
         frontend.add_command(dof,
                              ago_pressure,antago_pressure,
-                             o80.Duration_us.seconds(duration),
+                             o80.Duration_us.milliseconds(duration),
                              o80.Mode.QUEUE)
     frontend.pulse_and_wait()
 
-go_to(18000,18000,3)    
-go_to(12000,18000,3)
-go_to(18000,12000,3)
-go_to(0,0,3)
+go_to(20000,20000,1000)
+for dof in range(4):
+    print("moving dof:",dof)
+    go_to(18000,22000,1000,dofs=[dof])
+    go_to(22000,18000,1000,dofs=[dof])
+    go_to(20000,20000,1500,dofs=[dof])
+
+print("releasing pressure")
+go_to(0,0,3000)
+time.sleep(3)
     
 
 # ending the mujoco thread

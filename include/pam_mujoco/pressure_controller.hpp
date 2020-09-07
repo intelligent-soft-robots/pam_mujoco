@@ -9,7 +9,9 @@ namespace pam_mujoco
 {
 
   template<int QUEUE_SIZE, int NB_DOFS>
-  class PressureController : public ControllerBase,ActuatorBiasBase
+  class PressureController : public ActuatorBiasBase, // get_bias function
+                             public ControllerBase // apply function
+    
   {
   public:
     typedef pam_models::hill::Muscle Muscle;
@@ -28,7 +30,7 @@ namespace pam_mujoco
 		       std::array<double,NB_DOFS*2> l_MTC_change_init);
     void apply(const mjModel* m,
 	       mjData* d);
-    mjfAct get_bias(const mjModel* m, const mjData* d, int id);
+    mjtNum get_bias(const mjModel* m, const mjData* d, int id);
   public:
     static void clear(std::string segment_id);
   private:

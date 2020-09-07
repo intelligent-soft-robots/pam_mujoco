@@ -60,15 +60,17 @@ void PressureController<QUEUE_SIZE,
 							 a,l_CE);
       d->ctrl[NB_DOFS*2+muscle] = std::get<1>(r);
       // bias_forces_ will be used by the get_bias method below
-      bias_forces_[NB_DOFS*2+muscle] = std::get<0>(r);
+      bias_forces_[muscle] = std::get<0>(r);
     }
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>
-mjfAct PressureController<QUEUE_SIZE,
-			  NB_DOFS>::get_bias(const mjModel* m, const mjData* d, int id)
+mjtNum PressureController<QUEUE_SIZE,
+			  NB_DOFS>::get_bias(const mjModel* m,
+					     const mjData* d,
+					     int id)
 {
-  int i_muscle = id - 2*NB_DOFS; // ???
+  int i_muscle = id - 2*NB_DOFS; 
   return -bias_forces_[i_muscle]; // computed in the apply function
   // note: optional filtering performed in the original code, ignored for now 
 }
