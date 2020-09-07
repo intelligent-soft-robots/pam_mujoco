@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   pam_models
   mpi_cmake_modules
   pam_interface
+  o80_pam
 )
 
 search_for_pthread()

@@ -38,6 +38,23 @@ namespace pam_mujoco
     add_mirror_balls<1>(segment_id,ball_obj_joint,
 			ball_index_segment_id);
   }
+
+  void add_4dofs_pressure_controller(std::string segment_id,
+				     double scale_min_pressure, double scale_max_pressure,
+				     double scale_min_activation, double scale_max_activation,
+				     std::string muscle_json_config_path_ago,
+				     std::string muscle_json_config_path_antago,
+				     std::array<double,8> a_init,
+				     std::array<double,8> l_MTC_change_init)
+  {
+    add_pressure_controller<4>(segment_id,
+			       scale_min_pressure, scale_max_pressure,
+			       scale_min_activation, scale_max_activation,
+			       muscle_json_config_path_ago,
+			       muscle_json_config_path_antago,
+			       a_init,
+			       l_MTC_change_init);
+  }
   
   void add_bursting(std::string mujoco_id,
 		    std::string segment_id)
@@ -100,8 +117,10 @@ namespace pam_mujoco
     // vector pam_mujoco::Controllers::controllers_ with instances of controllers.
     // The pam_mujoco::Controllers::apply has these controllers being called
     // sequentially at each mujoco iteration).
+    // (same principle for biases, also encapsulated by the Controllers static class)
     mjcb_control = pam_mujoco::Controllers::apply;
-
+    mjcb_act_bias = pam_mujoco::Controllers::get_bias;
+    
     // exiting on error
     mju_user_warning = exit;
 

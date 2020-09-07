@@ -63,6 +63,7 @@ PYBIND11_MODULE(pam_mujoco, m)
   m.def("add_mirror_until_contact_one_ball",
 	&pam_mujoco::add_mirror_until_contact_one_ball);
   m.def("add_contact_ball",&pam_mujoco::add_default_contact_ball);
+  m.def("add_pressure_controller",&pam_mujoco::add_4dofs_pressure_controller);
   m.def("add_bursting",&pam_mujoco::add_bursting);
   m.def("execute",&pam_mujoco::execute);
   m.def("request_stop",&pam_mujoco::request_stop);

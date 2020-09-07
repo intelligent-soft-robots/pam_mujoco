@@ -10,6 +10,7 @@
 #include "pam_mujoco/mirror_balls.hpp"
 #include "pam_mujoco/contacts.hpp"
 #include "pam_mujoco/burst_controller.hpp"
+#include "pam_mujoco/pressure_controller.hpp"
 #include "pam_mujoco/run_management.hpp"
 
 
@@ -108,6 +109,23 @@ namespace pam_mujoco
    * "burst" method of a corresponding o80 frontend is called
    */
   void add_bursting(std::string mujoco_id,std::string segment_id);
+
+  template<int NB_DOFS>
+  void add_pressure_controller(std::string segment_id,
+			       double scale_min_pressure, double scale_max_pressure,
+			       double scale_min_activation, double scale_max_activation,
+			       std::string muscle_json_config_path_ago,
+			       std::string muscle_json_config_path_antago,
+			       std::array<double,NB_DOFS*2> a_init,
+			       std::array<double,NB_DOFS*2> l_MTC_change_init);
+
+  void add_4dofs_pressure_controller(std::string segment_id,
+				     double scale_min_pressure, double scale_max_pressure,
+				     double scale_min_activation, double scale_max_activation,
+				     std::string muscle_json_config_path_ago,
+				     std::string muscle_json_config_path_antago,
+				     std::array<double,8> a_init,
+				     std::array<double,8> l_MTC_change_init);
   
   void init_mujoco();
   void execute(std::string mujoco_id, std::string model_path);
