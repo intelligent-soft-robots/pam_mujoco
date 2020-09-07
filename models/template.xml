@@ -1,0 +1,41 @@
+<mujoco>
+  <compiler coordinate="local" meshdir="igus/" angle="degree"/>
+  <size njmax="6000" nconmax="6000"/>
+  <option gravity="0 0 -9.81" integrator="RK4" timestep="0.002"  density="1.2" collision="predefined">
+    <flag gravity="enable" contact="enable" passive="enable"/>
+  </option>
+  <visual>
+    <quality shadowsize="4096"/>
+    <global offwidth="1920" offheight="1080"/>
+  </visual>
+  <asset>
+        <mesh file="RL-50_Rotaryeinheit_abkupfer.stl" scale="0.001 0.001 0.001"/>
+        <mesh file="igus_base_move.stl" scale="0.001 0.001 0.001"/>
+        <mesh file="igus_move.stl" scale="0.001 0.001 0.001"/>
+        <mesh file="schlaeger_anbindung-igus_anbindung_extra-1.stl" scale="0.001 0.001 0.001"/>
+        <mesh file="schlaeger_anbindung-Tischtennisschlaeger_Butterfly-1.stl" scale="0.001 0.001 0.001"/>
+  </asset>
+  <worldbody>
+    <light diffuse="1.5 1.5 1.5" pos="0 0 8.0" dir="0 0 -1"/>
+    <light directional="true" cutoff="60" exponent="1" diffuse="0.1 0.1 0.1" specular=".1 .1 .1" pos=".1 .2 1.3" dir="-.1 -.2 -1.3"/>
+    <geom pos="0.0 1.75 -1.2" name="floor" type="plane" size="3.0 3.0 1.0" rgba=".16 .15 0.20 0.9" solref="0.03 0.06"/>
+
+    <!-- bodies -->
+    
+
+  </worldbody>
+
+  <contact>
+
+    <!-- contacts -->
+    
+  </contact>
+
+  <actuation>
+    
+  <!-- actuations -->
+
+  </actuation>
+  
+</mujoco>
+

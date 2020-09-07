@@ -1,0 +1,16 @@
+    <general name = "?id?_activation_1" joint="?id?_dummy_joint_activation_1" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.015908 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_activation_2" joint="?id?_dummy_joint_activation_2" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.015908 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_activation_3" joint="?id?_dummy_joint_activation_3" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_activation_4" joint="?id?_dummy_joint_activation_4" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_activation_5" joint="?id?_dummy_joint_activation_5" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_activation_6" joint="?id?_dummy_joint_activation_6" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_activation_7" joint="?id?_dummy_joint_activation_7" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_activation_8" joint="?id?_dummy_joint_activation_8" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "?id?_muscle_1" joint="?id?_joint_muscle_1" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "?id?_muscle_2" joint="?id?_joint_muscle_2" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "?id?_muscle_3" joint="?id?_joint_muscle_3" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "?id?_muscle_4" joint="?id?_joint_muscle_4" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "?id?_muscle_5" joint="?id?_joint_muscle_5" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "?id?_muscle_6" joint="?id?_joint_muscle_6" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "?id?_muscle_7" joint="?id?_joint_muscle_7" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "?id?_muscle_8" joint="?id?_joint_muscle_8" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>

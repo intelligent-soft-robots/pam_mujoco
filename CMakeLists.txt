@@ -49,10 +49,13 @@ pybind11_add_module(pam_mujoco_py srcpy/wrappers.cpp)
 target_link_libraries(pam_mujoco_py PRIVATE pam_mujoco ${catkin_LIBRARIES})
 set_target_properties(pam_mujoco_py PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}
-  OUTPUT_NAME pam_mujoco
+  OUTPUT_NAME pam_mujoco_wrp
   )
 install(TARGETS pam_mujoco_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 target_compile_definitions(pam_mujoco_py PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
+
+# python package (will be extended with pam_mujoco_wrp)
+catkin_python_setup()
 
 build_sphinx_documentation()

@@ -1,0 +1,262 @@
+ <actuation>
+ <tendon>
+    <spatial name = "1_tendon_1" width="0.001" rgba="0.7 0.4 0.4 1.0" limited="true" range="0.0 0.89335" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_1_moving_end"/>
+      <site site="1_tendon_1_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_1"/> 
+      <site site="1_tendon_1_2_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_1"/> 
+      <site site="1_tendon_2_base_rot_connection"/>
+    </spatial>
+    <spatial name = "1_tendon_2" width="0.001" rgba="0.7 0.4 0.4 1.0" limited="true" range="0.0 0.89335" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_2_moving_end"/>
+      <site site="1_tendon_2_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_1"/>
+      <site site="1_tendon_1_2_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_1"/>
+      <site site="1_tendon_1_base_rot_connection"/>
+    </spatial>
+    <spatial name = "1_tendon_3" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 0.88194" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_3_moving_end"/>
+      <site site="1_muscle_3_tendon_horizontal_point"/>
+      <site site="1_center_joint_1_2"/>
+      <site site="1_tendon_3_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_2"/> 
+      <site site="1_tendon_3_4_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_2"/> 
+      <site site="1_tendon_4_base_rot_connection"/>
+    </spatial>
+    <spatial name = "1_tendon_4" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 0.95594" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_4_moving_end"/>
+      <site site="1_muscle_4_tendon_horizontal_point"/>
+      <site site="1_center_joint_1_2"/>
+      <site site="1_tendon_4_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_2"/>
+      <site site="1_tendon_3_4_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_2"/>
+      <site site="1_tendon_3_base_rot_connection"/>
+    </spatial>
+    <spatial name = "1_tendon_5" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.293" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_5_moving_end"/>
+      <site site="1_muscle_5_tendon_horizontal_point"/>
+      <site site="1_center_joint_1_2"/>
+      <site site="1_center_joint_3_4"/>
+      <site site="1_tendon_5_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_3"/> 
+      <site site="1_tendon_5_6_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_3"/> 
+      <site site="1_tendon_6_base_rot_connection"/>
+    </spatial>
+    <spatial name = "1_tendon_6" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.367" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_6_moving_end"/>
+      <site site="1_muscle_6_tendon_horizontal_point"/>
+      <site site="1_center_joint_1_2"/>
+      <site site="1_center_joint_3_4"/>
+      <site site="1_tendon_6_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_3"/>
+      <site site="1_tendon_5_6_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_3"/>
+      <site site="1_tendon_5_base_rot_connection"/>
+    </spatial>
+        <spatial name = "1_tendon_7" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.3016" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_7_moving_end"/>
+      <site site="1_muscle_7_tendon_horizontal_point"/>
+      <site site="1_center_joint_1_2"/>
+      <site site="1_center_joint_3_4"/>
+      <site site="1_tendon_7_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_4"/> 
+      <site site="1_tendon_7_8_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_4"/> 
+      <site site="1_tendon_8_base_rot_connection"/>
+    </spatial>
+    <spatial name = "1_tendon_8" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.3756" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="1_muscle_8_moving_end"/>
+      <site site="1_muscle_8_tendon_horizontal_point"/>
+      <site site="1_center_joint_1_2"/>
+      <site site="1_center_joint_3_4"/>
+      <site site="1_tendon_8_base_rot_point_of_contact"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_4"/>
+      <site site="1_tendon_7_8_side_opposite_to_muscle"/>
+      <geom geom="1_dummy_cylinder_for_tendon_wrapping_4"/>
+      <site site="1_tendon_7_base_rot_connection"/>
+    </spatial>
+     <spatial name = "2_tendon_1" width="0.001" rgba="0.7 0.4 0.4 1.0" limited="true" range="0.0 0.89335" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_1_moving_end"/>
+      <site site="2_tendon_1_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_1"/> 
+      <site site="2_tendon_1_2_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_1"/> 
+      <site site="2_tendon_2_base_rot_connection"/>
+    </spatial>
+    <spatial name = "2_tendon_2" width="0.001" rgba="0.7 0.4 0.4 1.0" limited="true" range="0.0 0.89335" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_2_moving_end"/>
+      <site site="2_tendon_2_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_1"/>
+      <site site="2_tendon_1_2_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_1"/>
+      <site site="2_tendon_1_base_rot_connection"/>
+    </spatial>
+    <spatial name = "2_tendon_3" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 0.88194" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_3_moving_end"/>
+      <site site="2_muscle_3_tendon_horizontal_point"/>
+      <site site="2_center_joint_1_2"/>
+      <site site="2_tendon_3_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_2"/> 
+      <site site="2_tendon_3_4_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_2"/> 
+      <site site="2_tendon_4_base_rot_connection"/>
+    </spatial>
+    <spatial name = "2_tendon_4" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 0.95594" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_4_moving_end"/>
+      <site site="2_muscle_4_tendon_horizontal_point"/>
+      <site site="2_center_joint_1_2"/>
+      <site site="2_tendon_4_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_2"/>
+      <site site="2_tendon_3_4_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_2"/>
+      <site site="2_tendon_3_base_rot_connection"/>
+    </spatial>
+    <spatial name = "2_tendon_5" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.293" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_5_moving_end"/>
+      <site site="2_muscle_5_tendon_horizontal_point"/>
+      <site site="2_center_joint_1_2"/>
+      <site site="2_center_joint_3_4"/>
+      <site site="2_tendon_5_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_3"/> 
+      <site site="2_tendon_5_6_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_3"/> 
+      <site site="2_tendon_6_base_rot_connection"/>
+    </spatial>
+    <spatial name = "2_tendon_6" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.367" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_6_moving_end"/>
+      <site site="2_muscle_6_tendon_horizontal_point"/>
+      <site site="2_center_joint_1_2"/>
+      <site site="2_center_joint_3_4"/>
+      <site site="2_tendon_6_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_3"/>
+      <site site="2_tendon_5_6_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_3"/>
+      <site site="2_tendon_5_base_rot_connection"/>
+    </spatial>
+        <spatial name = "2_tendon_7" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.3016" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_7_moving_end"/>
+      <site site="2_muscle_7_tendon_horizontal_point"/>
+      <site site="2_center_joint_1_2"/>
+      <site site="2_center_joint_3_4"/>
+      <site site="2_tendon_7_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_4"/> 
+      <site site="2_tendon_7_8_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_4"/> 
+      <site site="2_tendon_8_base_rot_connection"/>
+    </spatial>
+    <spatial name = "2_tendon_8" width="0.001" rgba="0.7 0.4 0.4 0.2" limited="true" range="0.0 1.3756" damping="418.6191" solreflimit="0.005" solimplimit="1" stiffness="218205.4346">
+      <site site="2_muscle_8_moving_end"/>
+      <site site="2_muscle_8_tendon_horizontal_point"/>
+      <site site="2_center_joint_1_2"/>
+      <site site="2_center_joint_3_4"/>
+      <site site="2_tendon_8_base_rot_point_of_contact"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_4"/>
+      <site site="2_tendon_7_8_side_opposite_to_muscle"/>
+      <geom geom="2_dummy_cylinder_for_tendon_wrapping_4"/>
+      <site site="2_tendon_7_base_rot_connection"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_1" width="0.0125" rgba="0.20 0.20 0.20 1" limited="false" stiffness="0.0">
+      <site site="1_muscle_1_moving_end"/>
+      <site site="1_muscle_1_fixed_end"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_2" width="0.0125" rgba="0.20 0.20 0.20 1" limited="false" stiffness="0.0">
+      <site site="1_muscle_2_moving_end"/>
+      <site site="1_muscle_2_fixed_end"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_3" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="1_muscle_3_moving_end"/>
+      <site site="1_muscle_3_fixed_end"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_4" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="1_muscle_4_moving_end"/>
+      <site site="1_muscle_4_fixed_end"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_5" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="1_muscle_5_moving_end"/>
+      <site site="1_muscle_5_fixed_end"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_6" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="1_muscle_6_moving_end"/>
+      <site site="1_muscle_6_fixed_end"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_7" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="1_muscle_7_moving_end"/>
+      <site site="1_muscle_7_fixed_end"/>
+    </spatial>
+    <spatial name = "1_dummy_tendon_viz_muscle_8" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="1_muscle_8_moving_end"/>
+      <site site="1_muscle_8_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_1" width="0.0125" rgba="0.20 0.20 0.20 1" limited="false" stiffness="0.0">
+      <site site="2_muscle_1_moving_end"/>
+      <site site="2_muscle_1_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_2" width="0.0125" rgba="0.20 0.20 0.20 1" limited="false" stiffness="0.0">
+      <site site="2_muscle_2_moving_end"/>
+      <site site="2_muscle_2_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_3" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="2_muscle_3_moving_end"/>
+      <site site="2_muscle_3_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_4" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="2_muscle_4_moving_end"/>
+      <site site="2_muscle_4_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_5" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="2_muscle_5_moving_end"/>
+      <site site="2_muscle_5_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_6" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="2_muscle_6_moving_end"/>
+      <site site="2_muscle_6_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_7" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="2_muscle_7_moving_end"/>
+      <site site="2_muscle_7_fixed_end"/>
+    </spatial>
+    <spatial name = "2_dummy_tendon_viz_muscle_8" width="0.0125" rgba="0.20 0.20 0.20 0.3" limited="false" stiffness="0.0">
+      <site site="2_muscle_8_moving_end"/>
+      <site site="2_muscle_8_fixed_end"/>
+    </spatial>
+  </tendon>
+  <actuator>
+    <general name = "2_activation_1" joint="2_dummy_joint_activation_1" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.015908 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "2_activation_2" joint="2_dummy_joint_activation_2" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.015908 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "2_activation_3" joint="2_dummy_joint_activation_3" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "2_activation_4" joint="2_dummy_joint_activation_4" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "2_activation_5" joint="2_dummy_joint_activation_5" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "2_activation_6" joint="2_dummy_joint_activation_6" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "2_activation_7" joint="2_dummy_joint_activation_7" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "2_activation_8" joint="2_dummy_joint_activation_8" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_1" joint="1_dummy_joint_activation_1" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.015908 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_2" joint="1_dummy_joint_activation_2" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.015908 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_3" joint="1_dummy_joint_activation_3" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_4" joint="1_dummy_joint_activation_4" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_5" joint="1_dummy_joint_activation_5" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_6" joint="1_dummy_joint_activation_6" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_7" joint="1_dummy_joint_activation_7" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_activation_8" joint="1_dummy_joint_activation_8" ctrllimited="true" ctrlrange="0.001 1.0" dyntype="filter" dynprm="0.043861 0 0" gaintype="fixed"  gainprm="0 0 0" biastype="none"/>
+    <general name = "1_muscle_1" joint="1_joint_muscle_1" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "1_muscle_2" joint="1_joint_muscle_2" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "1_muscle_3" joint="1_joint_muscle_3" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "1_muscle_4" joint="1_joint_muscle_4" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "1_muscle_5" joint="1_joint_muscle_5" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "1_muscle_6" joint="1_joint_muscle_6" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "1_muscle_7" joint="1_joint_muscle_7" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "1_muscle_8" joint="1_joint_muscle_8" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_1" joint="2_joint_muscle_1" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_2" joint="2_joint_muscle_2" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_3" joint="2_joint_muscle_3" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_4" joint="2_joint_muscle_4" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_5" joint="2_joint_muscle_5" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_6" joint="2_joint_muscle_6" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_7" joint="2_joint_muscle_7" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+    <general name = "2_muscle_8" joint="2_joint_muscle_8" ctrllimited="false" dyntype="integrator" gaintype="fixed" gainprm="0 0 0" biastype="user"/>
+  </actuator>
+  </actuation>

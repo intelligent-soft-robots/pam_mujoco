@@ -13,7 +13,7 @@
 
 
 
-PYBIND11_MODULE(pam_mujoco, m)
+PYBIND11_MODULE(pam_mujoco_wrp, m)
 {
   o80::create_python_bindings<QUEUE_SIZE,
 			      NB_DOFS,
