@@ -33,7 +33,7 @@ include_directories(include
 
 # absolute path to the models folder
 get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
-set(MODELS_PATH "${MODEL_CONFIG_DIR}/")
+set(MODELS_PATH "${MODEL_CONFIG_DIR}/tmp/")
 
 add_library(pam_mujoco
   src/contacts.cpp

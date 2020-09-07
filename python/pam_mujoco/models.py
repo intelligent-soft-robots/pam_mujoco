@@ -70,14 +70,14 @@ def generate_model(model_name,robots):
 
     bodies = []
     for robot_id,attributes in robots.items():
-        filename = write_robot_body_xml(str(robot_id))
+        filename = write_robot_body_xml(robot_id)
         position = attributes[0]
         position = 'pos="'+" ".join([str(p) for p in position])+'"'
         xyaxes = ""
         if attributes[1] is not None:
             xyaxes = ' xyaxes="'+" ".join([str(a) for a in attributes[1]])+'"'
         xml = ['<body name="'+str(robot_id)+'" '+position+xyaxes+'>',
-               '<include file="'+filename+'"/>',
+               '<include file="'+filename+'"/>'
                '</body>']
         bodies+=xml
 
@@ -85,15 +85,13 @@ def generate_model(model_name,robots):
 
     actuations = ["<tendon>"]
     for robot_id in robots.keys():
-        filename = write_robot_tendon_xml(robot_id)
-        xml = '<include_file="'+filename+'"/>'
-        actuations.append(xml)
+        xml_tendon = get_robot_tendon_xml(robot_id)
+        actuations.append(xml_tendon)
     actuations.append("</tendon>")
     actuations.append("<actuator>")
     for robot_id in robots.keys():
-        filename = write_robot_actuator_xml(robot_id)
-        xml = '<include_file="'+filename+'"/>'
-        actuations.append(xml)
+        xml_actuator = get_robot_actuator_xml(robot_id)
+        actuations.append(xml_actuator)
     actuations.append("</actuator>")
 
     template = template.replace("<!-- actuations -->","\n".join(actuations))

@@ -57,7 +57,7 @@ def execute_mujoco(pam_model_config,mujoco_id,model):
 process  = multiprocessing.Process(target=execute_mujoco,
                                    args=(pam_model_config,mujoco_id,model,))
 process.start()
-time.sleep(3)
+time.sleep(4)
 
 # initializing the o80 frontend for sending
 # pressure commands
