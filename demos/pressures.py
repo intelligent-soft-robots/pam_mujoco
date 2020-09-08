@@ -8,8 +8,9 @@ import multiprocessing
 
 segment_id = "pressure_control"
 mujoco_id = "mj"
-model = "pamy" # i.e pamy.xml in pam_mujoco/models/
 
+model_name = "pressure"
+pam_mujoco.model_factory(model_name,robot1=True)
 
 # min and max pressure used anywhere ?
 max_pressures = [23000]*8
@@ -42,20 +43,20 @@ pam_model_config = [ segment_id,
                      a_init,l_MTC_change_init ]
 
 # running the mujoco thread
-def execute_mujoco(pam_model_config,mujoco_id,model):
+def execute_mujoco(pam_model_config,mujoco_id,model_name):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding pressure controller
     pam_mujoco.add_pressure_controller(*pam_model_config)
     # starting the mujoco thread
-    pam_mujoco.execute(mujoco_id,model)
+    pam_mujoco.execute(mujoco_id,model_name)
     # runnign it until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)
 
 # starting the mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(pam_model_config,mujoco_id,model,))
+                                   args=(pam_model_config,mujoco_id,model_name,))
 process.start()
 time.sleep(4)
 

@@ -6,25 +6,28 @@ import multiprocessing
 
 segment_id = "mirror_robot"
 mujoco_id = "mj"
-model = "pamy" # i.e pamy.xml in pam_mujoco/models/
+
+# generates pamy.xml in pam_mujoco/models/tmp/
+model_name = "pamy"
+pam_mujoco.model_factory(model_name,table=True,robot1=True)
 
 # running the mujoco thread
-def execute_mujoco(segment_id,mujoco_id,model):
+def execute_mujoco(segment_id,mujoco_id,model_name):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding mirroring robot controller
-    pam_mujoco.add_mirror_robot(segment_id,mujoco_id,"joint_base_rotation")
+    pam_mujoco.add_mirror_robot(segment_id,mujoco_id,"robot1_joint_base_rotation")
     # setting bursting mode
     pam_mujoco.add_bursting(mujoco_id,segment_id)
-    # starting the mujoco thread
-    pam_mujoco.execute(mujoco_id,model)
+    # starting the mujoco thread (reads pamy.xml in pam_mujoco/models/tmp/)
+    pam_mujoco.execute(mujoco_id,model_name)
     # runnign it until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)
 
 # starting the mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(segment_id,mujoco_id,model,))
+                                   args=(segment_id,mujoco_id,model_name,))
 process.start()
 time.sleep(3)
 

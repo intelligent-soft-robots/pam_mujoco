@@ -7,17 +7,21 @@ import multiprocessing
 
 segment_id = "play_trajectory"
 mujoco_id = "mj"
-model = "pamy" # i.e pamy.xml in pam_mujoco/models/
+
+# generates pamy.xml in pam_mujoco/models/tmp/
+model_name = "trajectory"
+pam_mujoco.model_factory(model_name,table=True)
+
 
 # running mujoco thread
-def execute_mujoco(segment_id,mujoco_id,model):
+def execute_mujoco(segment_id,mujoco_id,model_name):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding the mirror ball controller
     pam_mujoco.add_mirror_one_ball_robot(segment_id,mujoco_id,
-                                         "ball_free_jnt")
+                                         "ball_0")
     # staring the thread
-    pam_mujoco.execute(mujoco_id,model)
+    pam_mujoco.execute(mujoco_id,model_name)
     # looping until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)
@@ -25,9 +29,9 @@ def execute_mujoco(segment_id,mujoco_id,model):
 
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(segment_id,mujoco_id,model,))
+                                   args=(segment_id,mujoco_id,model_name,))
 process.start()
-time.sleep(1)
+time.sleep(2)
 
 # initializing o80 frontend for sending ball position/velocity
 # to mujoco thread
