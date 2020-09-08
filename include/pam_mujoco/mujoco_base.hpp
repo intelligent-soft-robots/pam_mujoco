@@ -1953,7 +1953,7 @@ bool set_mujoco_key()
 void init(void)
 {
     // checking licencen is ok
-    printf("copying mujoco licence from /opt/mujoco/");
+    printf("copying mujoco licence from /opt/mujoco/\n");
     set_mujoco_key();
 
 
@@ -2052,6 +2052,9 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mid)
     std::string* mujoco_id = static_cast<std::string*>(mid);
 
     settings.mujoco_id = *mujoco_id;
+
+    // indicating mujoco is up and running
+    pam_mujoco::set_mujoco_started(*mujoco_id,true);
     
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest

@@ -14,23 +14,11 @@ pam_mujoco.model_factory(model_name,robot1=True)
 
 # min and max pressure used anywhere ?
 max_pressures = [23000]*8
-max_pressures[2] = 22000
-max_pressures[4] = 22000
-max_pressures[5] = 22000
-min_pressures = [ 12500,
-                  12500,
-                  12000,
-                  12500,
-                  12000,
-                  12000,
-                  10000,
-                  10000 ]
+min_pressures = [12500]*8
 
 # pam model configuration
 pam_model_config_path= pam_models.get_default_config_path()
 a_init = [0.5]*8
-a_init[2]=0.0
-a_init[3]=1.0
 l_MTC_change_init = [0.0]*8
 scale_max_activation = 1.0
 scale_max_pressure = 24000
@@ -57,8 +45,9 @@ def execute_mujoco(pam_model_config,mujoco_id,model_name):
 # starting the mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
                                    args=(pam_model_config,mujoco_id,model_name,))
+pam_mujoco.clear(mujoco_id)
 process.start()
-time.sleep(4)
+pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing the o80 frontend for sending
 # pressure commands

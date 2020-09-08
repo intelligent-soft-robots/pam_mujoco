@@ -30,8 +30,9 @@ def execute_mujoco(segment_id,mujoco_id,model_name):
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
                                    args=(segment_id,mujoco_id,model_name,))
+pam_mujoco.clear(mujoco_id)
 process.start()
-time.sleep(2)
+pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing o80 frontend for sending ball position/velocity
 # to mujoco thread

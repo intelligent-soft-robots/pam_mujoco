@@ -68,4 +68,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
   m.def("execute",&pam_mujoco::execute);
   m.def("request_stop",&pam_mujoco::request_stop);
   m.def("is_stop_requested",&pam_mujoco::is_stop_requested);
+  m.def("wait_for_mujoco",&pam_mujoco::wait_for_mujoco);
+  m.def("clear",&pam_mujoco::clear);
 }

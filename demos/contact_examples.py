@@ -80,8 +80,9 @@ process  = multiprocessing.Process(target=execute_mujoco,
                                          racket_geom,table_geom,
                                          robot_joint,
                                          mujoco_id,model_name,))
+pam_mujoco.clear(mujoco_id)
 process.start()
-time.sleep(3)
+pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing o80 frontend for sending ball position/velocity
 # to mujoco thread

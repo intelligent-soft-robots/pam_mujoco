@@ -53,7 +53,8 @@ void MirrorBalls<QUEUE_SIZE,
   const States& states = backend_.pulse(o80::time_now(),
 					states_,
 					o80::VoidExtendedState());
-
+  
+  
   // some balls have been set to have the trajectory interrupted
   // in case of contact (i.e. either customed model or mujoco engine
   // take hand). Checking if such contact occured.
@@ -130,13 +131,18 @@ void MirrorBalls<QUEUE_SIZE,
 		    NB_BALLS>::apply(const mjModel* m,
 				    mjData* d)
 {
+  // first call to this function, initializing the indexes
   if(index_q_balls_<0)
     {
       index_q_balls_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT,
 						 ball_obj_joint_.c_str())];
       index_qvel_balls_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT,
 						   ball_obj_joint_.c_str())];
+      std::cout << "mirror balls: " << ball_obj_joint_
+		<< " " << index_q_balls_ << "\n";
     }
+  // overwriting d with desired position and velocity
+  // of ball as computed by o80 backend
   set_state(d);
 }
 

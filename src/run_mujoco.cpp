@@ -130,7 +130,6 @@ namespace pam_mujoco
     // "request_stop" (see run_management.hpp)
     set_started(mujoco_id);
 
-
     // running mujoco (run defined in mujoco_base.hpp)
     run(&mujoco_id);
     
