@@ -10,7 +10,6 @@ namespace pam_mujoco
   }
 
   void add_mirror_robot(std::string segment_id,
-			std::string mujoco_id,
 			std::string robot_joint_base)
   {
     pam_mujoco::MirrorRobot<QUEUE_SIZE,NB_DOFS>::clear(segment_id);
@@ -20,23 +19,32 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(mirroring);
   }
 
-  void add_mirror_one_ball(std::string segment_id,
-			   std::string mujoco_id,
-			   std::string ball_obj_joint)
+
+  void add_mirror_free_joint(std::string segment_id,
+			     std::string joint,
+			     int index_qpos,
+			     int index_qvel)
   {
-    std::map<int,std::string> empty;
-    add_mirror_balls<1>(segment_id,ball_obj_joint,empty);
+    pam_mujoco::MirrorFreeJoint<QUEUE_SIZE>::clear(segment_id);
+    typedef pam_mujoco::MirrorFreeJoint<QUEUE_SIZE> mfj;
+    std::shared_ptr<mfj> mirroring =
+      std::make_shared<mfj>(segment_id,joint,index_qpos,index_qvel);
+    pam_mujoco::Controllers::add(mirroring);
   }
 
-  void add_mirror_until_contact_one_ball(std::string segment_id,
-					 std::string mujoco_id,
-					 std::string ball_obj_joint,
-					 std::string contact_segment_id)
+  
+  void add_mirror_until_contact_free_joint(std::string segment_id,
+					   std::string joint,
+					   int index_qpos,
+					   int index_qvel,
+					   std::string contact_segment_id)
   {
-    std::map<int,std::string> ball_index_segment_id;
-    ball_index_segment_id[0]=contact_segment_id;
-    add_mirror_balls<1>(segment_id,ball_obj_joint,
-			ball_index_segment_id);
+    pam_mujoco::MirrorFreeJoint<QUEUE_SIZE>::clear(segment_id);
+    typedef pam_mujoco::MirrorFreeJoint<QUEUE_SIZE> mfj;
+    std::shared_ptr<mfj> mirroring =
+      std::make_shared<mfj>(segment_id,joint,index_qpos,index_qvel,
+			    contact_segment_id);
+    pam_mujoco::Controllers::add(mirroring);
   }
 
   void add_4dofs_pressure_controller(std::string segment_id,
@@ -64,36 +72,36 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(bc);
   }
 
-  void add_contact_ball(std::string segment_id_contact,
-			std::string segment_id_reset,
-			std::string ball_obj_joint,
-			std::string ball_geom,
-			std::string contactee_geom,
-			const RecomputeStateConfig& config)
+  void add_contact_free_joint(std::string segment_id_contact,
+			      std::string segment_id_reset,
+			      std::string joint,
+			      std::string geom,
+			      std::string contactee_geom,
+			      const RecomputeStateConfig& config)
   {
     std::shared_ptr<ContactBall> cb
       = std::make_shared<ContactBall>(segment_id_contact,
 				      segment_id_reset,
 				      config,
-				      ball_obj_joint,
-				      ball_geom,
+				      joint,
+				      geom,
 				      contactee_geom);
     pam_mujoco::Controllers::add(cb);
   }
 
-  void add_default_contact_ball(std::string segment_id_contact,
-			std::string segment_id_reset,
-			std::string ball_obj_joint,
-			std::string ball_geom,
-			std::string contactee_geom)
+  void add_default_contact_free_joint(std::string segment_id_contact,
+				      std::string segment_id_reset,
+				      std::string joint,
+				      std::string geom,
+				      std::string contactee_geom)
   {
     RecomputeStateConfig config;
-    add_contact_ball(segment_id_contact,
-		     segment_id_reset,
-		     ball_obj_joint,
-		     ball_geom,
-		     contactee_geom,
-		     config);
+    add_contact_free_joint(segment_id_contact,
+			   segment_id_reset,
+			   joint,
+			   geom,
+			   contactee_geom,
+			   config);
   }
 
   void init_mujoco()

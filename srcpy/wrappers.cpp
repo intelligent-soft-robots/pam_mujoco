@@ -59,10 +59,10 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
   
   m.def("init_mujoco",&pam_mujoco::init_mujoco);
   m.def("add_mirror_robot",&pam_mujoco::add_mirror_robot);
-  m.def("add_mirror_one_ball_robot",&pam_mujoco::add_mirror_one_ball);
-  m.def("add_mirror_until_contact_one_ball",
-	&pam_mujoco::add_mirror_until_contact_one_ball);
-  m.def("add_contact_ball",&pam_mujoco::add_default_contact_ball);
+  m.def("add_mirror_free_joint",&pam_mujoco::add_mirror_free_joint);
+  m.def("add_mirror_until_contact_free_joint",
+	&pam_mujoco::add_mirror_until_contact_free_joint);
+  m.def("add_contact_free_joint",&pam_mujoco::add_default_contact_free_joint);
   m.def("add_pressure_controller",&pam_mujoco::add_4dofs_pressure_controller);
   m.def("add_bursting",&pam_mujoco::add_bursting);
   m.def("execute",&pam_mujoco::execute);

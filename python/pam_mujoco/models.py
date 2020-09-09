@@ -264,11 +264,11 @@ def model_factory(model_name,
     balls = [Ball("ball_"+str(index))
              for index,ball in enumerate(range(nb_balls))]
 
-    robots = {}
+    robots = []
     if robot1:
-        robots["robot1"]=([0,0,-0.44],None)
+        robots.append(Robot("robot1",[0,0,-0.44],None))
     if robot2:
-        robots["robot2"]=([1.6,3.4,-0.44],[-1,0,0,0,-1,0])
+        robots.append(Robot("robot2",[1.6,3.4,-0.44],[-1,0,0,0,-1,0]))
 
     if goal:
         goals = [Goal("goal")]
@@ -280,9 +280,11 @@ def model_factory(model_name,
     else:
         hitting_points = []
 
-    return generate_model(model_name,
-                          robots=robots,
-                          balls=balls,
-                          tables=tables,
-                          goals=goals,
-                          hitting_points=hitting_points)
+    generate_model(model_name,
+                   robots=robots,
+                   balls=balls,
+                   tables=tables,
+                   goals=goals,
+                   hitting_points=hitting_points)
+    
+    return balls,goals,hitting_points,tables,robots

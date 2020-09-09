@@ -10,16 +10,17 @@ mujoco_id = "mj"
 
 # generates pamy.xml in pam_mujoco/models/tmp/
 model_name = "trajectory"
-pam_mujoco.model_factory(model_name,table=True)
-
+items = pam_mujoco.model_factory(model_name,table=True)
+ball = items[0][0]
 
 # running mujoco thread
 def execute_mujoco(segment_id,mujoco_id,model_name):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding the mirror ball controller
-    pam_mujoco.add_mirror_one_ball_robot(segment_id,mujoco_id,
-                                         "ball_0")
+    pam_mujoco.add_mirror_free_joint(segment_id,
+                                     ball.joint,
+                                     ball.index_qpos,ball.index_qvel)
     # staring the thread
     pam_mujoco.execute(mujoco_id,model_name)
     # looping until requested to stop

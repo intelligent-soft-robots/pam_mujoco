@@ -6,22 +6,25 @@ import numpy as np
 import multiprocessing
 
 mujoco_id = "mj"
-nb_balls = 2
+nb_balls = 20
 segment_ids = ["play_trajectories_"+str(index)
                for index in range(nb_balls)]
 
 # generates model in pam_mujoco/models/tmp/trajectories.xml
 model_name = "trajectories"
-#pam_mujoco.model_factory(model_name,table=True,nb_balls=nb_balls)
+items = pam_mujoco.model_factory(model_name,table=True,nb_balls=nb_balls)
+balls = items[0]
 
 # running mujoco thread
-def execute_mujoco(segment_ids,mujoco_id,model_name,nb_balls):
+def execute_mujoco(segment_ids,mujoco_id,model_name,balls):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding the mirror ball controllers
-    for index,segment_id in enumerate(segment_ids):
-        pam_mujoco.add_mirror_one_ball_robot(segment_id,mujoco_id,
-                                             "ball_"+str(index))
+    for segment_id,ball in zip(segment_ids,balls):
+        pam_mujoco.add_mirror_free_joint(segment_id,
+                                         ball.joint,
+                                         ball.index_qpos,
+                                         ball.index_qvel)
     # staring the thread
     pam_mujoco.execute(mujoco_id,model_name)
     # looping until requested to stop
@@ -31,7 +34,7 @@ def execute_mujoco(segment_ids,mujoco_id,model_name,nb_balls):
 
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(segment_ids,mujoco_id,model_name,nb_balls,))
+                                   args=(segment_ids,mujoco_id,model_name,balls,))
 pam_mujoco.clear(mujoco_id)
 process.start()
 pam_mujoco.wait_for_mujoco(mujoco_id)
@@ -48,7 +51,7 @@ for segment_id in segment_ids:
 
 # sending the full ball trajectories to the mujoco thread.
 # duration of 10ms : sampling rate of the trajectory
-duration = o80.Duration_us.milliseconds(50)
+duration = o80.Duration_us.milliseconds(10)
 for _ in range(1):
     for segment_id,frontend,trajectory_points in zip(segment_ids,frontends,trajectories):
         for traj_point in trajectory_points:
@@ -64,30 +67,6 @@ for _ in range(1):
                                      o80.State1d(traj_point.velocity[dim]),
                                      duration,
                                      o80.Mode.QUEUE)
-
-def commented():
-        # having the ball falling off slowly
-    xyz = [0.94,0.45,1.0]
-    duration = o80.Duration_us.seconds(5)
-    for dim in range(3):
-        frontends[0].add_command(2*dim,
-                                o80.State1d(xyz[dim]),
-                                 duration,
-                                o80.Mode.QUEUE)
-        frontends[0].add_command(2*dim+1,
-                             o80.State1d(0),
-                                 duration,
-                             o80.Mode.QUEUE)
-    xyz = [0.9,0.4,1.0]
-    for dim in range(3):
-        frontends[1].add_command(2*dim,
-                                o80.State1d(xyz[dim]),
-                                 duration,
-                                o80.Mode.QUEUE)
-        frontends[1].add_command(2*dim+1,
-                             o80.State1d(0),
-                                 duration,
-                             o80.Mode.QUEUE)
         
 for frontend in frontends:
     frontend.pulse()
