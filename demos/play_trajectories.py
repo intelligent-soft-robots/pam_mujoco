@@ -12,7 +12,7 @@ segment_ids = ["play_trajectories_"+str(index)
 
 # generates model in pam_mujoco/models/tmp/trajectories.xml
 model_name = "trajectories"
-pam_mujoco.model_factory(model_name,table=True,nb_balls=nb_balls)
+#pam_mujoco.model_factory(model_name,table=True,nb_balls=nb_balls)
 
 # running mujoco thread
 def execute_mujoco(segment_ids,mujoco_id,model_name,nb_balls):
@@ -43,16 +43,14 @@ frontends = []
 trajectories = []
 ball_trajectories = context.BallTrajectories()
 for segment_id in segment_ids:
-    print(segment_id)
     frontends.append(pam_mujoco.MirrorOneBallFrontEnd(segment_id))
     trajectories.append(list(ball_trajectories.random_trajectory()))
-
 
 # sending the full ball trajectories to the mujoco thread.
 # duration of 10ms : sampling rate of the trajectory
 duration = o80.Duration_us.milliseconds(50)
 for _ in range(1):
-    for frontend,trajectory_points in zip(frontends,trajectories):
+    for segment_id,frontend,trajectory_points in zip(segment_ids,frontends,trajectories):
         for traj_point in trajectory_points:
             # looping over x,y,z
             for dim in range(3):
@@ -67,13 +65,35 @@ for _ in range(1):
                                      duration,
                                      o80.Mode.QUEUE)
 
-# sending for full trajectory and wait for it to be executed
+def commented():
+        # having the ball falling off slowly
+    xyz = [0.94,0.45,1.0]
+    duration = o80.Duration_us.seconds(5)
+    for dim in range(3):
+        frontends[0].add_command(2*dim,
+                                o80.State1d(xyz[dim]),
+                                 duration,
+                                o80.Mode.QUEUE)
+        frontends[0].add_command(2*dim+1,
+                             o80.State1d(0),
+                                 duration,
+                             o80.Mode.QUEUE)
+    xyz = [0.9,0.4,1.0]
+    for dim in range(3):
+        frontends[1].add_command(2*dim,
+                                o80.State1d(xyz[dim]),
+                                 duration,
+                                o80.Mode.QUEUE)
+        frontends[1].add_command(2*dim+1,
+                             o80.State1d(0),
+                                 duration,
+                             o80.Mode.QUEUE)
+        
 for frontend in frontends:
-    frontend.pulse_prepare_wait()
-for frontend in frontends:
-    frontend.wait()
+    frontend.pulse()
 
-
+time.sleep(6)
+    
 # stopping the mujoco thread
 pam_mujoco.request_stop("mj")
 process.join()

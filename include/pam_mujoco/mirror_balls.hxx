@@ -101,7 +101,7 @@ void MirrorBalls<QUEUE_SIZE,
 	  d->qvel[index_qvel_balls_+index_mujoco+1]
 	    = states.get(index_state+3).value;
 	  d->qvel[index_q_balls_+index_mujoco+2]
-	    = states.get(index_state+5).value;
+	  = states.get(index_state+5).value;
 	}
     }
 }
@@ -134,12 +134,11 @@ void MirrorBalls<QUEUE_SIZE,
   // first call to this function, initializing the indexes
   if(index_q_balls_<0)
     {
-      index_q_balls_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT,
-						 ball_obj_joint_.c_str())];
-      index_qvel_balls_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT,
-						   ball_obj_joint_.c_str())];
-      std::cout << "mirror balls: " << ball_obj_joint_
-		<< " " << index_q_balls_ << "\n";
+      int body_id = mj_name2id(m, mjOBJ_JOINT,ball_obj_joint_.c_str());
+      index_q_balls_ = m->jnt_qposadr[m->body_jntadr[body_id]];
+      index_qvel_balls_ = m->jnt_dofadr[m->body_jntadr[body_id]];
+      std::cout << "mirror balls " << ball_obj_joint_ << " body id: " << body_id
+		<< " index q: " << index_q_balls_ << " index_qvel: " << index_qvel_balls_ << "\n";
     }
   // overwriting d with desired position and velocity
   // of ball as computed by o80 backend

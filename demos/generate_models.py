@@ -7,8 +7,9 @@ model = "test"
 mujoco_id = "test"
 
 # adding two robots
-robots = { "robot1":([0,0,-0.5],None), # position and orientation
-           "robot2":([1.6,3.4,-0.5],[-1,0,0,0,-1,0]) }
+robots = []
+robots.append(pam_mujoco.Robot("robot1",[0,0,-0.5],None))
+robots.append(pam_mujoco.Robot("robot2",[1.6,3.4,-0.5],[-1,0,0,0,-1,0]))
 
 # adding a "grid" of balls
 grid = np.mgrid[-1:1.2:0.2, -1:1.2:0.2].reshape(2,-1).T

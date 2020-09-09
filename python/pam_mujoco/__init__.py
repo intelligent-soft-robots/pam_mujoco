@@ -1,3 +1,2 @@
 from pam_mujoco_wrp import *
-from .models import generate_model
-from .models import Ball,Table,Goal,HittingPoint,model_factory
+from .models import Ball,Table,Goal,Robot,HittingPoint,generate_model,model_factory
