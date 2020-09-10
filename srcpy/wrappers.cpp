@@ -31,7 +31,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
 			      o80::VoidExtendedState,
 			      o80::NO_STATE, // o80::State2d already binded in package o80
 			      o80::NO_EXTENDED_STATE> // same
-    (m,std::string("MirrorOneBall"));
+    (m,std::string("MirrorFreeJoint"));
 
   pybind11::class_<pam_mujoco::RecomputeStateConfig>(m,"RecomputeStateConfig")
     .def(pybind11::init<>())

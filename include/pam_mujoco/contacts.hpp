@@ -135,10 +135,11 @@ namespace pam_mujoco
   public:
     ContactBall(std::string segment_id_contact_info,
 		std::string segment_id_reset,
-		RecomputeStateConfig config,
-		std::string ball_obj_joint,
-		std::string ball_geom,
-		std::string contactee_geom);
+		int index_qpos,
+		int index_qvel,
+		std::string geom,
+		std::string geom_contactee,
+		RecomputeStateConfig config);
   public:
     // ControllerBase function
     void apply(const mjModel* m,
@@ -155,13 +156,12 @@ namespace pam_mujoco
     RecomputeStateConfig config_;
     ContactInformation contact_information_;
     ContactStates previous_;
-    int index_q_ball_;
-    int index_qvel_ball_;
-    int index_geom_ball_;
+    int index_qpos_;
+    int index_qvel_;
+    std::string geom_;
+    std::string geom_contactee_;
+    int index_geom_;
     int index_geom_contactee_; // contactee : racket or table
-    std::string ball_obj_joint_;
-    std::string ball_geom_;
-    std::string contactee_geom_;
     bool muted_;
     int muted_count_;
   };

@@ -39,15 +39,19 @@ def execute_mujoco(segment_ids,
                                      hit_point.joint,
                                      hit_point.index_qpos,hit_point.index_qvel)
     # adding detection of contact between ball and table
+    print("A")
     pam_mujoco.add_contact_free_joint(segment_ids["contact"],
                                       segment_ids["contact"]+"_reset",
-                                      ball.joint,ball.geom,table.geom_plate)
+                                      ball.index_qpos,ball.index_qvel,
+                                      ball.geom,table.geom_plate)
+    print("B")
     # starting the thread
     pam_mujoco.execute(mujoco_id,model_name)
+    print("C")
     # looping until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)
-
+    print("D")
 
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
@@ -62,27 +66,19 @@ pam_mujoco.wait_for_mujoco(mujoco_id)
 frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd(segment_ids["ball"])
 frontend_hit_point = pam_mujoco.MirrorFreeJointFrontEnd(segment_ids["hit_point"])
 
-# reading a random pre-recorded ball trajectory
-trajectory_points = list(context.BallTrajectories().random_trajectory())
-
-# sending the full ball trajectory to the mujoco thread.
-# duration of 10ms : sampling rate of the trajectory
-duration = o80.Duration_us.milliseconds(10)
-for traj_point in trajectory_points:
-    # looping over x,y,z
-    for dim in range(3):
-        # setting position for dimension (x, y or z)
-        frontend_ball.add_command(2*dim,
-                             o80.State1d(traj_point.position[dim]),
-                             duration,
-                             o80.Mode.QUEUE)
-        # setting velocity for dimension (x, y or z)
-        frontend_ball.add_command(2*dim+1,
-                             o80.State1d(traj_point.velocity[dim]),
-                             duration,
-                             o80.Mode.QUEUE)
-
-# sending for full trajectory
+# dropping the ball on the table
+start_point = [1,0.5,1]
+end_point = [1,0.5,-1]
+for dim in range(3):
+    frontend_ball.add_command(2*dim,
+                              o80.State1d(start_point[dim]),
+                              o80.Mode.QUEUE)
+for dim in range(3):
+    frontend_ball.add_command(2*dim,
+                              o80.State1d(end_point[dim]),
+                              o80.Duration_us.seconds(2),
+                              o80.Mode.QUEUE)
+    
 frontend_ball.pulse()
 
 # monitoring contact ball/table
@@ -92,25 +88,23 @@ while True:
     if contacts.contact_occured:
         # contact detected: moving the hit point at the contact
         # position
+        observation = frontend_ball.pulse()
+        desired_state = observation.get_desired_states()
+        xyz = [desired_state.get(0).get(),
+               desired_state.get(1).get(),
+               desired_state.get(2).get()]
         position = contacts.position
-        print("contact:",position)
+        print("contact:",position,xyz)
         for dim,p in enumerate(position):
             # position
             frontend_hit_point.add_command(2*dim,
                                            o80.State1d(p),
-                                           duration,
                                            o80.Mode.QUEUE)
-            # velocity (0)
-            frontend_hit_point.add_command(2*dim+1,
-                                           o80.State1d(0),
-                                           duration,
-                                           o80.Mode.QUEUE)
-
         frontend_hit_point.pulse()
         break
 
     
-time.sleep(2)
+time.sleep(3)
     
 # stopping the mujoco thread
 pam_mujoco.request_stop("mj")

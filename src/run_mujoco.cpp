@@ -74,7 +74,8 @@ namespace pam_mujoco
 
   void add_contact_free_joint(std::string segment_id_contact,
 			      std::string segment_id_reset,
-			      std::string joint,
+			      int index_qpos,
+			      int index_qvel,
 			      std::string geom,
 			      std::string contactee_geom,
 			      const RecomputeStateConfig& config)
@@ -82,23 +83,26 @@ namespace pam_mujoco
     std::shared_ptr<ContactBall> cb
       = std::make_shared<ContactBall>(segment_id_contact,
 				      segment_id_reset,
-				      config,
-				      joint,
+				      index_qpos,
+				      index_qvel,
 				      geom,
-				      contactee_geom);
+				      contactee_geom,
+				      config);
     pam_mujoco::Controllers::add(cb);
   }
 
   void add_default_contact_free_joint(std::string segment_id_contact,
 				      std::string segment_id_reset,
-				      std::string joint,
+				      int index_qpos,
+				      int index_qvel,
 				      std::string geom,
 				      std::string contactee_geom)
   {
     RecomputeStateConfig config;
     add_contact_free_joint(segment_id_contact,
 			   segment_id_reset,
-			   joint,
+			   index_qpos,
+			   index_qvel,
 			   geom,
 			   contactee_geom,
 			   config);

@@ -41,7 +41,6 @@ namespace pam_mujoco
 
   void add_contact_free_joint(std::string segment_id_contact,
 			      std::string segment_id_reset,
-			      std::string joint,
 			      int index_qpos,
 			      int index_qvel,
 			      std::string geom,
@@ -49,10 +48,11 @@ namespace pam_mujoco
 			      const RecomputeStateConfig& config);
 
   void add_default_contact_free_joint(std::string segment_id_contact,
-				std::string segment_id_reset,
-				std::string joint,
-				std::string geom,
-				std::string contactee_geom);
+				      std::string segment_id_reset,
+				      int index_qpos,
+				      int index_qvel,
+				      std::string geom,
+				      std::string contactee_geom);
   
   void add_bursting(std::string mujoco_id,std::string segment_id);
 

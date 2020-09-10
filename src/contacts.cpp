@@ -73,14 +73,16 @@ namespace pam_mujoco
 		   current.contactee_velocity.data(),
 		   quat_rot);
 
+    // to do : check "until impact" logic
     double time_until_impact = -ball_pos_in_contactee_coord_sys[1] /
       (ball_vel_in_contactee_coord_sys[1] - contactee_vel_in_contactee_coord_sys[1]);
     double delta_t_step = current.time_stamp - pre_contact.time_stamp;
     double delta_t_after_impact = delta_t_step - time_until_impact;
 
+    // to to: z axis symmetry for table
     double ball_vel_new_in_contactee_coord_sys[3];
     ball_vel_new_in_contactee_coord_sys[0] =
-      ball_vel_in_contactee_coord_sys[0]*config.epsilon_r;
+      ball_vel_in_contactee_coord_sys[0]*config.epsilon_r; // to do : use right epsilon
     ball_vel_new_in_contactee_coord_sys[1] =
       -ball_vel_in_contactee_coord_sys[1]*config.epsilon_r
       + (1+config.epsilon_r)*contactee_vel_in_contactee_coord_sys[1];
@@ -115,9 +117,9 @@ namespace pam_mujoco
 
 
   void save_state(const mjData* d,
-		  int index_q_ball,
-		  int index_qvel_ball,
-		  int index_geom_ball,
+		  int index_qpos,
+		  int index_qvel,
+		  int index_geom,
 		  int index_geom_contactee,
 		  ContactStates& get_states)
   {
@@ -138,8 +140,8 @@ namespace pam_mujoco
     // rest is just copied from d to get_states
     for(size_t i=0;i<3;i++)
       {
-	get_states.ball_position[i] = d->qpos[index_q_ball+i];
-	get_states.ball_velocity[i] = d->qvel[index_qvel_ball+i];
+	get_states.ball_position[i] = d->qpos[index_qpos+i];
+	get_states.ball_velocity[i] = d->qvel[index_qvel+i];
 	get_states.contactee_position[i] = d->geom_xpos[index_geom_contactee*3+i];
       }
     for(size_t i=0;i<9;i++)
@@ -158,6 +160,7 @@ namespace pam_mujoco
       y_vel_plus(0),
       z_vel_plus(0)
   {
+    // to do: identity matrix for table
     if(robot1)
       {
 	rot_matrix_contactee_zero_pos = {0.000, -1.000, -0.000,
@@ -178,6 +181,7 @@ namespace pam_mujoco
       y_vel_plus(0),
       z_vel_plus(0)
   {
+    // to do : epsilone r for table, t_x and t_z for rackets
     rot_matrix_contactee_zero_pos = {0.000, -1.000, -0.000,
 				     -1.000, 0.000, -0.000,
 				     0.000, 0.000, -1.000};
@@ -185,31 +189,34 @@ namespace pam_mujoco
 
   ContactBall::ContactBall(std::string segment_id_contact_info,
 			   std::string segment_id_reset,
-			   RecomputeStateConfig config,
-			   std::string ball_obj_joint,
-			   std::string ball_geom,
-			   std::string contactee_geom)
+			   int index_qpos,
+			   int index_qvel,
+			   std::string geom,
+			   std::string geom_contactee,
+			   RecomputeStateConfig config)
     : segment_id_contact_info_(segment_id_contact_info),
       segment_id_reset_(segment_id_reset),
       config_(config),
-      index_q_ball_(-1),
-      index_qvel_ball_(-1),
-      index_geom_ball_(-1),
-      index_geom_contactee_(-1),
-      ball_obj_joint_(ball_obj_joint),
-      ball_geom_(ball_geom),
-      contactee_geom_(contactee_geom),
+      index_qpos_(index_qpos),
+      index_qvel_(index_qvel),
+      geom_(geom),
+      geom_contactee_(geom_contactee),
       muted_(false)
   {
+    shared_memory::clear_shared_memory(segment_id_contact_info_);
+    shared_memory::clear_shared_memory(segment_id_reset_);
     shared_memory::set<bool>(segment_id_reset_,
 			     segment_id_reset_,
 			     false);
+    shared_memory::serialize(segment_id_contact_info_,
+			     segment_id_contact_info_,
+			     contact_information_);
   }
 
   void ContactBall::apply(const mjModel* m,
 			  mjData* d)
   {
-    // setup the indexes (e.g. index_q_ball, ...)
+    // setup the indexes (e.g. index_qpos, ...)
     // based on the model and the configuration string
     init(m);
     // check if receiving from outside a request for reset
@@ -242,27 +249,23 @@ namespace pam_mujoco
 
   void ContactBall::init(const mjModel* m)
   {
-    if(index_q_ball_>=0)
+    if(index_geom_>=0)
       // init does something only at first call
       return;
-    index_q_ball_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT,
-					      ball_obj_joint_.c_str())];
-    index_qvel_ball_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT,
-						ball_obj_joint_.c_str() )];
-    index_geom_ball_ = mj_name2id(m, mjOBJ_GEOM,
-				  ball_geom_.c_str());
+    index_geom_ = mj_name2id(m, mjOBJ_GEOM,
+			     geom_.c_str());
     index_geom_contactee_ = mj_name2id(m, mjOBJ_GEOM,
-				       contactee_geom_.c_str());
+				       geom_contactee_.c_str());
   }
   
   bool ContactBall::is_in_contact(const mjModel* m, mjData* d)
   {
     for(int i=0;i<d->ncon;i++)
       {
-	if(d->contact[i].geom1 == index_geom_ball_
+	if(d->contact[i].geom1 == index_geom_
 	   && d->contact[i].geom2 == index_geom_contactee_)
 	  return true;
-	if(d->contact[i].geom2 == index_geom_ball_
+	if(d->contact[i].geom2 == index_geom_
 	   && d->contact[i].geom1 == index_geom_contactee_)
 	  return true;
       }
@@ -285,9 +288,9 @@ namespace pam_mujoco
     if(!contact)
       {
 	save_state(d,
-		   index_q_ball_,
-		   index_qvel_ball_,
-		   index_geom_ball_,
+		   index_qpos_,
+		   index_qvel_,
+		   index_geom_,
 		   index_geom_contactee_,
 		   previous_);
 	double d_ball_contactee = mju_dist3(previous_.ball_position.data(),
@@ -299,21 +302,24 @@ namespace pam_mujoco
     // correcting the ball trajectory if necessary
     // updating contact_information_ with info regarding detected contact
     ContactStates current;
+    // to do: save state only if no contact
     save_state(d,
-	       index_q_ball_,
-	       index_qvel_ball_,
-	       index_geom_ball_,
+	       index_qpos_,
+	       index_qvel_,
+	       index_geom_,
 	       index_geom_contactee_,
 	       current);
     contact_information_.register_contact(current.ball_position,
 					  d->time);
     // correcting d->qpos and d->qvel of the ball based
     // on customized contact model
+    
+    // to do: call 4 times
     recompute_state_after_contact(config_,
 				  previous_,
 				  current,
-				  &(d->qpos[index_q_ball_]),
-				  &(d->qvel[index_qvel_ball_]));
+				  &(d->qpos[index_qpos_]),
+				  &(d->qvel[index_qvel_]));
   }
   
   bool ContactBall::is_muted(bool contact_detected)

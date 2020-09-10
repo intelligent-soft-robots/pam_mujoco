@@ -6,7 +6,7 @@ from . import xml_templates
 from . import paths
 
 
-class HittingPoint:
+class HitPoint:
     
     def __init__(self,
                  name,
@@ -164,7 +164,7 @@ def generate_model(model_name,
                    balls=[],
                    tables=[],
                    goals=[],
-                   hitting_points=[],
+                   hit_points=[],
                    solrefs = defaults_solrefs(),
                    gaps = defaults_gaps()):
 
@@ -185,14 +185,14 @@ def generate_model(model_name,
         index_qpos+=7
         index_qvel+=6
 
-    # hitting_point, instance of HittingPoint
-    for hitting_point in hitting_points:
-        xml,geom,joint,nb_bodies = hitting_point.get_xml()
+    # hit_point, instance of HitPoint
+    for hit_point in hit_points:
+        xml,geom,joint,nb_bodies = hit_point.get_xml()
         bodies.append(xml)
-        hitting_point.index_qpos = index_qpos
-        hitting_point.index_qvel = index_qvel
-        hitting_point.geom = geom
-        hitting_point.joint = joint
+        hit_point.index_qpos = index_qpos
+        hit_point.index_qvel = index_qvel
+        hit_point.geom = geom
+        hit_point.joint = joint
         index_qpos+=nb_bodies*7
         index_qvel+=nb_bodies*6
 
@@ -255,36 +255,55 @@ def generate_model(model_name,
 
 def model_factory(model_name,
                   table=False,nb_balls=1,robot1=False,
-                  robot2=False,goal=False,hitting_point=False):
+                  robot2=False,goal=False,hit_point=False,
+                  ball_colors=None):
 
+    r = {}
+    
     tables = []
     if table :
-        tables.append(Table("table"))
+        table = Table("table")
+        tables.append(table)
+        r["table"]=table
 
     balls = [Ball("ball_"+str(index))
              for index,ball in enumerate(range(nb_balls))]
+    if balls:
+        if nb_balls==1:
+            r["ball"]=balls[0]
+        else:
+            r["balls"]=balls
 
+    if ball_colors is not None:
+        for ball,color in zip(balls,ball_colors):
+            ball.color = color
+    
     robots = []
     if robot1:
         robots.append(Robot("robot1",[0,0,-0.44],None))
     if robot2:
         robots.append(Robot("robot2",[1.6,3.4,-0.44],[-1,0,0,0,-1,0]))
-
+    r["robots"]=robots
+        
     if goal:
-        goals = [Goal("goal")]
+        goal = Goal("goal")
+        goals = [goal]
+        r["goal"]=goal
     else:
         goals = []
-
-    if hitting_point:
-        hitting_points = [HittingPoint("hitting_point")]
+        
+    if hit_point:
+        hit_point = HitPoint("hit_point")
+        hit_points = [hit_point]
+        r["hit_point"]=hit_point
     else:
-        hitting_points = []
+        hit_points = []
 
     generate_model(model_name,
                    robots=robots,
                    balls=balls,
                    tables=tables,
                    goals=goals,
-                   hitting_points=hitting_points)
-    
-    return balls,goals,hitting_points,tables,robots
+                   hit_points=hit_points)
+
+    return r
