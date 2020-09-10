@@ -96,6 +96,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
 	= states.get(3).value;
       d->qvel[index_qvel_+2]
 	= states.get(5).value;
+
     }
 
 }

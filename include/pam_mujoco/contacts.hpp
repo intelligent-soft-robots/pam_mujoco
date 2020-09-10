@@ -92,7 +92,8 @@ namespace pam_mujoco
 		  int index_qvel_ball,
 		  int index_geom_ball,
 		  int index_geom_contactee,
-		  ContactStates& get_states);
+		  ContactStates& get_states,
+		  bool verbose);
 
 
   /**

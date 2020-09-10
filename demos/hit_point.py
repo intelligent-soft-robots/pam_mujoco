@@ -39,19 +39,15 @@ def execute_mujoco(segment_ids,
                                      hit_point.joint,
                                      hit_point.index_qpos,hit_point.index_qvel)
     # adding detection of contact between ball and table
-    print("A")
     pam_mujoco.add_contact_free_joint(segment_ids["contact"],
                                       segment_ids["contact"]+"_reset",
                                       ball.index_qpos,ball.index_qvel,
                                       ball.geom,table.geom_plate)
-    print("B")
     # starting the thread
     pam_mujoco.execute(mujoco_id,model_name)
-    print("C")
     # looping until requested to stop
     while not pam_mujoco.is_stop_requested(mujoco_id):
         time.sleep(0.01)
-    print("D")
 
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
@@ -88,13 +84,8 @@ while True:
     if contacts.contact_occured:
         # contact detected: moving the hit point at the contact
         # position
-        observation = frontend_ball.pulse()
-        desired_state = observation.get_desired_states()
-        xyz = [desired_state.get(0).get(),
-               desired_state.get(1).get(),
-               desired_state.get(2).get()]
         position = contacts.position
-        print("contact:",position,xyz)
+        print("contact:",position)
         for dim,p in enumerate(position):
             # position
             frontend_hit_point.add_command(2*dim,

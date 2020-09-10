@@ -121,7 +121,7 @@ namespace pam_mujoco
 		  int index_qvel,
 		  int index_geom,
 		  int index_geom_contactee,
-		  ContactStates& get_states)
+		  ContactStates& get_states,bool verbose)
   {
     // velocity of contactee computed with finite differences
     if(get_states.time_stamp<0)
@@ -201,6 +201,8 @@ namespace pam_mujoco
       index_qvel_(index_qvel),
       geom_(geom),
       geom_contactee_(geom_contactee),
+      index_geom_(-1),
+      index_geom_contactee_(-1),
       muted_(false)
   {
     shared_memory::clear_shared_memory(segment_id_contact_info_);
@@ -250,8 +252,10 @@ namespace pam_mujoco
   void ContactBall::init(const mjModel* m)
   {
     if(index_geom_>=0)
-      // init does something only at first call
-      return;
+      {
+	// init does something only at first call
+	return;
+      }
     index_geom_ = mj_name2id(m, mjOBJ_GEOM,
 			     geom_.c_str());
     index_geom_contactee_ = mj_name2id(m, mjOBJ_GEOM,
@@ -264,10 +268,14 @@ namespace pam_mujoco
       {
 	if(d->contact[i].geom1 == index_geom_
 	   && d->contact[i].geom2 == index_geom_contactee_)
-	  return true;
+	  {
+	    return true;
+	  }
 	if(d->contact[i].geom2 == index_geom_
 	   && d->contact[i].geom1 == index_geom_contactee_)
-	  return true;
+	  {
+	    return true;
+	  }
       }
     return false;
   }
@@ -292,7 +300,8 @@ namespace pam_mujoco
 		   index_qvel_,
 		   index_geom_,
 		   index_geom_contactee_,
-		   previous_);
+		   previous_,
+		   false);
 	double d_ball_contactee = mju_dist3(previous_.ball_position.data(),
 					 previous_.contactee_position.data());
 	contact_information_.register_distance(d_ball_contactee);
@@ -308,18 +317,18 @@ namespace pam_mujoco
 	       index_qvel_,
 	       index_geom_,
 	       index_geom_contactee_,
-	       current);
+	       current,true);
     contact_information_.register_contact(current.ball_position,
 					  d->time);
     // correcting d->qpos and d->qvel of the ball based
     // on customized contact model
     
     // to do: call 4 times
-    recompute_state_after_contact(config_,
+    /*recompute_state_after_contact(config_,
 				  previous_,
 				  current,
 				  &(d->qpos[index_qpos_]),
-				  &(d->qvel[index_qvel_]));
+				  &(d->qvel[index_qvel_]));*/
   }
   
   bool ContactBall::is_muted(bool contact_detected)

@@ -10,7 +10,7 @@ class HitPoint:
     
     def __init__(self,
                  name,
-                 position=[0,0,-0.455],
+                 position=[0,0,0],
                  size=[0.03,0.0007],
                  color=[1.0,0.65,0.1,1]):
         self.name = name
