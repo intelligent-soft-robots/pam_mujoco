@@ -33,16 +33,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
 			      o80::NO_EXTENDED_STATE> // same
     (m,std::string("MirrorFreeJoint"));
 
-  pybind11::class_<pam_mujoco::RecomputeStateConfig>(m,"RecomputeStateConfig")
-    .def(pybind11::init<>())
-    .def_readwrite("epsilon_r",&pam_mujoco::RecomputeStateConfig::epsilon_r)
-    .def_readwrite("epsilon_t_x",&pam_mujoco::RecomputeStateConfig::epsilon_t_x)
-    .def_readwrite("epsilon_t_z",&pam_mujoco::RecomputeStateConfig::epsilon_t_z)
-    .def_readwrite("y_vel_plus",&pam_mujoco::RecomputeStateConfig::y_vel_plus)
-    .def_readwrite("z_vel_plus",&pam_mujoco::RecomputeStateConfig::z_vel_plus)
-    .def_readwrite("rot_matrix_contactee_zero_pos",
-		   &pam_mujoco::RecomputeStateConfig::rot_matrix_contactee_zero_pos);
-
   pybind11::class_<pam_mujoco::ContactInformation>(m,"ContactInformation")
     .def(pybind11::init<>())
     .def_readonly("position",&pam_mujoco::ContactInformation::position)
@@ -62,7 +52,9 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
   m.def("add_mirror_free_joint",&pam_mujoco::add_mirror_free_joint);
   m.def("add_mirror_until_contact_free_joint",
 	&pam_mujoco::add_mirror_until_contact_free_joint);
-  m.def("add_contact_free_joint",&pam_mujoco::add_default_contact_free_joint);
+  m.def("add_table_contact_free_joint",&pam_mujoco::add_table_contact_free_joint);
+  m.def("add_robot1_contact_free_joint",&pam_mujoco::add_robot1_contact_free_joint);
+  m.def("add_robot2_contact_free_joint",&pam_mujoco::add_robot2_contact_free_joint);
   m.def("add_pressure_controller",&pam_mujoco::add_4dofs_pressure_controller);
   m.def("add_bursting",&pam_mujoco::add_bursting);
   m.def("execute",&pam_mujoco::execute);

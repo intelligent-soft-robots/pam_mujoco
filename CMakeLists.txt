@@ -36,7 +36,10 @@ get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
 set(MODELS_PATH "${MODEL_CONFIG_DIR}/tmp/")
 
 add_library(pam_mujoco
-  src/contacts.cpp
+  src/contact_ball.cpp
+  src/contact_logic.cpp
+  src/contact_information.cpp
+  src/recompute_state_after_contact.cpp
   src/burst_controller.cpp
   src/run_management.cpp
   src/run_mujoco.cpp

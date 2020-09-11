@@ -78,7 +78,7 @@ namespace pam_mujoco
 			      int index_qvel,
 			      std::string geom,
 			      std::string contactee_geom,
-			      const RecomputeStateConfig& config)
+			      ContactItems contact_item)
   {
     std::shared_ptr<ContactBall> cb
       = std::make_shared<ContactBall>(segment_id_contact,
@@ -87,27 +87,58 @@ namespace pam_mujoco
 				      index_qvel,
 				      geom,
 				      contactee_geom,
-				      config);
+				      contact_item);
     pam_mujoco::Controllers::add(cb);
   }
 
-  void add_default_contact_free_joint(std::string segment_id_contact,
+  void add_table_contact_free_joint(std::string segment_id_contact,
 				      std::string segment_id_reset,
 				      int index_qpos,
 				      int index_qvel,
 				      std::string geom,
 				      std::string contactee_geom)
   {
-    RecomputeStateConfig config;
     add_contact_free_joint(segment_id_contact,
 			   segment_id_reset,
 			   index_qpos,
 			   index_qvel,
 			   geom,
 			   contactee_geom,
-			   config);
+			   ContactItems::Table);
   }
 
+  void add_robot1_contact_free_joint(std::string segment_id_contact,
+				     std::string segment_id_reset,
+				     int index_qpos,
+				     int index_qvel,
+				     std::string geom,
+				     std::string contactee_geom)
+  {
+    add_contact_free_joint(segment_id_contact,
+			   segment_id_reset,
+			   index_qpos,
+			   index_qvel,
+			   geom,
+			   contactee_geom,
+			   ContactItems::Robot1);
+  }
+
+  void add_robot2_contact_free_joint(std::string segment_id_contact,
+				     std::string segment_id_reset,
+				     int index_qpos,
+				     int index_qvel,
+				     std::string geom,
+				     std::string contactee_geom)
+  {
+    add_contact_free_joint(segment_id_contact,
+			   segment_id_reset,
+			   index_qpos,
+			   index_qvel,
+			   geom,
+			   contactee_geom,
+			   ContactItems::Robot2);
+  }
+  
   void init_mujoco()
   {
     init();

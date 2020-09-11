@@ -8,7 +8,7 @@
 #include "pam_mujoco/mujoco_base.hpp"
 #include "pam_mujoco/mirror_robot.hpp"
 #include "pam_mujoco/mirror_free_joint.hpp"
-#include "pam_mujoco/contacts.hpp"
+#include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/burst_controller.hpp"
 #include "pam_mujoco/pressure_controller.hpp"
 #include "pam_mujoco/run_management.hpp"
@@ -45,14 +45,28 @@ namespace pam_mujoco
 			      int index_qvel,
 			      std::string geom,
 			      std::string contactee_geom,
-			      const RecomputeStateConfig& config);
+			      ContactItems contact_item);
 
-  void add_default_contact_free_joint(std::string segment_id_contact,
-				      std::string segment_id_reset,
-				      int index_qpos,
-				      int index_qvel,
-				      std::string geom,
-				      std::string contactee_geom);
+  void add_table_contact_free_joint(std::string segment_id_contact,
+				    std::string segment_id_reset,
+				    int index_qpos,
+				    int index_qvel,
+				    std::string geom,
+				    std::string contactee_geom);
+
+  void add_robot1_contact_free_joint(std::string segment_id_contact,
+				    std::string segment_id_reset,
+				    int index_qpos,
+				    int index_qvel,
+				    std::string geom,
+				    std::string contactee_geom);
+
+  void add_robot2_contact_free_joint(std::string segment_id_contact,
+				     std::string segment_id_reset,
+				     int index_qpos,
+				     int index_qvel,
+				     std::string geom,
+				     std::string contactee_geom);
   
   void add_bursting(std::string mujoco_id,std::string segment_id);
 

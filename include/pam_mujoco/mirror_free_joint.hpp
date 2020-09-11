@@ -6,7 +6,7 @@
 #include "o80/state1d.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
-#include "pam_mujoco/contacts.hpp"
+#include "pam_mujoco/contact_information.hpp"
 
 namespace pam_mujoco
 {
