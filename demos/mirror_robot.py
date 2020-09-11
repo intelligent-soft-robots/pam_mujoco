@@ -9,14 +9,15 @@ mujoco_id = "mj"
 
 # generates pamy.xml in pam_mujoco/models/tmp/
 model_name = "pamy"
-pam_mujoco.model_factory(model_name,table=True,robot1=True)
+items = pam_mujoco.model_factory(model_name,table=True,robot1=True)
+robot = items["robot"]
 
 # running the mujoco thread
-def execute_mujoco(segment_id,mujoco_id,model_name):
+def execute_mujoco(segment_id,mujoco_id,model_name,robot):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding mirroring robot controller
-    pam_mujoco.add_mirror_robot(segment_id,mujoco_id,"robot1_joint_base_rotation")
+    pam_mujoco.add_mirror_robot(segment_id,robot.joint)
     # setting bursting mode
     pam_mujoco.add_bursting(mujoco_id,segment_id)
     # starting the mujoco thread (reads pamy.xml in pam_mujoco/models/tmp/)
@@ -27,7 +28,7 @@ def execute_mujoco(segment_id,mujoco_id,model_name):
 
 # starting the mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(segment_id,mujoco_id,model_name,))
+                                   args=(segment_id,mujoco_id,model_name,robot,))
 pam_mujoco.clear(mujoco_id)
 process.start()
 pam_mujoco.wait_for_mujoco(mujoco_id)

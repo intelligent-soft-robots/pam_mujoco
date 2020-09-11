@@ -19,11 +19,6 @@ ball = items["ball"]
 table = items["table"]
 hit_point = items["hit_point"]
 
-# o80 segment ids
-segment_ids = { "ball":"ball",
-                "hit_point":"hit_point",
-                "contact":"contact" }
-
 # running mujoco thread
 def execute_mujoco(segment_ids,
                    mujoco_id,model_name,
@@ -31,16 +26,16 @@ def execute_mujoco(segment_ids,
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding the mirror ball controller
-    pam_mujoco.add_mirror_free_joint(segment_ids["ball"],
+    pam_mujoco.add_mirror_free_joint("ball",
                                      ball.joint,
                                      ball.index_qpos,ball.index_qvel)
     # adding the hit point controller
-    pam_mujoco.add_mirror_free_joint(segment_ids["hit_point"],
+    pam_mujoco.add_mirror_free_joint("hit_point",
                                      hit_point.joint,
                                      hit_point.index_qpos,hit_point.index_qvel)
     # adding detection of contact between ball and table
-    pam_mujoco.add_contact_free_joint(segment_ids["contact"],
-                                      segment_ids["contact"]+"_reset",
+    pam_mujoco.add_contact_free_joint("contact",
+                                      "contact_reset",
                                       ball.index_qpos,ball.index_qvel,
                                       ball.geom,table.geom_plate)
     # starting the thread
@@ -59,8 +54,8 @@ pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing o80 frontend for sending ball/hit_point position/velocity
 # to mujoco thread
-frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd(segment_ids["ball"])
-frontend_hit_point = pam_mujoco.MirrorFreeJointFrontEnd(segment_ids["hit_point"])
+frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd("ball")
+frontend_hit_point = pam_mujoco.MirrorFreeJointFrontEnd("hit_point")
 
 # dropping the ball on the table
 start_point = [1,0.5,1]
@@ -80,7 +75,7 @@ frontend_ball.pulse()
 # monitoring contact ball/table
 # and moving hit point to contact location
 while True:
-    contacts = pam_mujoco.get_contact(segment_ids["contact"])
+    contacts = pam_mujoco.get_contact("contact")
     if contacts.contact_occured:
         # contact detected: moving the hit point at the contact
         # position

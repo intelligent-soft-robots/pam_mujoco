@@ -33,7 +33,7 @@ goals = [pam_mujoco.Goal("goal1",position=[0.6,1.4,-0.45]),
                          color1=[1.0,0.2,0.2,1.0],color2=[1.0,0.2,0.2,0.05])]
 
 # adding a "hit point"
-hitting_points = [pam_mujoco.HittingPoint("hp",position=[0.7,1.0,-0.45])]
+hit_points = [pam_mujoco.HitPoint("hp",position=[0.7,1.0,-0.45])]
 
 # generating the model xml file (in pam_mujoco/modes/tmp/test.xml)
 pam_mujoco.generate_model(model,
@@ -41,7 +41,7 @@ pam_mujoco.generate_model(model,
                           balls=balls,
                           tables=tables,
                           goals=goals,
-                          hitting_points=hitting_points)
+                          hit_points=hit_points)
 
 # starting mujoco using the generated model
 pam_mujoco.init_mujoco()

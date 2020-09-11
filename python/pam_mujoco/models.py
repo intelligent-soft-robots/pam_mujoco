@@ -283,7 +283,10 @@ def model_factory(model_name,
         robots.append(Robot("robot1",[0,0,-0.44],None))
     if robot2:
         robots.append(Robot("robot2",[1.6,3.4,-0.44],[-1,0,0,0,-1,0]))
-    r["robots"]=robots
+    if len(robots)==1:
+        r["robot"]=robots[0]
+    else:
+        r["robots"]=robots
         
     if goal:
         goal = Goal("goal")

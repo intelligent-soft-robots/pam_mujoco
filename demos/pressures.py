@@ -12,10 +12,6 @@ mujoco_id = "mj"
 model_name = "pressure"
 pam_mujoco.model_factory(model_name,robot1=True)
 
-# min and max pressure used anywhere ?
-max_pressures = [23000]*8
-min_pressures = [12500]*8
-
 # pam model configuration
 pam_model_config_path= pam_models.get_default_config_path()
 a_init = [0.5]*8

@@ -5,65 +5,43 @@ import pam_mujoco
 import numpy as np
 import multiprocessing
 
-# o80 and shared memory communication
-segment_id_contacts_racket = "contacts_racket"
-segment_id_contacts_racket_reset = "contacts_racket_reset"
-segment_id_contacts_table = "contacts_table"
-segment_id_contacts_table_reset = "contacts_table_reset"
-segment_id_ball = "ball"
-segment_id_robot = "robot"
-
-# as defined in the mujoco model xml file
-ball_joint = "ball_0"
-ball_geom = "ball_0"
-racket_geom = "robot1_racket"
-table_geom = "table_plate"
-robot_joint = "robot1_joint_base_rotation"
-
-# several instances of mujoco may run in parallel
 mujoco_id = "mj"
-
 model_name = "contacts"
-pam_mujoco.model_factory("contacts",table=True,robot1=True)
-
+items = pam_mujoco.model_factory("contacts",table=True,robot1=True)
+ball = items["ball"]
+table = items["table"]
+robot = items["robot"]
 
 # running mujoco thread
-def execute_mujoco(segment_id_contacts_racket,segment_id_contacts_racket_reset,
-                   segment_id_contacts_table,segment_id_contacts_table_reset,
-                   segment_id_ball,segment_id_robot,
-                   ball_joint,ball_geom,
-                   racket_geom,table_geom,
-                   robot_joint,
-                   mujoco_id,model_name):
+def execute_mujoco(ball,table,robot,mujoco_id,model_name):
     # init mujoco
     pam_mujoco.init_mujoco()
     # adding contact detection between ball and table
     # note: best to add first (i.e. before mirror robot and
     # mirror ball), as controllers are called in sequence,
     # and contact info will change behavior of mirror ball controller
-    pam_mujoco.add_contact_ball(segment_id_contacts_racket,
-                                segment_id_contacts_racket_reset,
-                                ball_joint,ball_geom,
-                                racket_geom)
+    pam_mujoco.add_contact_free_joint("racket",
+                                      "racket_reset",
+                                      ball.index_qpos,ball.index_qvel,
+                                      ball.geom,robot.geom_racket)
     # for detecting contact with the table
-    pam_mujoco.add_contact_ball(segment_id_contacts_table,
-                                segment_id_contacts_table_reset,
-                                ball_joint,ball_geom,
-                                table_geom)
+    pam_mujoco.add_contact_free_joint("table",
+                                      "table_reset",
+                                      ball.index_qpos,ball.index_qvel,
+                                      ball.geom,table.geom_plate)
     # adding the mirror ball controller
     # (mirroring will be interrupted upon contact with the racket:
     # the contact controller (added right above) will write contact information
     # in the shared memory (segment: segment_id_contacts). The ball mirroring 
     # controller will stop mirroring the ball after the data shared in the memory
     # shows a contact occured).
-    pam_mujoco.add_mirror_until_contact_one_ball(segment_id_ball,
-                                                 mujoco_id,
-                                                 ball_joint,
-                                                 segment_id_contacts_racket)
+    pam_mujoco.add_mirror_until_contact_free_joint("ball",
+                                                   ball.joint,
+                                                   ball.index_qpos,ball.index_qvel,
+                                                   "racket")
     # adding robot mirroring controller
-    pam_mujoco.add_mirror_robot(segment_id_robot,
-                                mujoco_id,
-                                robot_joint)
+    pam_mujoco.add_mirror_robot("robot",
+                                robot.joint)
     # starting the thread
     pam_mujoco.execute(mujoco_id,model_name)
     # looping until requested to stop
@@ -73,12 +51,7 @@ def execute_mujoco(segment_id_contacts_racket,segment_id_contacts_racket_reset,
 
 # starting mujoco thread
 process  = multiprocessing.Process(target=execute_mujoco,
-                                   args=(segment_id_contacts_racket,segment_id_contacts_racket_reset,
-                                         segment_id_contacts_table,segment_id_contacts_table_reset,
-                                         segment_id_ball,segment_id_robot,
-                                         ball_joint,ball_geom,
-                                         racket_geom,table_geom,
-                                         robot_joint,
+                                   args=(ball,table,robot,
                                          mujoco_id,model_name,))
 pam_mujoco.clear(mujoco_id)
 process.start()
@@ -86,11 +59,11 @@ pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing o80 frontend for sending ball position/velocity
 # to mujoco thread
-frontend_ball = pam_mujoco.MirrorOneBallFrontEnd(segment_id_ball)
+frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd("ball")
 
 # initializing o80 frontend for sending robot joints position/velocity
 # to mujoco thread
-frontend_robot = pam_mujoco.MirrorRobotFrontEnd(segment_id_robot)
+frontend_robot = pam_mujoco.MirrorRobotFrontEnd("robot")
 
 # having the ball falling off slowly
 ball_x = 0.94
@@ -141,11 +114,11 @@ time_start = time.time()
 first_contact_racket = False
 first_contact_table = False
 while time.time()-time_start < duration:
-    contacts_racket = pam_mujoco.get_contact(segment_id_contacts_racket)
+    contacts_racket = pam_mujoco.get_contact("racket")
     if contacts_racket.contact_occured and not first_contact_racket:
         print("-- contact with racket")
         first_contact_racket=True;
-    contacts_table = pam_mujoco.get_contact(segment_id_contacts_table)
+    contacts_table = pam_mujoco.get_contact("table")
     if contacts_table.contact_occured and not first_contact_table:
         print("-- contact with table")
         print("\tposition:",",".join([str(a) for a in contacts_table.position]))
