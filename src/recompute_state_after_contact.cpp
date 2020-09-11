@@ -3,6 +3,8 @@
 namespace pam_mujoco
 {
 
+  RecomputeStateConfig::RecomputeStateConfig(){}
+  
   RecomputeStateConfig get_table_recompute_config()
   {
     RecomputeStateConfig config;
@@ -51,6 +53,17 @@ namespace pam_mujoco
     return get_table_recompute_config();
   }
 
+
+  template<int size>
+  void print(std::string label, double a[size])
+  {
+    std::cout << label << " : ";
+    for(int i=0;i<size;i++)
+      {
+	std::cout << a[i] << " , ";
+      }
+    std::cout << "\n";
+  }
   
   void recompute_state_after_contact(const RecomputeStateConfig& config,
 				     const internal::ContactStates& pre_contact,
@@ -82,7 +95,7 @@ namespace pam_mujoco
     mju_rotVecQuat(ball_vel_in_contactee_coord_sys,
 		   pre_contact.ball_velocity.data(),
 		   quat_rot);
-      
+
     double contactee_vel_in_contactee_coord_sys[3];
     mju_rotVecQuat(contactee_vel_in_contactee_coord_sys,
 		   current.contactee_velocity.data(),
@@ -116,27 +129,32 @@ namespace pam_mujoco
 
     double ball_pos_new_in_contactee_coord_sys[3];
     for(size_t i=0;i<3;i++)
-      ball_pos_new_in_contactee_coord_sys[i] =
-	ball_pos_in_contactee_coord_sys[i] +
-	ball_vel_in_contactee_coord_sys[i]*time_until_impact +
-	ball_vel_new_in_contactee_coord_sys[i]*delta_t_after_impact;
-
+      {
+	ball_pos_new_in_contactee_coord_sys[i] =
+	  ball_pos_in_contactee_coord_sys[i] +
+	  ball_vel_in_contactee_coord_sys[i]*time_until_impact +
+	  ball_vel_new_in_contactee_coord_sys[i]*delta_t_after_impact;
+      }
+    
     double ball_pos_new[3];
     mju_rotVecQuat(ball_pos_new,
 		   ball_pos_new_in_contactee_coord_sys,
 		   quat_rot_neg);
     for(size_t i=0;i<3;i++)
-      ball_pos_new[i] += pre_contact.contactee_position[i];
-      
+      {
+	ball_pos_new[i] += pre_contact.contactee_position[i];
+      }
+    
     double ball_vel_new[3];
     mju_rotVecQuat(ball_vel_new,
 		   ball_vel_new_in_contactee_coord_sys,
 		   quat_rot_neg);
 
     for(size_t i=0;i<3;i++)
-      get_ball_position[i] = ball_pos_new[i];
-    for(size_t i=0;i<3;i++)
-      get_ball_velocity[i] = ball_vel_new[i]+ config.vel_plus[i];
+      {
+	get_ball_position[i] = ball_pos_new[i];
+	get_ball_velocity[i] = ball_vel_new[i]+ config.vel_plus[i];
+      }
   }
   
 }

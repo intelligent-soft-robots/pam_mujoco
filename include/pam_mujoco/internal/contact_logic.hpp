@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mujoco.h"
+#include <iostream>
 
 namespace pam_mujoco
 {
@@ -11,6 +12,7 @@ namespace pam_mujoco
     class ContactAction
     {
     public:
+      ContactAction();
       bool muted;
       bool in_contact;
     };

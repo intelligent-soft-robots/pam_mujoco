@@ -37,6 +37,7 @@ set(MODELS_PATH "${MODEL_CONFIG_DIR}/tmp/")
 
 add_library(pam_mujoco
   src/contact_ball.cpp
+  src/contact_states.cpp
   src/contact_logic.cpp
   src/contact_information.cpp
   src/recompute_state_after_contact.cpp

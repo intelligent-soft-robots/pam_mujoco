@@ -6,6 +6,12 @@ namespace pam_mujoco
   namespace internal
   {
 
+    ContactAction::ContactAction()
+      : muted(false),
+	in_contact(false)
+    {}
+
+    
     ContactLogic::ContactLogic()
       : contact_count_(-1),
 	contact_mode_(false)
@@ -87,12 +93,15 @@ namespace pam_mujoco
       bool contact_detected = is_in_contact(m,d,
 					    index_geom,index_geom_contactee);
 
-      // new contact detected
-      // entering contact mode
-      contact_mode_=true;
-
-      // returning info that we are in contact
-      contact_action.in_contact = true;
+      if (contact_detected)
+	{
+	  // new contact detected
+	  // entering contact mode
+	  contact_mode_=true;
+	  // returning info that we are in contact
+	  contact_action.in_contact = true;
+	}
+      
       return contact_action;
 
     }

@@ -129,8 +129,6 @@ namespace pam_mujoco
 					  current,
 					  &(d->qpos[index_qpos_]),
 					  &(d->qvel[index_qvel_]));
-
-	
 	  }
 	else
 	  {

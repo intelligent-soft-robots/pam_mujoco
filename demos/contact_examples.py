@@ -20,12 +20,12 @@ def execute_mujoco(ball,table,robot,mujoco_id,model_name):
     # note: best to add first (i.e. before mirror robot and
     # mirror ball), as controllers are called in sequence,
     # and contact info will change behavior of mirror ball controller
-    pam_mujoco.add_contact_free_joint("racket",
-                                      "racket_reset",
-                                      ball.index_qpos,ball.index_qvel,
-                                      ball.geom,robot.geom_racket)
+    pam_mujoco.add_robot1_contact_free_joint("racket",
+                                             "racket_reset",
+                                             ball.index_qpos,ball.index_qvel,
+                                             ball.geom,robot.geom_racket)
     # for detecting contact with the table
-    pam_mujoco.add_contact_free_joint("table",
+    pam_mujoco.add_table_contact_free_joint("table",
                                       "table_reset",
                                       ball.index_qpos,ball.index_qvel,
                                       ball.geom,table.geom_plate)
@@ -103,27 +103,32 @@ for dof,target in enumerate(robot_target):
                                o80.Mode.QUEUE)
     
 # sending ball trajectory and robot motion
-frontend_ball.pulse()
-frontend_robot.pulse()
+frontend_ball.pulse_prepare_wait()
+frontend_robot.pulse_prepare_wait()
+
+frontend_ball.wait()
+frontend_robot.wait()
 
 # bug ? during first iterations, contact are detected ...
 time.sleep(1)
 
-# reading shared memory for contact informations
-time_start = time.time()
-first_contact_racket = False
-first_contact_table = False
-while time.time()-time_start < duration:
-    contacts_racket = pam_mujoco.get_contact("racket")
-    if contacts_racket.contact_occured and not first_contact_racket:
-        print("-- contact with racket")
-        first_contact_racket=True;
-    contacts_table = pam_mujoco.get_contact("table")
-    if contacts_table.contact_occured and not first_contact_table:
-        print("-- contact with table")
-        print("\tposition:",",".join([str(a) for a in contacts_table.position]))
-        first_contact_table=True;
-    time.sleep(0.1)
+def commented():
+
+    # reading shared memory for contact informations
+    time_start = time.time()
+    first_contact_racket = False
+    first_contact_table = False
+    while time.time()-time_start < duration:
+        contacts_racket = pam_mujoco.get_contact("racket")
+        if contacts_racket.contact_occured and not first_contact_racket:
+            print("-- contact with racket")
+            first_contact_racket=True;
+        contacts_table = pam_mujoco.get_contact("table")
+        if contacts_table.contact_occured and not first_contact_table:
+            print("-- contact with table")
+            print("\tposition:",",".join([str(a) for a in contacts_table.position]))
+            first_contact_table=True;
+        time.sleep(0.1)
     
 # stopping the mujoco thread
 pam_mujoco.request_stop("mj")
