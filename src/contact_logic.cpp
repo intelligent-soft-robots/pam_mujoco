@@ -70,7 +70,7 @@ namespace pam_mujoco
       // in contact mode, but maybe we are muted
       // (i.e. new contacts are ignored for 20
       // itertions)
-      if(contact_count_>=4 )
+      if(contact_count_>=3 )
 	{
 	  contact_count_++;
 	  if(contact_count_<20)

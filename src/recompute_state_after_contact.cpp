@@ -64,14 +64,24 @@ namespace pam_mujoco
       }
     std::cout << "\n";
   }
-  
-  void recompute_state_after_contact(const RecomputeStateConfig& config,
-				     const internal::ContactStates& pre_contact,
-				     const internal::ContactStates& current,
-				     double get_ball_position[3],
-				     double get_ball_velocity[3])
-  {
 
+  template<int size>
+  void print(std::string label, const std::array<double,size>& a)
+  {
+    std::cout << label << " : ";
+    for(int i=0;i<size;i++)
+      {
+	std::cout << a[i] << " , ";
+      }
+    std::cout << "\n";
+  }
+
+
+  void in_relative_frame(const RecomputeStateConfig& config,
+			 const internal::ContactStates& pre_contact,
+			 std::array<double,3>& position,
+			 std::array<double,3>& velocity)
+  {
     double rot_matrix_contactee_rel[9];
     mju_mulMatMatT(rot_matrix_contactee_rel,
 		   config.rot_matrix_contactee_zero_pos.data(),
@@ -83,13 +93,38 @@ namespace pam_mujoco
     mju_mat2Quat(quat_rot, rot_matrix_contactee_rel);
     mju_negQuat(quat_rot_neg, quat_rot);
 
-    double ball_pos_in_contactee_coord_sys[3];
-    double ball_pos_trans[3];
+    std::array<double,3> trans;
     for(size_t i=0;i<3;i++)
-      ball_pos_trans[i] = pre_contact.ball_position[i]-pre_contact.contactee_position[i];
-    mju_rotVecQuat(ball_pos_in_contactee_coord_sys,
-		   ball_pos_trans,
+      {
+	trans[i] = pre_contact.ball_position[i]-pre_contact.contactee_position[i];
+      }
+    
+    mju_rotVecQuat(position.data(),
+		   trans,
 		   quat_rot);
+
+    mju_rotVecQuat(velocity.data(),
+		   pre_contact.contactee_velocity.data(),
+		   quat_rot);
+    
+  }
+  
+  
+  // generic version
+  void _recompute_state_after_contact(const RecomputeStateConfig& config,
+				     const internal::ContactStates& pre_contact,
+				     const internal::ContactStates& current,
+				     double get_ball_position[3],
+				     double get_ball_velocity[3])
+  {
+
+    // position and velocity of the ball pre-contact,
+    // in contactee (table or racket) frame
+    std::array<double,3> pre_contact_relative_position;
+    std::array<double,3> pre_contact_relative_velocity;
+    in_relative_frame(config,pre_contact,
+		      pre_contact_relative_position,
+		      pre_contact_relative_velocity);
 
     double ball_vel_in_contactee_coord_sys[3];
     mju_rotVecQuat(ball_vel_in_contactee_coord_sys,
@@ -156,5 +191,60 @@ namespace pam_mujoco
 	get_ball_velocity[i] = ball_vel_new[i]+ config.vel_plus[i];
       }
   }
+
+
+  // table version
+  void recompute_state_after_contact(const RecomputeStateConfig& config,
+				     const internal::ContactStates& pre_contact,
+				     const internal::ContactStates& current,
+				     double get_ball_position[3],
+				     double get_ball_velocity[3])
+  {
+    std::array<double,3> pre_contact_relative;
+    for(size_t i=0;i<3;i++)
+      {
+	pre_contact_relative[i] =
+	  pre_contact.ball_position[i] - pre_contact.contactee_position[i];
+      }
+    pre_contact_relative[2]-=0.4; // !!
+
+    std::array<double,3> post_contact_velocity;
+    for(size_t i=0;i<3;i++)
+      {
+	post_contact_velocity[i] = pre_contact.ball_velocity[i]*config.epsilon[i];
+      }
+    post_contact_velocity[2] = - post_contact_velocity[2];
+
+    
+    
+    double time_until_impact = -pre_contact_relative[2] / pre_contact.ball_velocity[2];
+    double delta_t_step = current.time_stamp - pre_contact.time_stamp;
+    double delta_t_after_impact = delta_t_step - time_until_impact;
+
+    std::array<double,3> post_contact_relative;
+    for (size_t i=0;i<3;i++)
+      {
+	post_contact_relative[i] =
+	  pre_contact_relative[i] +
+	  pre_contact.ball_velocity[i]*time_until_impact +
+	  post_contact_velocity[i]*delta_t_after_impact;
+      }
+
+    std::array<double,3> post_contact;
+    for (size_t i=0;i<3;i++)
+      {
+	post_contact[i] =
+	  post_contact_relative[i] + pre_contact.contactee_position[i];
+      }
+    post_contact[2] += 0.04; // !!
+
+    for(int i=0;i<3;i++)
+      {
+	get_ball_position[i] = post_contact[i];
+	get_ball_velocity[i] = post_contact_velocity[i];
+      }
+
+  }
+
   
 }

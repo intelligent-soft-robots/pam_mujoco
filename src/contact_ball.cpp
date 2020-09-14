@@ -80,73 +80,74 @@ namespace pam_mujoco
 			     contact_information_);
   }
 
-      void ContactBall::apply(const mjModel* m,
+  void ContactBall::apply(const mjModel* m,
 			      mjData* d)
+  {
+
+    // setup the indexes (e.g. index_qpos, ...)
+    // based on the model and the configuration string
+    init(m);
+
+    // check if receiving from outside a request for reset
+    // (e.g. a new episode starts)
+    bool must_reset;
+    shared_memory::get<bool>(segment_id_reset_,
+			     segment_id_reset_,
+			     must_reset);
+    // reset : reinitialize ContactStates previous_
+    //         and contact_information_
+    if(must_reset)
       {
-    
-	// setup the indexes (e.g. index_qpos, ...)
-	// based on the model and the configuration string
-	init(m);
-
-	// check if receiving from outside a request for reset
-	// (e.g. a new episode starts)
-	bool must_reset;
-	shared_memory::get<bool>(segment_id_reset_,
+	reset();
+	shared_memory::set<bool>(segment_id_reset_,
 				 segment_id_reset_,
-				 must_reset);
-	// reset : reinitialize ContactStates previous_
-	//         and contact_information_
-	if(must_reset)
-	  {
-	    reset();
-	    shared_memory::set<bool>(segment_id_reset_,
-				     segment_id_reset_,
-				     false);
-	  }
-
-	internal::ContactAction contact_action = contact_logic_.apply(m,d,
-								      index_geom_,
-								      index_geom_contactee_);
-    
-	if (contact_action.muted)
-	  {
-	    return;
-	  }
-
-	if (contact_action.in_contact)
-	  {
-	    internal::ContactStates current;
-	    internal::save_state(d,
-				 index_qpos_,
-				 index_qvel_,
-				 index_geom_,
-				 index_geom_contactee_,
-				 current);
-	    contact_information_.register_contact(current.ball_position,
-						  d->time);
-	    recompute_state_after_contact(config_,
-					  previous_,
-					  current,
-					  &(d->qpos[index_qpos_]),
-					  &(d->qvel[index_qvel_]));
-	  }
-	else
-	  {
-	    internal::save_state(d,
-				 index_qpos_,
-				 index_qvel_,
-				 index_geom_,
-				 index_geom_contactee_,
-				 previous_);
-	    double d_ball_contactee = mju_dist3(previous_.ball_position.data(),
-						previous_.contactee_position.data());
-	    contact_information_.register_distance(d_ball_contactee);
-	  }
-    
-	shared_memory::serialize(segment_id_contact_info_,
-				 segment_id_contact_info_,
-				 contact_information_);
+				 false);
       }
+
+    internal::ContactAction contact_action = contact_logic_.apply(m,d,
+								  index_geom_,
+								  index_geom_contactee_);
+    
+    if (contact_action.muted)
+      {
+	return;
+      }
+
+    if (contact_action.in_contact)
+      {
+	internal::ContactStates current;
+	internal::save_state(d,
+			     index_qpos_,
+			     index_qvel_,
+			     index_geom_,
+			     index_geom_contactee_,
+			     current);
+	contact_information_.register_contact(current.ball_position,
+					      d->time);
+	recompute_state_after_contact(config_,
+				      previous_,
+				      current,
+				      &(d->qpos[index_qpos_]),
+				      &(d->qvel[index_qvel_]));
+      }
+    else
+      {
+	internal::save_state(d,
+			     index_qpos_,
+			     index_qvel_,
+			     index_geom_,
+			     index_geom_contactee_,
+			     previous_);
+	double d_ball_contactee = mju_dist3(previous_.ball_position.data(),
+					    previous_.contactee_position.data());
+	contact_information_.register_distance(d_ball_contactee);
+      }
+
+    shared_memory::serialize(segment_id_contact_info_,
+			     segment_id_contact_info_,
+			     contact_information_);
+
+  }
   
 
   void ContactBall::init(const mjModel* m)
