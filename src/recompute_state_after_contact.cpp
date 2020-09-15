@@ -183,7 +183,6 @@ namespace pam_mujoco
 	post_contact_relative.ball_velocity[i] =
 	  pre_contact_relative.ball_velocity[i]*config.epsilon[i];
       }
-
     // change of direction
     post_contact_relative.ball_velocity[axis] =
       - post_contact_relative.ball_velocity[axis] +
