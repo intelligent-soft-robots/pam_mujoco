@@ -21,7 +21,8 @@ namespace pam_mujoco
 		    int index_qvel,
 		    int index_geom,
 		    int index_geom_contactee,
-		    internal::ContactStates& get_states)
+		    internal::ContactStates& get_states,
+		    bool verbose)
     {
       // velocity of contactee computed with finite differences
       if(get_states.time_stamp<0)
@@ -33,9 +34,14 @@ namespace pam_mujoco
 	{
 	  double delta_time = d->time - get_states.time_stamp;
 	  for(size_t i=0;i<3;i++)
-	    get_states.contactee_velocity[i] =
-	      (d->geom_xpos[index_geom_contactee*3+i]-get_states.contactee_position[i]) /
-	      delta_time;
+	    {
+	      if (delta_time!=0)
+		{
+		  get_states.contactee_velocity[i] =
+		    (d->geom_xpos[index_geom_contactee*3+i]-get_states.contactee_position[i]) /
+		    delta_time;
+		}
+	    }
 	}
       // rest is just copied from d to get_states
       for(size_t i=0;i<3;i++)
@@ -121,7 +127,7 @@ namespace pam_mujoco
 			     index_qvel_,
 			     index_geom_,
 			     index_geom_contactee_,
-			     current);
+			     current,false);
 	contact_information_.register_contact(current.ball_position,
 					      d->time);
 	recompute_state_after_contact(config_,
@@ -137,7 +143,7 @@ namespace pam_mujoco
 			     index_qvel_,
 			     index_geom_,
 			     index_geom_contactee_,
-			     previous_);
+			     previous_,true);
 	double d_ball_contactee = mju_dist3(previous_.ball_position.data(),
 					    previous_.contactee_position.data());
 	contact_information_.register_distance(d_ball_contactee);

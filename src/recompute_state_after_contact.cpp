@@ -9,9 +9,9 @@ namespace pam_mujoco
   {
     RecomputeStateConfig config;
     config.epsilon = {0.73,0.73,0.92};
-    config.rot_matrix_contactee_zero_pos = {1.,0.,0.,
-					    0.,1.,0.,
-					    0.,0.,1.};
+    config.rotation_matrix_contactee = {1.,0.,0.,
+					0.,1.,0.,
+					0.,0.,1.};
     config.vel_plus.fill(0.);
     config.mirror_y=false;
     return config;
@@ -22,9 +22,9 @@ namespace pam_mujoco
   {
     RecomputeStateConfig config;
     config.epsilon = {0.78,0.78,0.78};
-    config.rot_matrix_contactee_zero_pos = {0.000, -1.000, 0.000,
-					    -1.000, 0.000, 0.000,
-					    0.000, 0.000, -1.000};
+    config.rotation_matrix_contactee = {0.000, -1.000, 0.000,
+					-1.000, 0.000, 0.000,
+					0.000, 0.000, -1.000};
     config.vel_plus.fill(0.);
     config.mirror_y=true;
     return config;
@@ -35,7 +35,7 @@ namespace pam_mujoco
   {
     RecomputeStateConfig config;
     config.epsilon = {0.78,0.78,0.78};
-    config.rot_matrix_contactee_zero_pos = {0.000, 1.000, 0.000,
+    config.rotation_matrix_contactee = {0.000, 1.000, 0.000,
 					    1.000, 0.000, 0.000,
 					    0.000, 0.000, 1.000};
     config.vel_plus.fill(0.);
@@ -82,12 +82,12 @@ namespace pam_mujoco
 			    std::array<double,4>& rotation_neg)
   {
     double rotation_matrix_contactee_relative[9];
-    mju_mulMatMatT(rotation_matrix_contactee_rel,
-		   config.rot_matrix_contactee_zero_pos.data(),
+    mju_mulMatMatT(rotation_matrix_contactee_relative,
+		   config.rotation_matrix_contactee.data(),
 		   pre_contact.contactee_orientation.data(),
 		   3, 3, 3);
-    mju_mat2Quat(rotation, rotation_matrix_contactee_relative);
-    mju_negQuat(rotation_neg,rotation);
+    mju_mat2Quat(rotation.data(), rotation_matrix_contactee_relative);
+    mju_negQuat(rotation_neg.data(), rotation.data());
   }
   
 
@@ -96,14 +96,14 @@ namespace pam_mujoco
   {
     internal::ContactStates states;
     
-    std::array<double,3> trans;
+    std::array<double,3> translated;
     for(size_t i=0;i<3;i++)
       {
-	trans[i] = pre_contact.ball_position[i]-pre_contact.contactee_position[i];
+	translated[i] = pre_contact.ball_position[i]-pre_contact.contactee_position[i];
       }
     
     mju_rotVecQuat(states.ball_position.data(),
-		   trans,
+		   translated.data(),
 		   rotation.data());
 
     mju_rotVecQuat(states.ball_velocity.data(),
@@ -112,7 +112,7 @@ namespace pam_mujoco
 
     mju_rotVecQuat(states.contactee_velocity.data(),
 		   pre_contact.contactee_velocity.data(),
-		   rotation.data);
+		   rotation.data());
 
     return states;
 
@@ -127,22 +127,22 @@ namespace pam_mujoco
     
     mju_rotVecQuat(states.ball_position.data(),
 		   relative.ball_position.data(),
-		   rotation_negative);
+		   rotation_negative.data());
     
     for(size_t i=0;i<3;i++)
       {
-	states.ball_position += pre_contact.contactee_position[i];
+	states.ball_position[i] += pre_contact.contactee_position[i];
       }
     
     mju_rotVecQuat(states.ball_velocity.data(),
 		   relative.ball_velocity.data(),
-		   rotation_negative);
+		   rotation_negative.data());
 
     return states;
   }
   
   // generic version
-  void _recompute_state_after_contact(const RecomputeStateConfig& config,
+  void recompute_state_after_contact(const RecomputeStateConfig& config,
 				     const internal::ContactStates& pre_contact,
 				     const internal::ContactStates& current,
 				     double get_ball_position[3],
@@ -151,7 +151,7 @@ namespace pam_mujoco
     // rotations
     std::array<double,4> rotation,rotation_negative;
     get_rotations(config,pre_contact,rotation,rotation_negative);
-    
+
     // pre-contact in contactee relative frame
     internal::ContactStates pre_contact_relative =
       in_relative_frame(rotation,pre_contact);
@@ -175,16 +175,21 @@ namespace pam_mujoco
 
     // post-contact in relative frame
     internal::ContactStates post_contact_relative;
+
     // 1. velocity
+    // loss of velocity after impact
     for(std::size_t i=0;i<3;i++)
       {
 	post_contact_relative.ball_velocity[i] =
 	  pre_contact_relative.ball_velocity[i]*config.epsilon[i];
       }
+
+    // change of direction
     post_contact_relative.ball_velocity[axis] =
-      - post_contact_relative.ball_velocity[axis] *
-      (1+config.epsilon[1])*pre_contact_relative.contactee_velocity[1];
-    // 2 position
+      - post_contact_relative.ball_velocity[axis] +
+      (1+config.epsilon[axis])*pre_contact_relative.contactee_velocity[axis];
+
+    // 2. position
     for (size_t i=0;i<3;i++)
       {
 	post_contact_relative.ball_position[i] =
@@ -197,66 +202,13 @@ namespace pam_mujoco
     internal::ContactStates absolute = in_absolute_frame(rotation_negative,
 							 post_contact_relative,
 							 pre_contact);
+
+    // copying/returning final result
     for(size_t i=0;i<3;i++)
       {
 	get_ball_position[i] = absolute.ball_position[i];
 	get_ball_velocity[i] = absolute.ball_velocity[i] + config.vel_plus[i];
       }
   }
-
-
-  // table version
-  void recompute_state_after_contact(const RecomputeStateConfig& config,
-				     const internal::ContactStates& pre_contact,
-				     const internal::ContactStates& current,
-				     double get_ball_position[3],
-				     double get_ball_velocity[3])
-  {
-    std::array<double,3> pre_contact_relative;
-    for(size_t i=0;i<3;i++)
-      {
-	pre_contact_relative[i] =
-	  pre_contact.ball_position[i] - pre_contact.contactee_position[i];
-      }
-    pre_contact_relative[2]-=0.4; // !!
-
-    std::array<double,3> post_contact_velocity;
-    for(size_t i=0;i<3;i++)
-      {
-	post_contact_velocity[i] = pre_contact.ball_velocity[i]*config.epsilon[i];
-      }
-    post_contact_velocity[2] = - post_contact_velocity[2];
-
-    
-    
-    double time_until_impact = -pre_contact_relative[2] / pre_contact.ball_velocity[2];
-    double delta_t_step = current.time_stamp - pre_contact.time_stamp;
-    double delta_t_after_impact = delta_t_step - time_until_impact;
-
-    std::array<double,3> post_contact_relative;
-    for (size_t i=0;i<3;i++)
-      {
-	post_contact_relative[i] =
-	  pre_contact_relative[i] +
-	  pre_contact.ball_velocity[i]*time_until_impact +
-	  post_contact_velocity[i]*delta_t_after_impact;
-      }
-
-    std::array<double,3> post_contact;
-    for (size_t i=0;i<3;i++)
-      {
-	post_contact[i] =
-	  post_contact_relative[i] + pre_contact.contactee_position[i];
-      }
-    post_contact[2] += 0.04; // !!
-
-    for(int i=0;i<3;i++)
-      {
-	get_ball_position[i] = post_contact[i];
-	get_ball_velocity[i] = post_contact_velocity[i];
-      }
-
-  }
-
   
 }

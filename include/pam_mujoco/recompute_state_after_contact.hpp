@@ -25,7 +25,7 @@ namespace pam_mujoco
     RecomputeStateConfig();
     std::array<double,3> epsilon;
     std::array<double,3> vel_plus;
-    std::array<double,9> rot_matrix_contactee_zero_pos;
+    std::array<double,9> rotation_matrix_contactee;
     bool mirror_y;
   };
 
