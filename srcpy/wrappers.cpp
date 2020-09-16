@@ -7,6 +7,7 @@
 #include "o80/state2d.hpp"
 #include "o80/void_extended_state.hpp"
 #include "pam_mujoco/run_mujoco.hpp"
+#include "pam_mujoco/read_robot_state.hpp"
 
 #define NB_DOFS 4
 #define QUEUE_SIZE 500000
@@ -46,9 +47,15 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
 	  shared_memory::deserialize(segment_id,segment_id,ci);
 	  return ci;
 	});
+
+  pybind11::class_<pam_mujoco::ReadRobotState>(m,"ReadRobotState")
+    .def(pybind11::init<std::string>())
+    .def("get_positions",&pam_mujoco::ReadRobotState::get_positions)
+    .def("get_velocities",&pam_mujoco::ReadRobotState::get_velocities);
   
   m.def("init_mujoco",&pam_mujoco::init_mujoco);
   m.def("add_mirror_robot",&pam_mujoco::add_mirror_robot);
+  m.def("add_share_robot_state",&pam_mujoco::add_share_robot_state);
   m.def("add_mirror_free_joint",&pam_mujoco::add_mirror_free_joint);
   m.def("add_mirror_until_contact_free_joint",
 	&pam_mujoco::add_mirror_until_contact_free_joint);

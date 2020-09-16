@@ -3,28 +3,30 @@
 namespace pam_mujoco
 {
 
-  ReadRobotState::ReadRobotState(std::string segment_id,
-				 int index_qpos,
-				 int index_qvel)
+  ReadRobotState::ReadRobotState(std::string segment_id)
     : joint_states_{segment_id,4,true,true}
   {}
 
-  const std::array<4,double>& ReadRobotState::get_positions()
+  const std::array<double,4>& ReadRobotState::get_positions()
   {
+    JointState js;
     for(std::size_t dof=0;dof<4;dof++)
       {
-	positions_[dof] = joint_states_.get(dof).get<0>();
+	joint_states_.get(dof,js);
+	positions_[dof] = js.get<0>();
       }
-    return positions;
+    return positions_;
   }
   
-  const std::array<4,double>& ReadRobotState::get_velocities()
+  const std::array<double,4>& ReadRobotState::get_velocities()
   {
+    JointState js;
     for(std::size_t dof=0;dof<4;dof++)
       {
-	velocities_[dof] = joint_states_.get(dof).get<1>();
+	joint_states_.get(dof,js);
+	velocities_[dof] = js.get<1>();
       }
-    return velocities;
+    return velocities_;
   }
   
   

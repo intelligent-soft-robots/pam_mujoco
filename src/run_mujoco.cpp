@@ -19,6 +19,15 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(mirroring);
   }
 
+  void add_share_robot_state(std::string segment_id,
+			     std::string robot_joint_base)
+  {
+    pam_mujoco::ShareRobotState::clear(segment_id);
+    typedef pam_mujoco::ShareRobotState srs;
+    std::shared_ptr<srs> sharing =
+      std::make_shared<srs>(segment_id,robot_joint_base);
+    pam_mujoco::Controllers::add(sharing);
+  }
 
   void add_mirror_free_joint(std::string segment_id,
 			     std::string joint,

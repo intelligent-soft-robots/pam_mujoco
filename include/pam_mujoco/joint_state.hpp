@@ -1,7 +1,7 @@
 #pragma once
 
 #include <tuple>
-#include "o80/state.hpp"
+#include "o80/state2d.hpp"
 
 namespace pam_mujoco
 {

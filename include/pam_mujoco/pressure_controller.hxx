@@ -38,6 +38,8 @@ void PressureController<QUEUE_SIZE,
       current_states.values[dof*2].set(activation2pressure(d->act[dof*2]));
       current_states.values[dof*2+1].set(activation2pressure(d->act[dof*2+1]));
     }
+  // reading current robot state
+  
   // reading desired pressure from o80
   const States& states = backend_.pulse(o80::time_now(),
 					current_states,

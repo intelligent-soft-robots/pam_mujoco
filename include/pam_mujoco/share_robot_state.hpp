@@ -1,8 +1,8 @@
 #pragma once
 
-#include <map>
 #include "o80/memory_clearing.hpp"
 #include "pam_mujoco/joint_state.hpp"
+#include "pam_mujoco/controllers.hpp"
 
 namespace pam_mujoco
 {
@@ -10,17 +10,19 @@ namespace pam_mujoco
   class ShareRobotState : public ControllerBase
   {
   public:
-    ShareRobotState(std::string segment_id);
+    ShareRobotState(std::string segment_id,
+		    std::string robot_joint_base);
     void apply(const mjModel* m,
 	       mjData* d);
-    
   public:
     static void clear(std::string segment_id);
-    static std::array<4,JointState> read(segment_id);
   private:
     shared_memory::array<JointState> joint_states_;
-
-    std::string segment_id_;
+    std::string robot_joint_base_;
+    int index_q_robot_;
+    int index_qvel_robot_;
   };
 
+  #include "share_robot_state.hxx"
+  
 }
