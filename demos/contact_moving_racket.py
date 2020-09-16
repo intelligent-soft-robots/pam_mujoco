@@ -92,17 +92,20 @@ for dim in range(3):
 
 
 # having the robot performing a hit motion
-robot_target = [-np.pi/4.0,+np.pi/3.0,0,0]
-robot_target = [o80.State2d(rt,0) for rt in robot_target]
+robot_target1 = [-np.pi/4.0,+np.pi/3.0,0,0]
+robot_target = [o80.State2d(rt,0) for rt in robot_target1]
 for dof,target in enumerate(robot_target):
     frontend_robot.add_command(dof,target,
                                o80.Duration_us.milliseconds(700),
                                o80.Mode.QUEUE)
-robot_target = [+np.pi/2.0,+np.pi/3.0,0,-np.pi/8.0]
-robot_target = [o80.State2d(rt,0) for rt in robot_target]
+duration = 1
+robot_target2 = [+np.pi/2.0,+np.pi/3.0,0,-np.pi/8.0]
+robot_velocity = [ (rt2-rt1)/float(duration)
+                   for rt1,rt2 in zip(robot_target1,robot_target2) ]
+robot_target = [o80.State2d(rt,rv) for rt,rv in zip(robot_target2,robot_velocity)]
 for dof,target in enumerate(robot_target):
     frontend_robot.add_command(dof,target,
-                               o80.Duration_us.milliseconds(1000),
+                               o80.Duration_us.seconds(duration),
                                o80.Mode.QUEUE)
 
     

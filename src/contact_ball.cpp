@@ -33,9 +33,9 @@ namespace pam_mujoco
       else
 	{
 	  double delta_time = d->time - get_states.time_stamp;
-	  for(size_t i=0;i<3;i++)
+	  if (delta_time!=0)
 	    {
-	      if (delta_time!=0)
+	      for(size_t i=0;i<3;i++)
 		{
 		  get_states.contactee_velocity[i] =
 		    (d->geom_xpos[index_geom_contactee*3+i]-get_states.contactee_position[i]) /

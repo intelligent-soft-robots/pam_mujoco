@@ -36,8 +36,8 @@ namespace pam_mujoco
     RecomputeStateConfig config;
     config.epsilon = {0.78,0.78,0.78};
     config.rotation_matrix_contactee = {0.000, 1.000, 0.000,
-					    1.000, 0.000, 0.000,
-					    0.000, 0.000, 1.000};
+					1.000, 0.000, 0.000,
+					0.000, 0.000, -1.000};
     config.vel_plus.fill(0.);
     config.mirror_y=true;
     return config;
@@ -186,7 +186,7 @@ namespace pam_mujoco
     // change of direction
     post_contact_relative.ball_velocity[axis] =
       - post_contact_relative.ball_velocity[axis] +
-      (1+config.epsilon[axis])*pre_contact_relative.contactee_velocity[axis];
+      (1.0+config.epsilon[axis])*pre_contact_relative.contactee_velocity[axis];
 
     // 2. position
     for (size_t i=0;i<3;i++)
