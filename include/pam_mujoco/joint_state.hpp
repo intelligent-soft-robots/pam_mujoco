@@ -5,11 +5,14 @@
 
 namespace pam_mujoco
 {
-  class JointState : public o80::State<std::tuple<double,double>,
-				       JointState>
+  class JointState : public o80::State2d
   {
   public:
-    JointState(){}
-    JointState(std::tuple<double,double> position_velocity);
+    JointState()
+      : o80::State2d()
+    {}
+    JointState(double position,double velocity)
+      : o80::State2d(position,velocity)
+    {}
   };
 }

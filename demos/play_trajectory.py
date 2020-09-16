@@ -5,7 +5,6 @@ import pam_mujoco
 import numpy as np
 import multiprocessing
 
-segment_id = "play_trajectory"
 mujoco_id = "mj"
 
 # generates pamy.xml in pam_mujoco/models/tmp/

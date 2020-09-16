@@ -36,6 +36,8 @@ get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
 set(MODELS_PATH "${MODEL_CONFIG_DIR}/tmp/")
 
 add_library(pam_mujoco
+  src/share_robot_state.cpp
+  stc/read_robot_state.cpp
   src/contact_ball.cpp
   src/contact_states.cpp
   src/contact_logic.cpp

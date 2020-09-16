@@ -33,6 +33,7 @@ pam_mujoco.clear(mujoco_id)
 process.start()
 pam_mujoco.wait_for_mujoco(mujoco_id)
 
+
 # initializing the o80 frontend for sending
 # robot posture commands
 frontend = pam_mujoco.MirrorRobotFrontEnd(segment_id)
