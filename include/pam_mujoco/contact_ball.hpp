@@ -62,7 +62,7 @@ namespace pam_mujoco
   };
 
 
-
+  bool reset_contact(const std::string& segment_id);
 
   
 }

@@ -62,4 +62,5 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
   m.def("is_stop_requested",&pam_mujoco::is_stop_requested);
   m.def("wait_for_mujoco",&pam_mujoco::wait_for_mujoco);
   m.def("clear",&pam_mujoco::clear);
+  m.def("reset_contact",&pam_mujoco::reset_contact);
 }

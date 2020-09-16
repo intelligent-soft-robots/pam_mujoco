@@ -176,4 +176,14 @@ namespace pam_mujoco
     previous_ = internal::ContactStates{};
   }
 
+
+  bool reset_contact(const std::string& segment_id)
+  {
+    shared_memory::set<bool>(segment_id,
+			     segment_id,
+			     true);
+  }
+  
 }
+
+
