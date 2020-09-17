@@ -1,7 +1,9 @@
 import multiprocessing
+import pam_mujoco
+import o80_pam
 
 
-def _get_pam_model_configuration(segment_id):
+def _get_pam_model_configuration(segment_id,robot):
     pam_model_config_path= pam_models.get_default_config_path()
     a_init = [0.5]*8
     l_MTC_change_init = [0.0]*8
@@ -10,6 +12,7 @@ def _get_pam_model_configuration(segment_id):
     scale_min_activation = 0.001
     scale_min_pressure = 6000
     pam_model_config = [ segment_id,
+                         robot.joint,
                          scale_min_pressure,scale_max_pressure,
                          scale_min_activation, scale_max_activation,
                          pam_model_config_path,pam_model_config_path,
@@ -20,14 +23,14 @@ def pseudo_real_robot(segment_id,
                       model_name,
                       mujoco_id):
 
-    pam_model_config = _get_pam_model_configuration(segment_id)
-
-
     # creating the xml mujoco model
     items = pam_mujoco.model_factory(model_name,
                                      robot1=True)
     robot = items["robot"]
 
+    # artificial muscles config
+    pam_model_config = _get_pam_model_configuration(segment_id,robot)
+    
     # function running mujoco
     def _execute_mujoco(segment_id,
                         mujoco_id,

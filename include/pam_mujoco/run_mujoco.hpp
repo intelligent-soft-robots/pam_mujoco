@@ -75,6 +75,7 @@ namespace pam_mujoco
 
   template<int NB_DOFS>
   void add_pressure_controller(std::string segment_id,
+			       std::string robot_joint_base,
 			       double scale_min_pressure, double scale_max_pressure,
 			       double scale_min_activation, double scale_max_activation,
 			       std::string muscle_json_config_path_ago,
@@ -83,6 +84,7 @@ namespace pam_mujoco
 			       std::array<double,NB_DOFS*2> l_MTC_change_init);
 
   void add_4dofs_pressure_controller(std::string segment_id,
+				     std::string robot_joint_base,
 				     double scale_min_pressure, double scale_max_pressure,
 				     double scale_min_activation, double scale_max_activation,
 				     std::string muscle_json_config_path_ago,

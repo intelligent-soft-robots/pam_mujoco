@@ -1,20 +1,22 @@
 import math
-import gym
 import o80
+import o80_pam
 import pam_mujoco
+import context
+import .start_mujoco
+import .mirroring 
 
 
 def _distance(p1,p2):
     return math.sqrt(sum([(p2_-p1_)**2
                           for p1_,p2_ in zip(p1,p2)]))
 
+
 def _norm(p):
     return math.sqrt(sum([p_**2 for p in p]))
 
 
-
-def _reward( position_hit_table, # None if did not hit
-             min_distance_ball_target,
+def _reward( min_distance_ball_target,
              min_distance_ball_racket, # None if ball hit racket
              max_ball_velocity, # None if should not be taken into account (return task)
              c,rtt_cap ): 
@@ -37,37 +39,43 @@ def _reward( position_hit_table, # None if did not hit
     reward = reward * max_ball_velocity
     reward = max(reward,rtt_cap)
     return reward
-    
-    
-class _EpisodeStatus:
+            
+        
+class _BallStatus:
 
     def __init__(self,
                  target_position,
                  segment_id_contact_racket,
-                 frontend_mirroring,
-                 frontend_ball,
-                 frontend_pressures)
+                 frontend_ball):
+        
         self.target_position = target_position
         self.segment_id_contact_racket = segment_id_contact_racket
-        self.frontend_mirroring = self.frontend_mirroring
         self.frontend_ball = self.frontend_ball
-        self.frontend_pressures = self.frontend_pressures
+        self.reset()
+
+    def reset(self):
+
         self.min_distance_ball_racket = float("+inf") # will be None if ball hit the racket
         self.min_distance_ball_target = float("+inf")
         self.max_ball_velocity = 0
-        self.robot_joints = [None]*4
-        self.robot_joint_velocities = [None]*4
-
+        self.table_contact_position = None
+        self.min_z = float("+inf")
+        self.max_y = float("-inf")
+        self.ball_position = [None]*3
+        self.ball_velocity = [None]*3
+        
     def update(self):
 
-        # reading position of the ball
+       # reading position of the ball
         ball_states = self.frontend_ball.pulse().get_current_states()
-        ball_position = [None]*3
-        ball_velocity = [None]*3
+        self.ball_position = [None]*3
+        self.ball_velocity = [None]*3
         for dim in range(3):
             ball_position[dim]=ball_states.get(2*dim).value
             ball_velocity[dim]=ball_states.get(2*dim+1).value
-
+        self.min_z = min(ball_position[2],self.min_z)
+        self.max_y = max(ball_position[1],self.max_y)
+        
         # updating min distance ball/racket
         contacts_racket = pam_mujoco.get_contact(self.segment_id_contact_racket)
         hit_racket = False
@@ -87,27 +95,40 @@ class _EpisodeStatus:
             v = _norm(ball_velocity)
             self.max_ball_velocity = max(self.max_ball_velocity,v)
         
-        
-    
 
-        
-class PamEnv(gym.Env):
+class _Observation:
+
+    def __init__(self,
+                 pressures_ago,
+                 pressures_antago,
+                 ball_position,
+                 ball_velocity):
+        self.pressures_ago = pressures_ago
+        self.pressures_antago = pressures_antago
+        self.ball_position = ball_position
+        self.ball_velocity = ball_velocity
+
+    
+class HysrOneBall:
 
     def __init__(self,mujoco_id="hysr_one_ball",
                  reward_normalization_constant,
                  smash_task,
-                 rtt_cap=0.2):
+                 rtt_cap=0.2,
+                 period_ms=100):
 
+        # period config
+        self._period_ms = period_ms
+        
         # reward configuration
         self._c = reward_normalization_constant 
         self._smash_task = smash_task # True or False (return task)
         self._rtt_cap = rtt_cap
 
-        # robot conf
-        self._nb_dofs=4
-
         # o80 segment ids
+        # for contacting backend running in pseudo-real robot
         segment_id_pressure = mujoco_id+"_pressures"
+        # for contacting backends running in simulated robot/ball
         segment_id_ball = mujoco_id+"_ball"
         segment_id_mirror_robot = mujoco_id+"_robot"
         self._segment_id_contact_table = mujoco_id+"_contact_table"
@@ -115,32 +136,128 @@ class PamEnv(gym.Env):
         
         # start pseudo-real robot (pressure controlled)
         model_name_pressure = segment_id_pressure
-        mujoco_id_pressure = segment_id_pressure
+        self._mujoco_id_pressure = segment_id_pressure
         self._process_pressures = start_mujoco.pseudo_real_robot(segment_id_pressure,
                                                                  model_name_pressure,
-                                                                 mujoco_id_pressure)
+                                                                 self._mujoco_id_pressure)
 
         # start simulated ball and robot
         model_name_sim = mujoco_id+"_sim"
-        mujoco_id_sim = mujoco_id+"_sim"
+        self._mujoco_id_sim = mujoco_id+"_sim"
         self._process_sim = start_mujoco.ball_and_robot(segment_id_contact_table,
                                                         segment_id_mirror_robot,
                                                         segment_id_contact_robot,
                                                         segment_id_ball,
                                                         model_name_sim,
-                                                        mujoco_id_sim)
+                                                        self._mujoco_id_sim)
 
-        
-        # o80 instances
-        self._frontend_mirroring = pam_mujoco.MirrorRobotFrontEnd(segment_id_mirror_robot)
+        # starting a process that has the simulated robot
+        # mirroring the pseudo-real robot
+        # (uses o80 in the background)
+        self._process_mirror = mirroring.start_mirroring(mujoco_id_sim,
+                                                         segment_id_mirror_robot,
+                                                         segment_id_pressure,
+                                                         10)
+                 
+        # o80 instance for getting (simulated) ball information
         self._frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd(segment_id_ball)
+
+        # o80 instance for getting current pressures
         self._frontend_pressures = o80_pam.FrontEnd(segment_id_pressure)
 
-        self._action_space = gym.spaces.Box(low=-1.0,
-                                            high=1.0,
-                                            shape=(self._nb_dofs,),
-                                            dtype=np.float)
+        # will encapsulate all information
+        # about the ball (e.g. min distance with racket, etc)
+        self._ball_status = _BallStatus(target_position,
+                                        segment_id_contact_racket,
+                                        frontend_ball)
 
-    def step(self):
+        
+    def _ball_gun(self):
 
-        pass
+        # reading a random pre-recorded ball trajectory
+        trajectory_points = list(context.BallTrajectories().random_trajectory())
+
+        # sending the full ball trajectory 
+        # duration of 10ms : sampling rate of the trajectory
+        duration = o80.Duration_us.milliseconds(10)
+        for traj_point in trajectory_points:
+            # looping over x,y,z
+            for dim in range(3):
+                # setting position for dimension (x, y or z)
+                self._frontend_ball.add_command(2*dim,
+                                     o80.State1d(traj_point.position[dim]),
+                                     duration,
+                                     o80.Mode.QUEUE)
+                # setting velocity for dimension (x, y or z)
+                self._frontend_ball.add_command(2*dim+1,
+                                                o80.State1d(traj_point.velocity[dim]),
+                                                duration,
+                                                o80.Mode.QUEUE)
+        self._frontend_ball.pulse()
+
+        
+    def reset(self):
+
+        # resetting ball info, e.g. min distance ball/racket, etc
+        self._ball_status.reset()
+        # resetting ball/table contact information
+        pam_mujoco.reset_contact(self._segment_id_contact_table)
+        # shooting a ball
+        self._ball_gun()
+
+        
+    def _episode_over(self):
+
+        # ball falled below the table
+        if self._ball_status.min_z < -0.4:
+            return True
+
+        # ball passed the racket
+        if self._ball_status.max_y > 0.8:
+            return True
+
+        return False
+
+    
+    # action assumed to be [(pressure ago, pressure antago), (pressure_ago, pressure_antago), ...]
+    def step(self,action):
+
+        # gathering information about simulated ball
+        self._ball_status.update()
+
+        # computing reward
+        reward = _reward( self._ball_status.min_distance_ball_target,
+                          self._ball_status.min_distance_ball_racket,
+                          self._ball_status.max_ball_velocity,
+                          self._c,self._rtt_cap)
+        
+        # generating observation
+        pressures = self._frontend_pressure.latest().get_observed_pressures()
+        pressures_ago = [pressures[dof][0] for dof in range(4)]
+        pressures_antago = [pressures[dof][1] for dof in range(4)]
+        observation = _Observation(pressures_ago,pressures_antago,
+                                   self._ball_status.ball_position,
+                                   self._ball_status.ball_velocity)
+        
+        # sending pressures to pseudo real robot
+        for dof,(ago_pressure,antago_pressure) in enumerate(action):
+            frontend_pressures.add_command(dof,
+                                 ago_pressure,antago_pressure,
+                                 o80.Duration_us.milliseconds(self._period_ms),
+                                 o80.Mode.OVERWRITE)
+        frontend_pressures.pulse()
+
+        return observation,reward,self._episode_over()
+
+    
+    def close(self):
+
+        # stopping pseudo real robot
+        pam_mujoco.request_stop(self._mujoco_id_pressure)
+        # stopping simulated robot/ball
+        pam_mujoco.request_stop(self._mujoco_id_sim)
+        # waiting for all corresponding processes
+        # to finish
+        self._process_pressures.join()
+        self._process_sim.join()
+        self._process_mirror.join()

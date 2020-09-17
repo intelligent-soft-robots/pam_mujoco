@@ -22,6 +22,7 @@ namespace pam_mujoco
     typedef o80::States<2*NB_DOFS,o80_pam::ActuatorState> States;
   public:
     PressureController(std::string segment_id,
+		       std::string robot_joint_base,
 		       int scale_min_pressure, int scale_max_pressure,
 		       int scale_min_activation, int scale_max_activation,
 		       std::string muscle_json_config_path_ago,
@@ -38,11 +39,15 @@ namespace pam_mujoco
     double activation2pressure(double activation);
   private:
     Backend backend_;
+    std::string robot_joint_base_;
+    int index_q_robot_;
+    int index_qvel_robot_;
     double scale_min_pressure_;
     double scale_min_activation_;
     double scale_ratio_;
     std::vector<Muscle> muscles_;
     std::array<double,NB_DOFS*2> bias_forces_;
+    int iteration_;
   };
 
 #include "pressure_controller.hxx"
