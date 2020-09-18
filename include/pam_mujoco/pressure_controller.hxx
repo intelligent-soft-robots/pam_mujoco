@@ -72,8 +72,6 @@ void PressureController<QUEUE_SIZE,
 			    0, // encoder
 			    true); // reference found
     }
-
-  
   
   // reading desired pressure from o80
   const States& states = backend_.pulse(o80::time_now(),

@@ -1,3 +1,4 @@
+import time
 import math
 import o80
 import o80_pam
@@ -28,7 +29,7 @@ def _reward( min_distance_ball_target,
 
     # returning r_tt
 
-    reward = 1.- c * min_ball_distance_ball_target ** 0.75
+    reward = 1.- c * min_distance_ball_target ** 0.75
 
     # return task
     if max_ball_velocity is None: 
@@ -75,7 +76,7 @@ class _BallStatus:
             self.ball_velocity[dim]=ball_states.get(2*dim+1).get()
         self.min_z = min(self.ball_position[2],self.min_z)
         self.max_y = max(self.ball_position[1],self.max_y)
-        
+
         # updating min distance ball/racket
         contacts_racket = pam_mujoco.get_contact(self.segment_id_contact_robot)
         hit_racket = False
@@ -203,20 +204,21 @@ class HysrOneBall:
         pam_mujoco.reset_contact(self._segment_id_contact_robot)
         # shooting a ball
         self._ball_gun()
-
+        time.sleep(0.3)
         
     def _episode_over(self):
 
+        over = False
+        
         # ball falled below the table
         if self._ball_status.min_z < -0.4:
-            return True
+            over = True
 
         # ball passed the racket
-        if self._ball_status.max_y > 0.8:
-            return True
+        elif self._ball_status.max_y > 0.1:
+            over = True
 
-        return False
-
+        return over
     
     # action assumed to be [(pressure ago, pressure antago), (pressure_ago, pressure_antago), ...]
     def step(self,action):

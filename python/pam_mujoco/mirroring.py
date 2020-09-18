@@ -22,11 +22,9 @@ def _mirroring(mujoco_id,
         # reading position/velocity of the pseudo-real robot
         # (robot_state is an instance of RobotState, defined in package
         # pam_interface)
-        robot_state = frontend_pressures.pulse().get_extended_state()
-        robot_joints = [robot_state.get_position(dof)
-                        for dof in range(4)]
-        robot_joint_velocities = [robot_state.get_velocity(dof)
-                                       for dof in range(4)]
+        obs = frontend_pressures.pulse()
+        robot_joints = obs.get_positions()
+        robot_joint_velocities = obs.get_velocities()
 
         # sending mirroring commands
         for dof,(position,velocity) in enumerate(zip(robot_joints,
