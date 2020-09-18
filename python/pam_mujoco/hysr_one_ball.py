@@ -3,8 +3,8 @@ import o80
 import o80_pam
 import pam_mujoco
 import context
-import .start_mujoco
-import .mirroring 
+from . import start_mujoco
+from . import mirroring 
 
 
 def _distance(p1,p2):
@@ -13,7 +13,7 @@ def _distance(p1,p2):
 
 
 def _norm(p):
-    return math.sqrt(sum([p_**2 for p in p]))
+    return math.sqrt(sum([p_**2 for p_ in p]))
 
 
 def _reward( min_distance_ball_target,
@@ -45,12 +45,12 @@ class _BallStatus:
 
     def __init__(self,
                  target_position,
-                 segment_id_contact_racket,
+                 segment_id_contact_robot,
                  frontend_ball):
         
         self.target_position = target_position
-        self.segment_id_contact_racket = segment_id_contact_racket
-        self.frontend_ball = self.frontend_ball
+        self.segment_id_contact_robot = segment_id_contact_robot
+        self.frontend_ball = frontend_ball
         self.reset()
 
     def reset(self):
@@ -67,32 +67,32 @@ class _BallStatus:
     def update(self):
 
        # reading position of the ball
-        ball_states = self.frontend_ball.pulse().get_current_states()
+        ball_states = self.frontend_ball.pulse().get_observed_states()
         self.ball_position = [None]*3
         self.ball_velocity = [None]*3
         for dim in range(3):
-            ball_position[dim]=ball_states.get(2*dim).value
-            ball_velocity[dim]=ball_states.get(2*dim+1).value
-        self.min_z = min(ball_position[2],self.min_z)
-        self.max_y = max(ball_position[1],self.max_y)
+            self.ball_position[dim]=ball_states.get(2*dim).get()
+            self.ball_velocity[dim]=ball_states.get(2*dim+1).get()
+        self.min_z = min(self.ball_position[2],self.min_z)
+        self.max_y = max(self.ball_position[1],self.max_y)
         
         # updating min distance ball/racket
-        contacts_racket = pam_mujoco.get_contact(self.segment_id_contact_racket)
+        contacts_racket = pam_mujoco.get_contact(self.segment_id_contact_robot)
         hit_racket = False
         if contacts_racket.contact_occured:
             self.min_distance_ball_racket = None
             hit_racket = True
         else :
-            self.min_distance_ball_racket = contacts_racket.mininal_distance
+            self.min_distance_ball_racket = contacts_racket.minimal_distance
 
         # if post contact with racket, updating min distance ball/target
         if hit_racket:
-            d = _distance(ball_position,self.target_position)
+            d = _distance(self.ball_position,self.target_position)
             self.min_distance_ball_target = min(d,self.min_distance_ball_target)
 
         # if post contact with racket, updating max ball velocity
         if hit_racket:
-            v = _norm(ball_velocity)
+            v = _norm(self.ball_velocity)
             self.max_ball_velocity = max(self.max_ball_velocity,v)
         
 
@@ -111,15 +111,16 @@ class _Observation:
     
 class HysrOneBall:
 
-    def __init__(self,mujoco_id="hysr_one_ball",
+    def __init__(self,mujoco_id,
+                 target_position,
                  reward_normalization_constant,
                  smash_task,
-                 rtt_cap=0.2,
-                 period_ms=100):
+                 period_ms=100,
+                 rtt_cap=0.2):
 
         # period config
         self._period_ms = period_ms
-        
+
         # reward configuration
         self._c = reward_normalization_constant 
         self._smash_task = smash_task # True or False (return task)
@@ -131,34 +132,33 @@ class HysrOneBall:
         # for contacting backends running in simulated robot/ball
         segment_id_ball = mujoco_id+"_ball"
         segment_id_mirror_robot = mujoco_id+"_robot"
-        self._segment_id_contact_table = mujoco_id+"_contact_table"
         self._segment_id_contact_robot = mujoco_id+"_contact_robot"
+
         
         # start pseudo-real robot (pressure controlled)
         model_name_pressure = segment_id_pressure
-        self._mujoco_id_pressure = segment_id_pressure
+        self._mujoco_id_pressure = "mujoco_"+segment_id_pressure
         self._process_pressures = start_mujoco.pseudo_real_robot(segment_id_pressure,
                                                                  model_name_pressure,
                                                                  self._mujoco_id_pressure)
 
         # start simulated ball and robot
-        model_name_sim = mujoco_id+"_sim"
-        self._mujoco_id_sim = mujoco_id+"_sim"
-        self._process_sim = start_mujoco.ball_and_robot(segment_id_contact_table,
-                                                        segment_id_mirror_robot,
-                                                        segment_id_contact_robot,
+        model_name_sim = segment_id_ball
+        self._mujoco_id_sim = "mujoco_"+segment_id_ball
+        self._process_sim = start_mujoco.ball_and_robot(segment_id_mirror_robot,
+                                                        self._segment_id_contact_robot,
                                                         segment_id_ball,
                                                         model_name_sim,
-                                                        self._mujoco_id_sim)
+                                                         self._mujoco_id_sim )
 
         # starting a process that has the simulated robot
         # mirroring the pseudo-real robot
         # (uses o80 in the background)
-        self._process_mirror = mirroring.start_mirroring(mujoco_id_sim,
+        self._process_mirror = mirroring.start_mirroring(self._mujoco_id_sim,
                                                          segment_id_mirror_robot,
                                                          segment_id_pressure,
-                                                         10)
-                 
+                                                         1)
+
         # o80 instance for getting (simulated) ball information
         self._frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd(segment_id_ball)
 
@@ -168,9 +168,8 @@ class HysrOneBall:
         # will encapsulate all information
         # about the ball (e.g. min distance with racket, etc)
         self._ball_status = _BallStatus(target_position,
-                                        segment_id_contact_racket,
-                                        frontend_ball)
-
+                                        self._segment_id_contact_robot,
+                                        self._frontend_ball)
         
     def _ball_gun(self):
 
@@ -200,8 +199,8 @@ class HysrOneBall:
 
         # resetting ball info, e.g. min distance ball/racket, etc
         self._ball_status.reset()
-        # resetting ball/table contact information
-        pam_mujoco.reset_contact(self._segment_id_contact_table)
+        # resetting ball/robot contact information
+        pam_mujoco.reset_contact(self._segment_id_contact_robot)
         # shooting a ball
         self._ball_gun()
 
@@ -226,13 +225,20 @@ class HysrOneBall:
         self._ball_status.update()
 
         # computing reward
-        reward = _reward( self._ball_status.min_distance_ball_target,
-                          self._ball_status.min_distance_ball_racket,
-                          self._ball_status.max_ball_velocity,
-                          self._c,self._rtt_cap)
-        
+        if self._smash_task:
+            reward = _reward( self._ball_status.min_distance_ball_target,
+                              self._ball_status.min_distance_ball_racket,
+                              self._ball_status.max_ball_velocity,
+                              self._c,self._rtt_cap)
+        else:
+            reward = _reward( self._ball_status.min_distance_ball_target,
+                              self._ball_status.min_distance_ball_racket,
+                              None,
+                              self._c,self._rtt_cap)
+            
+            
         # generating observation
-        pressures = self._frontend_pressure.latest().get_observed_pressures()
+        pressures = self._frontend_pressures.latest().get_observed_pressures()
         pressures_ago = [pressures[dof][0] for dof in range(4)]
         pressures_antago = [pressures[dof][1] for dof in range(4)]
         observation = _Observation(pressures_ago,pressures_antago,
@@ -241,11 +247,11 @@ class HysrOneBall:
         
         # sending pressures to pseudo real robot
         for dof,(ago_pressure,antago_pressure) in enumerate(action):
-            frontend_pressures.add_command(dof,
+            self._frontend_pressures.add_command(dof,
                                  ago_pressure,antago_pressure,
                                  o80.Duration_us.milliseconds(self._period_ms),
                                  o80.Mode.OVERWRITE)
-        frontend_pressures.pulse()
+        self._frontend_pressures.pulse()
 
         return observation,reward,self._episode_over()
 

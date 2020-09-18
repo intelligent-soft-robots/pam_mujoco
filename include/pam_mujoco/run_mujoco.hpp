@@ -42,30 +42,26 @@ namespace pam_mujoco
 					   int index_qvel,
 					   std::string contact_segment_id);
 
-  void add_contact_free_joint(std::string segment_id_contact,
-			      std::string segment_id_reset,
+  void add_contact_free_joint(std::string segment_id,
 			      int index_qpos,
 			      int index_qvel,
 			      std::string geom,
 			      std::string contactee_geom,
 			      ContactItems contact_item);
 
-  void add_table_contact_free_joint(std::string segment_id_contact,
-				    std::string segment_id_reset,
+  void add_table_contact_free_joint(std::string segment_id,
 				    int index_qpos,
 				    int index_qvel,
 				    std::string geom,
 				    std::string contactee_geom);
 
-  void add_robot1_contact_free_joint(std::string segment_id_contact,
-				    std::string segment_id_reset,
+  void add_robot1_contact_free_joint(std::string segment_id,
 				    int index_qpos,
 				    int index_qvel,
 				    std::string geom,
 				    std::string contactee_geom);
 
-  void add_robot2_contact_free_joint(std::string segment_id_contact,
-				     std::string segment_id_reset,
+  void add_robot2_contact_free_joint(std::string segment_id,
 				     int index_qpos,
 				     int index_qvel,
 				     std::string geom,

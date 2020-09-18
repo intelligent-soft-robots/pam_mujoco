@@ -59,15 +59,13 @@ namespace pam_mujoco
 
   }  
 
-  ContactBall::ContactBall(std::string segment_id_contact_info,
-			   std::string segment_id_reset,
+  ContactBall::ContactBall(std::string segment_id,
 			   int index_qpos,
 			   int index_qvel,
 			   std::string geom,
 			   std::string geom_contactee,
 			   ContactItems contact_item)
-    : segment_id_contact_info_(segment_id_contact_info),
-      segment_id_reset_(segment_id_reset),
+    : segment_id_(segment_id),
       config_(get_recompute_state_config(contact_item)),
       index_qpos_(index_qpos),
       index_qvel_(index_qvel),
@@ -76,13 +74,15 @@ namespace pam_mujoco
       index_geom_(-1),
       index_geom_contactee_(-1)
   {
-    shared_memory::clear_shared_memory(segment_id_contact_info_);
-    shared_memory::clear_shared_memory(segment_id_reset_);
-    shared_memory::set<bool>(segment_id_reset_,
-			     segment_id_reset_,
+    shared_memory::clear_shared_memory(segment_id_);
+    shared_memory::set<bool>(segment_id_,
+			     "reset",
 			     false);
-    shared_memory::serialize(segment_id_contact_info_,
-			     segment_id_contact_info_,
+    shared_memory::set<bool>(segment_id_,
+			     "activated",
+			     true);
+    shared_memory::serialize(segment_id_,
+			     segment_id_,
 			     contact_information_);
   }
 
@@ -90,6 +90,16 @@ namespace pam_mujoco
 			      mjData* d)
   {
 
+    // checking if the contacts are activated
+    bool activated;
+    shared_memory::get<bool>(segment_id_,
+			     "activated",
+			     activated);
+    if(!activated)
+      {
+	return;
+      }
+    
     // setup the indexes (e.g. index_qpos, ...)
     // based on the model and the configuration string
     init(m);
@@ -97,16 +107,16 @@ namespace pam_mujoco
     // check if receiving from outside a request for reset
     // (e.g. a new episode starts)
     bool must_reset;
-    shared_memory::get<bool>(segment_id_reset_,
-			     segment_id_reset_,
+    shared_memory::get<bool>(segment_id_,
+			     "reset",
 			     must_reset);
     // reset : reinitialize ContactStates previous_
     //         and contact_information_
     if(must_reset)
       {
 	reset();
-	shared_memory::set<bool>(segment_id_reset_,
-				 segment_id_reset_,
+	shared_memory::set<bool>(segment_id_,
+				 "reset",
 				 false);
       }
 
@@ -149,8 +159,8 @@ namespace pam_mujoco
 	contact_information_.register_distance(d_ball_contactee);
       }
 
-    shared_memory::serialize(segment_id_contact_info_,
-			     segment_id_contact_info_,
+    shared_memory::serialize(segment_id_,
+			     segment_id_,
 			     contact_information_);
 
   }
@@ -180,8 +190,22 @@ namespace pam_mujoco
   bool reset_contact(const std::string& segment_id)
   {
     shared_memory::set<bool>(segment_id,
-			     segment_id,
+			     "reset",
 			     true);
+  }
+
+  bool activate_contact(const std::string& segment_id)
+  {
+    shared_memory::set<bool>(segment_id,
+			     "activated",
+			     true);
+  }
+  
+  bool deactivate_contact(const std::string& segment_id)
+  {
+    shared_memory::set<bool>(segment_id,
+			     "activated",
+			     false);
   }
   
 }

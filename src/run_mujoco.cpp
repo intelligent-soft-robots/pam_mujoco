@@ -83,8 +83,7 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(bc);
   }
 
-  void add_contact_free_joint(std::string segment_id_contact,
-			      std::string segment_id_reset,
+  void add_contact_free_joint(std::string segment_id,
 			      int index_qpos,
 			      int index_qvel,
 			      std::string geom,
@@ -92,8 +91,7 @@ namespace pam_mujoco
 			      ContactItems contact_item)
   {
     std::shared_ptr<ContactBall> cb
-      = std::make_shared<ContactBall>(segment_id_contact,
-				      segment_id_reset,
+      = std::make_shared<ContactBall>(segment_id,
 				      index_qpos,
 				      index_qvel,
 				      geom,
@@ -102,15 +100,13 @@ namespace pam_mujoco
     pam_mujoco::Controllers::add(cb);
   }
 
-  void add_table_contact_free_joint(std::string segment_id_contact,
-				      std::string segment_id_reset,
+  void add_table_contact_free_joint(std::string segment_id,
 				      int index_qpos,
 				      int index_qvel,
 				      std::string geom,
 				      std::string contactee_geom)
   {
-    add_contact_free_joint(segment_id_contact,
-			   segment_id_reset,
+    add_contact_free_joint(segment_id,
 			   index_qpos,
 			   index_qvel,
 			   geom,
@@ -118,15 +114,13 @@ namespace pam_mujoco
 			   ContactItems::Table);
   }
 
-  void add_robot1_contact_free_joint(std::string segment_id_contact,
-				     std::string segment_id_reset,
+  void add_robot1_contact_free_joint(std::string segment_id,
 				     int index_qpos,
 				     int index_qvel,
 				     std::string geom,
 				     std::string contactee_geom)
   {
-    add_contact_free_joint(segment_id_contact,
-			   segment_id_reset,
+    add_contact_free_joint(segment_id,
 			   index_qpos,
 			   index_qvel,
 			   geom,
@@ -134,15 +128,13 @@ namespace pam_mujoco
 			   ContactItems::Robot1);
   }
 
-  void add_robot2_contact_free_joint(std::string segment_id_contact,
-				     std::string segment_id_reset,
+  void add_robot2_contact_free_joint(std::string segment_id,
 				     int index_qpos,
 				     int index_qvel,
 				     std::string geom,
 				     std::string contactee_geom)
   {
-    add_contact_free_joint(segment_id_contact,
-			   segment_id_reset,
+    add_contact_free_joint(segment_id,
 			   index_qpos,
 			   index_qvel,
 			   geom,

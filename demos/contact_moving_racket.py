@@ -21,12 +21,10 @@ def execute_mujoco(ball,table,robot,mujoco_id,model_name):
     # mirror ball), as controllers are called in sequence,
     # and contact info will change behavior of mirror ball controller
     pam_mujoco.add_robot1_contact_free_joint("racket",
-                                             "racket_reset",
                                              ball.index_qpos,ball.index_qvel,
                                              ball.geom,robot.geom_racket)
     # for detecting contact with the table
     pam_mujoco.add_table_contact_free_joint("table",
-                                      "table_reset",
                                       ball.index_qpos,ball.index_qvel,
                                       ball.geom,table.geom_plate)
     # adding the mirror ball controller

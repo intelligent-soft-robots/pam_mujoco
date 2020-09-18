@@ -2046,16 +2046,15 @@ void init(void)
 THREAD_FUNCTION_RETURN_TYPE run(void* mid)
 {
 
-      // start simulation thread
+    // start simulation thread
     std::thread simthread(simulate);
 
     std::string* mujoco_id = static_cast<std::string*>(mid);
-
     settings.mujoco_id = *mujoco_id;
 
     // indicating mujoco is up and running
     pam_mujoco::set_mujoco_started(*mujoco_id,true);
-    
+
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest
 	   && !pam_mujoco::is_stop_requested(*mujoco_id) )

@@ -26,7 +26,6 @@ def execute_mujoco(mujoco_id,model_name,
     pam_mujoco.init_mujoco()
     #for detecting contact with the table
     pam_mujoco.add_table_contact_free_joint("table",
-                                            "table_reset",
                                             balls[1].index_qpos,balls[1].index_qvel,
                                             balls[1].geom,table.geom_plate)
     # adding the mirror ball controller, full trajectory
@@ -103,7 +102,7 @@ for run in range(10):
         time.sleep(0.05)
 
     # resetting contacts
-    pam_mujoco.reset_contact("table_reset")
+    pam_mujoco.reset_contact("table")
         
 # stopping the mujoco thread
 pam_mujoco.request_stop("mj")

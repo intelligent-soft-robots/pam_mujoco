@@ -1,0 +1,46 @@
+import pam_mujoco
+import random
+import o80
+
+mujoco_id = "hysr_demo"
+target_position = [1,4,-0.44]
+reward_normalization_constant = 1.0
+smash_task = True
+period_ms = 10
+nb_episodes = 5
+frequency_manager = o80.FrequencyManager(1.0/(period_ms/1000.0))
+
+hysr = pam_mujoco.HysrOneBall(mujoco_id,
+                              target_position,
+                              reward_normalization_constant,
+                              smash_task,
+                              period_ms)
+hysr.reset()
+
+pressures = [ [ random.randrange(6000,22000),
+                random.randrange(6000,22000) ]
+              for _ in range(4) ]
+
+pressure_max_diff = 100
+
+for _ in range(nb_episodes):
+
+    running = True
+
+    while running:
+
+        for dof in range(4):
+            for ago in range(2):
+                pressures[dof][ago] += random.randrange(-pressure_max_diff,
+                                                        pressure_max_diff)
+        
+        print("setting pressures:",pressures)
+        
+        observation,reward,running = hysr.step(pressures)
+
+        frequency_manager.wait()
+
+    hysr.reset()
+
+
+hysr.close()

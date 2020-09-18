@@ -1,6 +1,7 @@
 import multiprocessing
 import pam_mujoco
 import o80_pam
+import pam_models
 
 
 def _get_pam_model_configuration(segment_id,robot):
@@ -17,7 +18,7 @@ def _get_pam_model_configuration(segment_id,robot):
                          scale_min_activation, scale_max_activation,
                          pam_model_config_path,pam_model_config_path,
                          a_init,l_MTC_change_init ]
-
+    return pam_model_config
 
 def pseudo_real_robot(segment_id,
                       model_name,
@@ -51,9 +52,10 @@ def pseudo_real_robot(segment_id,
             time.sleep(0.01)
 
     # starting mujoco
-    process  = multiprocessing.Process(target=execute_mujoco,
-                                       args=(segment_id,mujooc_id,model_name,
+    process  = multiprocessing.Process(target=_execute_mujoco,
+                                       args=(segment_id,mujoco_id,model_name,
                                              pam_model_config,))
+
     pam_mujoco.clear(mujoco_id)
     process.start()
     pam_mujoco.wait_for_mujoco(mujoco_id)
@@ -62,8 +64,7 @@ def pseudo_real_robot(segment_id,
 
 
 
-def ball_and_robot(segment_id_table,
-                   segment_id_robot,
+def ball_and_robot(segment_id_robot,
                    segment_id_contact_robot,
                    segment_id_ball,
                    model_name,
@@ -73,16 +74,13 @@ def ball_and_robot(segment_id_table,
     items = pam_mujoco.model_factory(model_name,
                                      table=True,robot1=True)
     ball = items["ball"]
-    table = items["table"]
     robot = items["robot"]
 
     segment_ids = {"ball":segment_id_ball,
-                   "table",segment_id_table,
-                   "robot",segment_id_robot,
-                   "contact_robot",segment_id_contact_robot}
+                   "robot":segment_id_robot,
+                   "contact_robot":segment_id_contact_robot}
 
     def _execute_mujoco(ball,
-                        table,
                         robot,
                         segment_ids,
                         mujoco_id,
@@ -92,23 +90,16 @@ def ball_and_robot(segment_id_table,
         pam_mujoco.init_mujoco()
 
         # for detecting contact with the robot
-        pam_mujoco.add_robot1_contact_free_joint(segment_ids["robot"],
-                                                 segment_ids["robot"]+"_reset",
+        pam_mujoco.add_robot1_contact_free_joint(segment_ids["contact_robot"],
                                                  ball.index_qpos,ball.index_qvel,
                                                  ball.geom,robot.geom_racket)
-
-        #for detecting contact with the table
-        pam_mujoco.add_table_contact_free_joint(segment_ids["table"],
-                                                segment_ids["table"]+"_reset",
-                                                ball.index_qpos,balls[1].index_qvel,
-                                                ball.geom,table.geom_plate)
 
         # adding the mirror ball controller, will play
         # recorded ball trajectories, until contact with robot
         pam_mujoco.add_mirror_until_contact_free_joint(segment_ids["ball"],
                                                        ball.joint,
                                                        ball.index_qpos,ball.index_qvel,
-                                                       "racket")
+                                                       segment_ids["contact_robot"])
 
         # adding mirroring robot controller
         pam_mujoco.add_mirror_robot(segment_ids["robot"],robot.joint)
@@ -121,12 +112,12 @@ def ball_and_robot(segment_id_table,
             time.sleep(0.01)
 
     # starting mujoco
-    process  = multiprocessing.Process(target=execute_mujoco,
+    process  = multiprocessing.Process(target=_execute_mujoco,
                                        args=(ball,
-                                             table,
                                              robot,
                                              segment_ids,
-                                             mujoco_id,))
+                                             mujoco_id,
+                                             model_name))
     pam_mujoco.clear(mujoco_id)
     process.start()
     pam_mujoco.wait_for_mujoco(mujoco_id)

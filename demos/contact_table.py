@@ -35,7 +35,6 @@ def execute_mujoco(mujoco_id,model_name,
     #                                 hit_point.index_qpos,hit_point.index_qvel)
     # adding detection of contact between ball and table
     pam_mujoco.add_table_contact_free_joint("contact",
-                                            "contact_reset",
                                             ball.index_qpos,ball.index_qvel,
                                             ball.geom,table.geom_plate)
     # starting the thread

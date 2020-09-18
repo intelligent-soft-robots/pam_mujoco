@@ -32,8 +32,7 @@ namespace pam_mujoco
   class ContactBall : public ControllerBase
   {
   public:
-    ContactBall(std::string segment_id_contact_info,
-		std::string segment_id_reset,
+    ContactBall(std::string segment_id_,
 		int index_qpos,
 		int index_qvel,
 		std::string geom,
@@ -47,8 +46,7 @@ namespace pam_mujoco
     void init(const mjModel* m);
     void reset();
   private:
-    std::string segment_id_contact_info_;
-    std::string segment_id_reset_;
+    std::string segment_id_;
     RecomputeStateConfig config_;
     ContactInformation contact_information_;
     internal::ContactStates previous_;
@@ -61,7 +59,8 @@ namespace pam_mujoco
     internal::ContactLogic contact_logic_;
   };
 
-
+  bool activate_contact(const std::string& segment_id);
+  bool deactivate_contact(const std::string& segment_id);
   bool reset_contact(const std::string& segment_id);
 
   
