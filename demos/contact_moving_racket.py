@@ -1,6 +1,7 @@
 import time
 import context
 import o80
+import o80_pam
 import pam_mujoco
 import numpy as np
 import multiprocessing
@@ -57,11 +58,11 @@ pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing o80 frontend for sending ball position/velocity
 # to mujoco thread
-frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd("ball")
+frontend_ball = o80_pam.MirrorFreeJointFrontEnd("ball")
 
 # initializing o80 frontend for sending robot joints position/velocity
 # to mujoco thread
-frontend_robot = pam_mujoco.MirrorRobotFrontEnd("robot")
+frontend_robot = o80_pam.MirrorRobotFrontEnd("robot")
 
 # having the ball falling off slowly
 ball_x = 0.84

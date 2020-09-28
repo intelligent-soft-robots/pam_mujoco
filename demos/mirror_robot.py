@@ -1,5 +1,6 @@
 import time
 import o80
+import o80_pam
 import pam_mujoco
 import numpy as np
 import multiprocessing
@@ -36,7 +37,7 @@ pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing the o80 frontend for sending
 # robot posture commands
-frontend = pam_mujoco.MirrorRobotFrontEnd(segment_id)
+frontend = o80_pam.MirrorRobotFrontEnd(segment_id)
 
 # getting to init posture (all joints to pi/4)
 # in 3000 iteration

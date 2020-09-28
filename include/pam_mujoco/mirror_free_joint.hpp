@@ -4,9 +4,10 @@
 #include "o80/memory_clearing.hpp"
 #include "o80/back_end.hpp"
 #include "o80/state1d.hpp"
+#include "context/contact_information.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
-#include "pam_mujoco/contact_information.hpp"
+
 
 namespace pam_mujoco
 {

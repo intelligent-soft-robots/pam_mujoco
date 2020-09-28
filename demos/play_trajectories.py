@@ -1,6 +1,7 @@
 import time
 import context
 import o80
+import o80_pam
 import pam_mujoco
 import numpy as np
 import multiprocessing
@@ -55,7 +56,7 @@ frontends = []
 trajectories = []
 ball_trajectories = context.BallTrajectories()
 for segment_id in segment_ids:
-    frontends.append(pam_mujoco.MirrorFreeJointFrontEnd(segment_id))
+    frontends.append(o80_pam.MirrorFreeJointFrontEnd(segment_id))
     trajectories.append(list(ball_trajectories.random_trajectory()))
 
 # preparing the full ball trajectories 

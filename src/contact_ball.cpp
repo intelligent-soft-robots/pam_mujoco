@@ -182,7 +182,7 @@ namespace pam_mujoco
   
   void ContactBall::reset()
   {
-    contact_information_ = ContactInformation{};
+    contact_information_ = context::ContactInformation{};
     previous_ = internal::ContactStates{};
   }
 

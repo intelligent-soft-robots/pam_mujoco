@@ -3,11 +3,10 @@
 #include "mujoco.h"
 #include "shared_memory/shared_memory.hpp"
 #include "shared_memory/serializer.hpp"
+#include "context/contact_information.hpp"
 #include "pam_mujoco/internal/contact_states.hpp"
 #include "pam_mujoco/internal/contact_logic.hpp"
 #include "pam_mujoco/recompute_state_after_contact.hpp"
-#include "pam_mujoco/contact_information.hpp"
-
 
 #include "pam_mujoco/controllers.hpp"
 
@@ -48,7 +47,7 @@ namespace pam_mujoco
   private:
     std::string segment_id_;
     RecomputeStateConfig config_;
-    ContactInformation contact_information_;
+    context::ContactInformation contact_information_;
     internal::ContactStates previous_;
     int index_qpos_;
     int index_qvel_;

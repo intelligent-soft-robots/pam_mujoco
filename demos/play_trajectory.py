@@ -1,5 +1,6 @@
 import time
 import context
+import o80_pam
 import o80
 import pam_mujoco
 import numpy as np
@@ -58,8 +59,8 @@ for run in range(10):
 
     # initializing o80 frontend for sending ball/hit_point position/velocity
     # to mujoco thread
-    frontend_ball1 = pam_mujoco.MirrorFreeJointFrontEnd("ball1")
-    frontend_ball2 = pam_mujoco.MirrorFreeJointFrontEnd("ball2")
+    frontend_ball1 = o80_pam.MirrorFreeJointFrontEnd("ball1")
+    frontend_ball2 = o80_pam.MirrorFreeJointFrontEnd("ball2")
     frontends = [frontend_ball1,frontend_ball2]
     
     # reading a random pre-recorded ball trajectory

@@ -20,12 +20,10 @@ def _get_pam_model_configuration(segment_id,robot):
                          a_init,l_MTC_change_init ]
     return pam_model_config
 
-def pseudo_real_robot(segment_id,
-                      model_name,
-                      mujoco_id):
+def pseudo_real_robot(mujoco_id,segment_id):
 
     # creating the xml mujoco model
-    items = pam_mujoco.model_factory(model_name,
+    items = pam_mujoco.model_factory(segment_id,
                                      robot1=True)
     robot = items["robot"]
 
@@ -33,11 +31,12 @@ def pseudo_real_robot(segment_id,
     pam_model_config = _get_pam_model_configuration(segment_id,robot)
     
     # function running mujoco
-    def _execute_mujoco(segment_id,
-                        mujoco_id,
-                        model_name,
+    def _execute_mujoco(mujoco_id,
+                        segment_id,
                         pam_model_config):
 
+        model_name = segment_id
+        
         # init mujoco
         pam_mujoco.init_mujoco()
 
@@ -53,7 +52,7 @@ def pseudo_real_robot(segment_id,
 
     # starting mujoco
     process  = multiprocessing.Process(target=_execute_mujoco,
-                                       args=(segment_id,mujoco_id,model_name,
+                                       args=(mujoco_id,segment_id,
                                              pam_model_config,))
 
     pam_mujoco.clear(mujoco_id)
@@ -64,14 +63,13 @@ def pseudo_real_robot(segment_id,
 
 
 
-def ball_and_robot(segment_id_robot,
+def ball_and_robot(mujoco_id,
+                   segment_id_robot,
                    segment_id_contact_robot,
-                   segment_id_ball,
-                   model_name,
-                   mujoco_id):
+                   segment_id_ball):
 
     # creating the xml mujoco model
-    items = pam_mujoco.model_factory(model_name,
+    items = pam_mujoco.model_factory(segment_id_robot,
                                      table=True,robot1=True)
     ball = items["ball"]
     robot = items["robot"]
@@ -80,11 +78,12 @@ def ball_and_robot(segment_id_robot,
                    "robot":segment_id_robot,
                    "contact_robot":segment_id_contact_robot}
 
-    def _execute_mujoco(ball,
+    def _execute_mujoco(mujoco_id,
+                        ball,
                         robot,
-                        segment_ids,
-                        mujoco_id,
-                        model_name):
+                        segment_ids):
+
+        model_name = segment_ids["robot"]
 
         # init mujoco
         pam_mujoco.init_mujoco()
@@ -113,11 +112,10 @@ def ball_and_robot(segment_id_robot,
 
     # starting mujoco
     process  = multiprocessing.Process(target=_execute_mujoco,
-                                       args=(ball,
+                                       args=(mujoco_id,
+                                             ball,
                                              robot,
-                                             segment_ids,
-                                             mujoco_id,
-                                             model_name))
+                                             segment_ids))
     pam_mujoco.clear(mujoco_id)
     process.start()
     pam_mujoco.wait_for_mujoco(mujoco_id)

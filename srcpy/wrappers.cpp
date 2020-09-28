@@ -3,9 +3,6 @@
 
 #include "shared_memory/serializer.hpp"
 #include "o80/pybind11_helper.hpp"
-#include "o80/state1d.hpp"
-#include "o80/state2d.hpp"
-#include "o80/void_extended_state.hpp"
 #include "pam_mujoco/run_mujoco.hpp"
 #include "pam_mujoco/read_robot_state.hpp"
 
@@ -16,42 +13,18 @@
 
 PYBIND11_MODULE(pam_mujoco_wrp, m)
 {
-  o80::create_python_bindings<QUEUE_SIZE,
-			      NB_DOFS,
-			      o80::State2d,
-			      o80::VoidExtendedState,
-			      o80::NO_STATE, // o80::State2d already binded in package o80
-			      o80::NO_EXTENDED_STATE> // same
-    (m,std::string("MirrorRobot"));
-  
-  
-  // 6 : position3d + velocity3d
-  o80::create_python_bindings<QUEUE_SIZE,
-			      6,
-			      o80::State1d,
-			      o80::VoidExtendedState,
-			      o80::NO_STATE, // o80::State2d already binded in package o80
-			      o80::NO_EXTENDED_STATE> // same
-    (m,std::string("MirrorFreeJoint"));
-
-  pybind11::class_<pam_mujoco::ContactInformation>(m,"ContactInformation")
-    .def(pybind11::init<>())
-    .def_readonly("position",&pam_mujoco::ContactInformation::position)
-    .def_readonly("contact_occured",&pam_mujoco::ContactInformation::contact_occured)
-    .def_readonly("time_stamp",&pam_mujoco::ContactInformation::time_stamp)
-    .def_readonly("minimal_distance",&pam_mujoco::ContactInformation::minimal_distance);
-
-  m.def("get_contact",[](std::string segment_id)
-	{
-	  pam_mujoco::ContactInformation ci;
-	  shared_memory::deserialize(segment_id,segment_id,ci);
-	  return ci;
-	});
 
   pybind11::class_<pam_mujoco::ReadRobotState>(m,"ReadRobotState")
     .def(pybind11::init<std::string>())
     .def("get_positions",&pam_mujoco::ReadRobotState::get_positions)
     .def("get_velocities",&pam_mujoco::ReadRobotState::get_velocities);
+
+  m.def("get_contact",[](std::string segment_id)
+	{
+	  context::ContactInformation ci;
+	  shared_memory::deserialize(segment_id,segment_id,ci);
+	  return ci;
+	});
   
   m.def("init_mujoco",&pam_mujoco::init_mujoco);
   m.def("add_mirror_robot",&pam_mujoco::add_mirror_robot);

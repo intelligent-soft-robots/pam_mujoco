@@ -1,6 +1,7 @@
 import time
 import context
 import o80
+import o80_pam
 import pam_mujoco
 import numpy as np
 import multiprocessing
@@ -53,12 +54,12 @@ pam_mujoco.wait_for_mujoco(mujoco_id)
 
 # initializing o80 frontend for sending ball/hit_point position/velocity
 # to mujoco thread
-frontend_ball = pam_mujoco.MirrorFreeJointFrontEnd("ball")
-#frontend_hit_point = pam_mujoco.MirrorFreeJointFrontEnd("hit_point")
+frontend_ball = o80_pam.MirrorFreeJointFrontEnd("ball")
+frontend_hit_point = o80_pam.MirrorFreeJointFrontEnd("hit_point")
 
 # dropping the ball on the table
 start_point = [1.0,2.0,1]
-end_point = [1.0,1.0,-1]
+end_point = [1.5,1.0,-1]
 duration = 2 # seconds
 velocity = [(e-s)/float(duration)
             for e,s in zip(end_point,start_point)]
@@ -86,13 +87,13 @@ while True:
         # contact detected: moving the hit point at the contact
         # position
         position = contacts.position
+        position[2]+=0.5
         print("contact:",position)
-        #for dim,p in enumerate(position):
-            # position
-            #frontend_hit_point.add_command(2*dim,
-            #                               o80.State1d(p),
-            #                               o80.Mode.QUEUE)
-        #frontend_hit_point.pulse()
+        for dim,p in enumerate(position):
+            frontend_hit_point.add_command(2*dim,
+                                           o80.State1d(p),
+                                           o80.Mode.QUEUE)
+        frontend_hit_point.pulse()
         break
 
     

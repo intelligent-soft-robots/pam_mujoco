@@ -63,7 +63,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
   // take hand), checking if such contact occured.
   // (note: see Contacts.hpp to see what serialize ContactInformation
   // instances into the shared memory)
-  ContactInformation ci;
+  context::ContactInformation ci;
   if(contact_interrupt_)
     {
       shared_memory::deserialize(segment_id_contact_,
