@@ -21,6 +21,7 @@ namespace pam_mujoco
     {
     public:
       ContactLogic();
+      void reset();
       ContactAction apply(const mjModel* m, mjData* d,
 			  int index_geo, int index_geom_contactee);
     private:

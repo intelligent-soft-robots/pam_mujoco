@@ -184,6 +184,7 @@ namespace pam_mujoco
   {
     contact_information_ = context::ContactInformation{};
     previous_ = internal::ContactStates{};
+    contact_logic_.reset();
   }
 
 

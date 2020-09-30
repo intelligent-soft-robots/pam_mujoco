@@ -17,6 +17,11 @@ namespace pam_mujoco
 	contact_mode_(false)
     {}
 
+    void ContactLogic::reset()
+    {
+      contact_count_=-1;
+      contact_mode_=false;
+    }
 
     bool ContactLogic::is_in_contact(const mjModel* m, mjData* d,
 				     int index_geom,int index_geom_contactee)
