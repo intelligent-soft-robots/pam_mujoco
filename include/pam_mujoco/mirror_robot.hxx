@@ -15,7 +15,7 @@ template<int QUEUE_SIZE, int NB_DOFS>
 void MirrorRobot<QUEUE_SIZE,
 		    NB_DOFS>::set_state(mjData* d)
 {
-  const States& states = backend_.pulse(o80::time_now(),
+  const States& states = backend_.pulse(o80::TimePoint(static_cast<long int>(d->time*1e9)),
 					states_,
 					o80::VoidExtendedState());
   for(std::size_t dof=0; dof<NB_DOFS; dof++)

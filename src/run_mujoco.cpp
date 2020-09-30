@@ -78,6 +78,7 @@ namespace pam_mujoco
   void add_bursting(std::string mujoco_id,
 		    std::string segment_id)
   {
+    BurstingMode::activated = true;
     std::shared_ptr<BurstController> bc
       = std::make_shared<BurstController>(mujoco_id,segment_id);
     pam_mujoco::Controllers::add(bc);

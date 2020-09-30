@@ -3,6 +3,13 @@
 namespace pam_mujoco
 {
 
+  bool BurstingMode::activated = true;
+  
+  bool is_bursting_mode()
+  {
+    return BurstingMode::activated;
+  }
+  
   void clear(std::string mujoco_id)
   {
     shared_memory::clear_shared_memory(mujoco_id);

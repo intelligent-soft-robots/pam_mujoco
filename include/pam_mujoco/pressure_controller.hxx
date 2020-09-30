@@ -55,7 +55,7 @@ void PressureController<QUEUE_SIZE,
     }
   
   // reading current robot state
-  pam_interface::TimePoint time_stamp(static_cast<long int>(d->time*1e6)); 
+  pam_interface::TimePoint time_stamp(static_cast<long int>(d->time*1e9)); 
   pam_interface::RobotState<NB_DOFS> robot_state(iteration_,
 						 iteration_,
 						 time_stamp);
@@ -72,9 +72,9 @@ void PressureController<QUEUE_SIZE,
 			    0, // encoder
 			    true); // reference found
     }
-  
+
   // reading desired pressure from o80
-  const States& states = backend_.pulse(o80::time_now(),
+  const States& states = backend_.pulse(o80::TimePoint(static_cast<long int>(d->time*1e9)),
 					current_states,
 					robot_state);
   for (std::size_t dof=0;dof<NB_DOFS;dof++)

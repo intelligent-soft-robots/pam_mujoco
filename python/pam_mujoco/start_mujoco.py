@@ -66,7 +66,8 @@ def pseudo_real_robot(mujoco_id,segment_id):
 def ball_and_robot(mujoco_id,
                    segment_id_robot,
                    segment_id_contact_robot,
-                   segment_id_ball):
+                   segment_id_ball,
+                   segment_id_burst=None):
 
     # creating the xml mujoco model
     items = pam_mujoco.model_factory(segment_id_robot,
@@ -76,7 +77,8 @@ def ball_and_robot(mujoco_id,
 
     segment_ids = {"ball":segment_id_ball,
                    "robot":segment_id_robot,
-                   "contact_robot":segment_id_contact_robot}
+                   "contact_robot":segment_id_contact_robot,
+                   "burst":segment_id_burst}
 
     def _execute_mujoco(mujoco_id,
                         ball,
@@ -102,6 +104,10 @@ def ball_and_robot(mujoco_id,
 
         # adding mirroring robot controller
         pam_mujoco.add_mirror_robot(segment_ids["robot"],robot.joint)
+
+        # set bursting mode if requested
+        if segment_ids["burst"] is not None:
+            pam_mujoco.add_bursting(mujoco_id,segment_ids["burst"])
 
         # starting the thread
         pam_mujoco.execute(mujoco_id,model_name)

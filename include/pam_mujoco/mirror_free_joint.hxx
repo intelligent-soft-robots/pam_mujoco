@@ -53,7 +53,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
     = d->qvel[index_qvel_+2];
 
 
-  const States& states = backend_.pulse(o80::time_now(),
+  const States& states = backend_.pulse(o80::TimePoint(static_cast<long int>(d->time*1e9)),
 					states_,
 					o80::VoidExtendedState());
   
@@ -96,7 +96,6 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
 	= states.get(3).value;
       d->qvel[index_qvel_+2]
 	= states.get(5).value;
-
     }
 
 }

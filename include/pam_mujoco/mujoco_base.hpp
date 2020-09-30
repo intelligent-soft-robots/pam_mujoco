@@ -1841,13 +1841,18 @@ void simulate(void)
     while( (!settings.exitrequest) 
       	   && (!pam_mujoco::is_stop_requested(settings.mujoco_id)) )
     {
-        // sleep for 1 ms or yield, to let main thread run
-        //  yield results in busy wait - which has better timing but kills battery life
-        if( settings.run && settings.busywait )
-            std::this_thread::yield();
-        else
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
+      // waiting only if not bursting mode
+      if(!pam_mujoco::is_bursting_mode())
+	{
+	  // sleep for 1 ms or yield, to let main thread run
+	  //  yield results in busy wait - which has better timing but kills battery life
+	  if( settings.run && settings.busywait )
+            std::this_thread::yield();
+	  else
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	}
+      
         // start exclusive access
         mtx.lock();
 
