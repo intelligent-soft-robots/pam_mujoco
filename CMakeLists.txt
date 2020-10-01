@@ -62,4 +62,11 @@ target_compile_definitions(pam_mujoco_py PRIVATE
 # python package (will be extended with pam_mujoco_wrp)
 catkin_python_setup()
 
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco
+               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_mujoco
+               COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring
+               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_mirroring
+               COPYONLY)
+
 build_sphinx_documentation()
