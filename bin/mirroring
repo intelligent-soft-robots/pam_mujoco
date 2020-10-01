@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+
+import pam_mujoco
+import o80_pam
+import o80
+
+SEGMENT_ID_ROBOT_MIRROR = "mujoco_mirror"
+SEGMENT_ID_PSEUDO_REAL_ROBOT = "o80_pam"
+PERIOD_MS = 10
+
+if __name__ == "__main__":
+
+
+    o80_mirroring = o80_pam.o80RobotMirroring(SEGMENT_ID_ROBOT_MIRROR)
+    o80_pressure = o80_pam.o80Pressures(SEGMENT_ID_PSEUDO_REAL_ROBOT)
+    
+    frequency_manager = o80.FrequencyManager(1.0/(PERIOD_MS/1000.0))
+
+    try :
+        while True:
+            _,__,joint_positions,joint_velocities = o80_pressure.read()
+            o80_mirroring.set(joint_positions,joint_velocities)
+            frequency_manager.wait()
+    except KeyboardInterrupt:
+        pass
+        
+            
