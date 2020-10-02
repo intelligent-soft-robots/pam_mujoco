@@ -160,6 +160,7 @@ def defaults_gaps():
 
 
 def generate_model(model_name,
+                   time_step=0.002,
                    robots=[],
                    balls=[],
                    tables=[],
@@ -169,7 +170,8 @@ def generate_model(model_name,
                    gaps = defaults_gaps()):
 
     template = paths.get_main_template_xml()
-
+    template = template.replace("$timestep$",str(time_step))
+    
     bodies = []
     index_qpos = 0
     index_qvel = 0
@@ -254,6 +256,7 @@ def generate_model(model_name,
         
 
 def model_factory(model_name,
+                  time_step = 0.002,
                   table=False,nb_balls=1,robot1=False,
                   robot2=False,goal=False,hit_point=False,
                   ball_colors=None):
@@ -303,6 +306,7 @@ def model_factory(model_name,
         hit_points = []
 
     generate_model(model_name,
+                   time_step = time_step,
                    robots=robots,
                    balls=balls,
                    tables=tables,

@@ -20,7 +20,8 @@ def _get_pam_model_configuration(segment_id,robot):
                          a_init,l_MTC_change_init ]
     return pam_model_config
 
-def pseudo_real_robot(mujoco_id,segment_id):
+def pseudo_real_robot(mujoco_id,segment_id,graphics=True,
+                      extended_graphics=False,realtime=True):
 
     # creating the xml mujoco model
     items = pam_mujoco.model_factory(segment_id,
@@ -38,7 +39,11 @@ def pseudo_real_robot(mujoco_id,segment_id):
         model_name = segment_id
         
         # init mujoco
-        pam_mujoco.init_mujoco()
+        config = pam_mujoco.MujocoConfig()
+        config.graphics = graphics
+        config.extended_graphics = extended_graphics
+        config.realtime = realtime
+        pam_mujoco.init_mujoco(config)
 
         # adding pressure controller
         pam_mujoco.add_pressure_controller(*pam_model_config)
@@ -67,7 +72,10 @@ def ball_and_robot(mujoco_id,
                    segment_id_robot,
                    segment_id_contact_robot,
                    segment_id_ball,
-                   segment_id_burst=None):
+                   segment_id_burst=None,
+                   graphics=True,
+                   extended_graphics=False,
+                   realtime=True):
 
     # creating the xml mujoco model
     items = pam_mujoco.model_factory(segment_id_robot,
@@ -88,20 +96,30 @@ def ball_and_robot(mujoco_id,
         model_name = segment_ids["robot"]
 
         # init mujoco
-        pam_mujoco.init_mujoco()
+        config = pam_mujoco.MujocoConfig()
+        config.graphics = graphics
+        config.extended_graphics = extended_graphics
+        config.realtime = realtime
+        pam_mujoco.init_mujoco(config)
 
         # for detecting contact with the robot
-        pam_mujoco.add_robot1_contact_free_joint(segment_ids["contact_robot"],
-                                                 ball.index_qpos,ball.index_qvel,
-                                                 ball.geom,robot.geom_racket)
+        if segment_ids["contact_robot"] is not None:
+            pam_mujoco.add_robot1_contact_free_joint(segment_ids["contact_robot"],
+                                                     ball.index_qpos,ball.index_qvel,
+                                                     ball.geom,robot.geom_racket)
 
         # adding the mirror ball controller, will play
         # recorded ball trajectories, until contact with robot
-        pam_mujoco.add_mirror_until_contact_free_joint(segment_ids["ball"],
-                                                       ball.joint,
-                                                       ball.index_qpos,ball.index_qvel,
-                                                       segment_ids["contact_robot"])
-
+        if segment_ids["contact_robot"] is not None:
+            pam_mujoco.add_mirror_until_contact_free_joint(segment_ids["ball"],
+                                                           ball.joint,
+                                                           ball.index_qpos,ball.index_qvel,
+                                                           segment_ids["contact_robot"])
+        else:
+            pam_mujoco.add_mirror_free_joint(segment_ids["ball"],
+                                                           ball.joint,
+                                                           ball.index_qpos,ball.index_qvel)
+            
         # adding mirroring robot controller
         pam_mujoco.add_mirror_robot(segment_ids["robot"],robot.joint)
 

@@ -16,7 +16,11 @@ robot = items["robot"]
 # running the mujoco thread
 def execute_mujoco(segment_id,mujoco_id,model_name,robot):
     # init mujoco
-    pam_mujoco.init_mujoco()
+    config = pam_mujoco.MujocoConfig()
+    config.graphics = True
+    config.extended_graphics = False
+    config.realtime = True
+    pam_mujoco.init_mujoco(config)
     # adding mirroring robot controller
     pam_mujoco.add_mirror_robot(segment_id,robot.joint)
     # setting bursting mode

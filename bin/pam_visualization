@@ -1,0 +1,65 @@
+#!/usr/bin/env python3
+
+import o80
+import pam_mujoco
+import o80_pam
+import sys
+
+MODEL_NAME = "pam_mujoco"
+MUJOCO_ID = pam_mujoco.mujoco_ids.robot
+SEGMENT_ID_BALL = pam_mujoco.segment_ids.ball
+SEGMENT_ID_TARGET = pam_mujoco.segment_ids.target
+SEGMENT_ID_MARKER = pam_mujoco.segment_ids.hit_point
+SEGMENT_ID_ROBOT_MIRROR = pam_mujoco.segment_ids.mirroring
+SEGMENT_ID_BURST = SEGMENT_ID_ROBOT_MIRROR
+SEGMENT_ID_CONTACT_ROBOT = pam_mujoco.segment_ids.contact_robot
+
+
+def execute_visualization():
+
+    suffix = "_visualization"
+    mujoco_id = MUJOCO_ID + suffix
+    segment_id_robot = SEGMENT_ID_ROBOT_MIRROR+suffix
+    segment_id_ball = SEGMENT_ID_BALL+suffix
+    
+    process = pam_mujoco.start_mujoco.ball_and_robot(mujoco_id,
+                                                     segment_id_robot,
+                                                     None, # we do not compute contact
+                                                     segment_id_ball,
+                                                     graphics=True,
+                                                     extended_graphics=False,
+                                                     realtime=False)
+
+    # connects to the other instance of running pam_mujoco
+    # we want to visualize
+    robot_get = o80_pam.o80RobotMirroring(SEGMENT_ID_ROBOT_MIRROR)
+    ball_get = o80_pam.o80Ball(SEGMENT_ID_BALL)
+
+    # connects to the instance of pam_mujoco that we
+    # just spawned in process
+    robot_set = o80_pam.o80RobotMirroring(segment_id_robot)
+    ball_set = o80_pam.o80Ball(segment_id_ball)
+
+    # running at 300 hz
+    frequency_manager = o80.FrequencyManager(300)
+
+    try:
+        while True:
+
+            ball_position,ball_velocity = ball_get.get()
+            ball_set.set(ball_position,ball_velocity,duration_ms=100)
+
+            joint_positions,joint_velocities = robot_get.get()
+            robot_set.set(joint_positions,joint_velocities,duration_ms=100)
+
+            frequency_manager.wait()
+            
+    except KeyboardInterrupt:
+        pam_mujoco.request_stop(mujoco_id)
+
+    process.joint()
+
+
+if __name__ == "__main__":
+
+    execute_visualization()

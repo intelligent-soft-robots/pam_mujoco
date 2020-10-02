@@ -143,8 +143,11 @@ namespace pam_mujoco
 			   ContactItems::Robot2);
   }
   
-  void init_mujoco()
+  void init_mujoco(const MujocoConfig& config)
   {
+    settings.graphics = config.graphics;
+    settings.extended_graphics = config.extended_graphics;
+    settings.realtime = config.realtime;
     init();
   }
   

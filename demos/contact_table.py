@@ -24,16 +24,20 @@ hit_point = items["hit_point"]
 def execute_mujoco(mujoco_id,model_name,
                    ball,hit_point,table):
     # init mujoco
-    pam_mujoco.init_mujoco()
+    config = pam_mujoco.MujocoConfig()
+    config.graphics = True
+    config.extended_graphics = False
+    config.realtime = True
+    pam_mujoco.init_mujoco(config)
     # adding the mirror ball controller
     pam_mujoco.add_mirror_until_contact_free_joint("ball",
                                                    ball.joint,
                                                    ball.index_qpos,ball.index_qvel,
                                                    "contact")
     # adding the hit point controller
-    #pam_mujoco.add_mirror_free_joint("hit_point",
-    #                                 hit_point.joint,
-    #                                 hit_point.index_qpos,hit_point.index_qvel)
+    pam_mujoco.add_mirror_free_joint("hit_point",
+                                     hit_point.joint,
+                                     hit_point.index_qpos,hit_point.index_qvel)
     # adding detection of contact between ball and table
     pam_mujoco.add_table_contact_free_joint("contact",
                                             ball.index_qpos,ball.index_qvel,
@@ -87,7 +91,6 @@ while True:
         # contact detected: moving the hit point at the contact
         # position
         position = contacts.position
-        position[2]+=0.5
         print("contact:",position)
         for dim,p in enumerate(position):
             frontend_hit_point.add_command(2*dim,

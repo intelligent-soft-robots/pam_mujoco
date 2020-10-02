@@ -24,7 +24,11 @@ table = items["table"]
 def execute_mujoco(mujoco_id,model_name,
                    balls,table):
     # init mujoco
-    pam_mujoco.init_mujoco()
+    config = pam_mujoco.MujocoConfig()
+    config.graphics = True
+    config.extended_graphics = False
+    config.realtime = True
+    pam_mujoco.init_mujoco(config)
     #for detecting contact with the table
     pam_mujoco.add_table_contact_free_joint("table",
                                             balls[1].index_qpos,balls[1].index_qvel,
@@ -53,9 +57,7 @@ pam_mujoco.clear(mujoco_id)
 process.start()
 pam_mujoco.wait_for_mujoco(mujoco_id)
 
-
-
-for run in range(10):
+for run in range(3):
 
     # initializing o80 frontend for sending ball/hit_point position/velocity
     # to mujoco thread
@@ -64,7 +66,7 @@ for run in range(10):
     frontends = [frontend_ball1,frontend_ball2]
     
     # reading a random pre-recorded ball trajectory
-    trajectory_points = list(context.BallTrajectories().random_trajectory())
+    _,trajectory_points = list(context.BallTrajectories().random_trajectory())
 
     # lowering the balls a bit to ensure contact with table
     translation = [0,0,-0.01]

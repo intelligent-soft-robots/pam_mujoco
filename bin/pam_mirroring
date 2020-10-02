@@ -5,11 +5,11 @@ import pam_mujoco
 import o80_pam
 import o80
 
-MUJOCO_ID_PAM_MUJOCO = "pam_mujoco"
-MUJOCO_ID_O80_PAM = "o80_pam_mujoco"
-SEGMENT_ID_ROBOT_MIRROR = "mujoco_mirror"
-SEGMENT_ID_PSEUDO_REAL_ROBOT = "o80_pam"
-PERIOD_MS = 10
+MUJOCO_ID_PAM_MUJOCO = pam_mujoco.mujoco_ids.robot
+MUJOCO_ID_O80_PAM = o80_pam.mujoco_id
+SEGMENT_ID_ROBOT_MIRROR = pam_mujoco.segment_ids.mirroring
+SEGMENT_ID_PSEUDO_REAL_ROBOT = o80_pam.segment_ids.robot
+FREQUENCY = 300
 
 if __name__ == "__main__":
 
@@ -19,9 +19,7 @@ if __name__ == "__main__":
     o80_mirroring = o80_pam.o80RobotMirroring(SEGMENT_ID_ROBOT_MIRROR)
     o80_pressure = o80_pam.o80Pressures(SEGMENT_ID_PSEUDO_REAL_ROBOT)
 
-    frequency = 1.0/(PERIOD_MS/1000.0)
-    frequency_manager = o80.FrequencyManager(frequency)
-    print("mirroring at",frequency,"Hz")
+    frequency_manager = o80.FrequencyManager(FREQUENCY)
 
     _,__,joint_positions,joint_velocities = o80_pressure.read()
     o80_mirroring.set(joint_positions,joint_velocities,duration_ms=1000,wait=True)

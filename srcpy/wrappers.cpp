@@ -25,6 +25,12 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
 	  shared_memory::deserialize(segment_id,segment_id,ci);
 	  return ci;
 	});
+
+  pybind11::class_<pam_mujoco::MujocoConfig>(m,"MujocoConfig")
+    .def(pybind11::init<>())
+    .def_readwrite("graphics",&pam_mujoco::MujocoConfig::graphics)
+    .def_readwrite("extended_graphics",&pam_mujoco::MujocoConfig::extended_graphics)
+    .def_readwrite("realtime",&pam_mujoco::MujocoConfig::realtime);
   
   m.def("init_mujoco",&pam_mujoco::init_mujoco);
   m.def("add_mirror_robot",&pam_mujoco::add_mirror_robot);

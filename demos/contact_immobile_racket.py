@@ -16,7 +16,11 @@ robot = items["robot"]
 # running mujoco thread
 def execute_mujoco(ball,table,robot,mujoco_id,model_name):
     # init mujoco
-    pam_mujoco.init_mujoco()
+    config = pam_mujoco.MujocoConfig()
+    config.graphics = True
+    config.extended_graphics = False
+    config.realtime = True
+    pam_mujoco.init_mujoco(config)
     # adding contact detection between ball and table
     # note: best to add first (i.e. before mirror robot and
     # mirror ball), as controllers are called in sequence,

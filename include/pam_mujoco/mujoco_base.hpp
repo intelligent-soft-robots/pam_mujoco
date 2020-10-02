@@ -98,7 +98,12 @@ struct
     int camera = 0;
 
     // for exiting thread
-  std::string mujoco_id;
+    std::string mujoco_id;
+
+    // higher level config
+    bool graphics = true;
+    bool extended_graphics = false;
+    bool realtime = true;
   
 } settings;
 
@@ -1144,39 +1149,41 @@ void loadmodel(void)
     d = mj_makeData(m);
     mj_forward(m, d);
 
-    // re-create scene and context
-    mjv_makeScene(m, &scn, maxgeom);
-    mjr_makeContext(m, &con, 50*(settings.font+1));
+    if(settings.graphics)
+      {
+	// re-create scene and context
+	mjv_makeScene(m, &scn, maxgeom);
+	mjr_makeContext(m, &con, 50*(settings.font+1));
 
-    // clear perturbation state
-    pert.active = 0;
-    pert.select = 0;
-    pert.skinselect = -1;
+	// clear perturbation state
+	pert.active = 0;
+	pert.select = 0;
+	pert.skinselect = -1;
 
-    // align and scale view, update scene
-    alignscale();
-    mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
+	// align and scale view, update scene
+	alignscale();
+	mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
 
-    // set window title to model name
-    if( window && m->names )
-    {
-        char title[200] = "Simulate : ";
-        strcat(title, m->names);
-        glfwSetWindowTitle(window, title);
-    }
+	// set window title to model name
+	if( window && m->names )
+	  {
+	    char title[200] = "Simulate : ";
+	    strcat(title, m->names);
+	    glfwSetWindowTitle(window, title);
+	  }
 
-    // set keyframe range and divisions
-    ui0.sect[SECT_SIMULATION].item[6].slider.range[0] = 0;
-    ui0.sect[SECT_SIMULATION].item[6].slider.range[1] = mjMAX(0, m->nkey - 1);
-    ui0.sect[SECT_SIMULATION].item[6].slider.divisions = mjMAX(1, m->nkey - 1);
-
-    // rebuild UI sections
-    makesections();
-
-    // full ui update
-    uiModify(window, &ui0, &uistate, &con);
-    uiModify(window, &ui1, &uistate, &con);
-    updatesettings();
+	// set keyframe range and divisions
+	ui0.sect[SECT_SIMULATION].item[6].slider.range[0] = 0;
+	ui0.sect[SECT_SIMULATION].item[6].slider.range[1] = mjMAX(0, m->nkey - 1);
+	ui0.sect[SECT_SIMULATION].item[6].slider.divisions = mjMAX(1, m->nkey - 1);
+	makesections();
+	
+	// full ui update
+	uiModify(window, &ui0, &uistate, &con);
+	uiModify(window, &ui1, &uistate, &con);
+	updatesettings();
+	
+      }
 }
 
 
@@ -1833,6 +1840,7 @@ void render(GLFWwindow* window)
 // simulate in background thread (while rendering in main thread)
 void simulate(void)
 {
+
     // cpu-sim syncronization point
     double cpusync = 0;
     mjtNum simsync = 0;
@@ -1842,16 +1850,18 @@ void simulate(void)
       	   && (!pam_mujoco::is_stop_requested(settings.mujoco_id)) )
     {
 
-      // waiting only if not bursting mode
-      if(!pam_mujoco::is_bursting_mode())
-	{
-	  // sleep for 1 ms or yield, to let main thread run
-	  //  yield results in busy wait - which has better timing but kills battery life
-	  if( settings.run && settings.busywait )
-            std::this_thread::yield();
-	  else
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	}
+        if(settings.graphics)
+	  {
+	    if(!pam_mujoco::is_bursting_mode())
+	      {
+		// sleep for 1 ms or yield, to let main thread run
+		//  yield results in busy wait - which has better timing but kills battery life
+		if( settings.run && settings.busywait )
+		  std::this_thread::yield();
+		else
+		  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+	      }
+	  }
       
         // start exclusive access
         mtx.lock();
@@ -1868,44 +1878,52 @@ void simulate(void)
                 // record cpu time at start of iteration
                 double tmstart = glfwGetTime();
 
-                // out-of-sync (for any reason)
-                if( d->time<simsync || tmstart<cpusync || cpusync==0 ||
-                    mju_abs((d->time-simsync)-(tmstart-cpusync))>syncmisalign )
-                {
-                    // re-sync
-                    cpusync = tmstart;
-                    simsync = d->time;
+		if(settings.realtime)
+		  {
+		
+		    // out-of-sync (for any reason)
+		    if( d->time<simsync || tmstart<cpusync || cpusync==0 ||
+			mju_abs((d->time-simsync)-(tmstart-cpusync))>syncmisalign )
+		      {
+			// re-sync
+			cpusync = tmstart;
+			simsync = d->time;
 
-                    // clear old perturbations, apply new
-                    mju_zero(d->xfrc_applied, 6*m->nbody);
-                    mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
-                    mjv_applyPerturbForce(m, d, &pert);
+			// clear old perturbations, apply new
+			mju_zero(d->xfrc_applied, 6*m->nbody);
+			mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
+			mjv_applyPerturbForce(m, d, &pert);
 
-                    // run single step, let next iteration deal with timing
-                    mj_step(m, d);
-                }
+			// run single step, let next iteration deal with timing
+			mj_step(m, d);
+		      }
 
-                // in-sync
-                else
-                {
-                    // step while simtime lags behind cputime, and within safefactor
-                    while( (d->time-simsync)<(glfwGetTime()-cpusync) &&
-                           (glfwGetTime()-tmstart)<refreshfactor/vmode.refreshRate )
-                    {
-                        // clear old perturbations, apply new
-                        mju_zero(d->xfrc_applied, 6*m->nbody);
-                        mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
-                        mjv_applyPerturbForce(m, d, &pert);
+		    // in-sync
+		    else
+		      {
+			// step while simtime lags behind cputime, and within safefactor
+			while( (d->time-simsync)<(glfwGetTime()-cpusync) &&
+			       (glfwGetTime()-tmstart)<refreshfactor/vmode.refreshRate )
+			  {
+			    // clear old perturbations, apply new
+			    mju_zero(d->xfrc_applied, 6*m->nbody);
+			    mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
+			    mjv_applyPerturbForce(m, d, &pert);
 
-                        // run mj_step
-                        mjtNum prevtm = d->time;
-                        mj_step(m, d);
+			    // run mj_step
+			    mjtNum prevtm = d->time;
+			    mj_step(m, d);
 
-                        // break on reset
-                        if( d->time<prevtm )
-                            break;
-                    }
-                }
+			    // break on reset
+			    if( d->time<prevtm )
+			      break;
+			  }
+		      }
+		  }
+		else
+		  {
+		    mj_step(m, d);
+		  }
             }
 
             // paused
@@ -1957,6 +1975,7 @@ bool set_mujoco_key()
 // initalize everything
 void init(void)
 {
+
     // checking licencen is ok
     printf("copying mujoco licence from /opt/mujoco/\n");
     set_mujoco_key();
@@ -1971,80 +1990,87 @@ void init(void)
     // activate MuJoCo license
     mj_activate("mjkey.txt");
 
-    // init GLFW, set timer callback (milliseconds)
-    if (!glfwInit())
-        mju_error("could not initialize GLFW");
-    mjcb_time = timer;
+    if (settings.graphics)
+      {
+	// init GLFW, set timer callback (milliseconds)
+	if (!glfwInit())
+	  mju_error("could not initialize GLFW");
+	mjcb_time = timer;
 
-    // multisampling
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_VISIBLE, 1);
+	// multisampling
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_VISIBLE, 1);
 
-    // get videomode and save
-    vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
+	// get videomode and save
+	vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-    // create window
-    window = glfwCreateWindow((2*vmode.width)/3, (2*vmode.height)/3, 
-                              "Simulate", NULL, NULL);
-    if( !window )
-    {
-        glfwTerminate();
-        mju_error("could not create window");
-    }
+	// create window
+	window = glfwCreateWindow((2*vmode.width)/3, (2*vmode.height)/3, 
+				  "Simulate", NULL, NULL);
+	if( !window )
+	  {
+	    glfwTerminate();
+	    mju_error("could not create window");
+	  }
 
-    // save window position and size
-    glfwGetWindowPos(window, windowpos, windowpos+1);
-    glfwGetWindowSize(window, windowsize, windowsize+1);
+	// save window position and size
+	glfwGetWindowPos(window, windowpos, windowpos+1);
+	glfwGetWindowSize(window, windowsize, windowsize+1);
 
-    // make context current, set v-sync
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(settings.vsync);
+	// make context current, set v-sync
+	glfwMakeContextCurrent(window);
+	glfwSwapInterval(settings.vsync);
 
-    // init abstract visualization
-    mjv_defaultCamera(&cam);
-    mjv_defaultOption(&vopt);
-    profilerinit();
-    sensorinit();
+	// init abstract visualization
+	mjv_defaultCamera(&cam);
+	mjv_defaultOption(&vopt);
+	profilerinit();
+	sensorinit();
 
-    // make empty scene
-    mjv_defaultScene(&scn);
-    mjv_makeScene(NULL, &scn, maxgeom);
+	// make empty scene
+	mjv_defaultScene(&scn);
+	mjv_makeScene(NULL, &scn, maxgeom);
 
-    // select default font
-    int fontscale = uiFontScale(window);
-    settings.font = fontscale/50 - 1;
+	// select default font
+	int fontscale = uiFontScale(window);
+	settings.font = fontscale/50 - 1;
     
-    // make empty context
-    mjr_defaultContext(&con);
-    mjr_makeContext(NULL, &con, fontscale);
+	// make empty context
+	mjr_defaultContext(&con);
+	mjr_makeContext(NULL, &con, fontscale);
 
-    // set GLFW callbacks
-    uiSetCallback(window, &uistate, uiEvent, uiLayout);
-    glfwSetWindowRefreshCallback(window, render);
-    glfwSetDropCallback(window, drop);
+	// set GLFW callbacks
+	uiSetCallback(window, &uistate, uiEvent, uiLayout);
+	glfwSetWindowRefreshCallback(window, render);
+	glfwSetDropCallback(window, drop);
 
-    // init state and uis
-    memset(&uistate, 0, sizeof(mjuiState));
-    memset(&ui0, 0, sizeof(mjUI));
-    memset(&ui1, 0, sizeof(mjUI));
-    ui0.spacing = mjui_themeSpacing(settings.spacing);
-    ui0.color = mjui_themeColor(settings.color);
-    ui0.predicate = uiPredicate;
-    ui0.rectid = 1;
-    ui0.auxid = 0;
-    ui1.spacing = mjui_themeSpacing(settings.spacing);
-    ui1.color = mjui_themeColor(settings.color);
-    ui1.predicate = uiPredicate;
-    ui1.rectid = 2;
-    ui1.auxid = 1;
+	// init state and uis
+	memset(&uistate, 0, sizeof(mjuiState));
+	memset(&ui0, 0, sizeof(mjUI));
+	memset(&ui1, 0, sizeof(mjUI));
+	ui0.spacing = mjui_themeSpacing(settings.spacing);
+	ui0.color = mjui_themeColor(settings.color);
+	ui0.predicate = uiPredicate;
+	ui0.rectid = 1;
+	ui0.auxid = 0;
+	ui1.spacing = mjui_themeSpacing(settings.spacing);
+	ui1.color = mjui_themeColor(settings.color);
+	ui1.predicate = uiPredicate;
+	ui1.rectid = 2;
+	ui1.auxid = 1;
 
-    // populate uis with standard sections
-    mjui_add(&ui0, defFile);
-    mjui_add(&ui0, defOption);
-    mjui_add(&ui0, defSimulation);
-    mjui_add(&ui0, defWatch);
-    uiModify(window, &ui0, &uistate, &con);
-    uiModify(window, &ui1, &uistate, &con);
+	// populate uis with standard sections
+	if(settings.extended_graphics)
+	  {
+	    mjui_add(&ui0, defFile);
+	    mjui_add(&ui0, defOption);
+	    mjui_add(&ui0, defSimulation);
+	    mjui_add(&ui0, defWatch);
+	    uiModify(window, &ui0, &uistate, &con);
+	    uiModify(window, &ui1, &uistate, &con);
+	  }
+      }
+
 }
 
 
@@ -2060,10 +2086,24 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mid)
     // indicating mujoco is up and running
     pam_mujoco::set_mujoco_started(*mujoco_id,true);
 
-    // event loop
-    while( !glfwWindowShouldClose(window) && !settings.exitrequest
-	   && !pam_mujoco::is_stop_requested(*mujoco_id) )
+    while(true)
       {
+
+	if(settings.graphics && glfwWindowShouldClose(window))
+	  {
+	    break;
+	  }
+
+	if(settings.exitrequest)
+	  {
+	    break;
+	  }
+
+	if(pam_mujoco::is_stop_requested(*mujoco_id))
+	  {
+	    break;
+	  }
+
         // start exclusive access (block simulation thread)
         mtx.lock();
 
@@ -2077,14 +2117,19 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mid)
         glfwPollEvents();
 
         // prepare to render
-        prepare();
+	if(settings.graphics)
+	  {
+	    prepare();
+	  }
 
         // end exclusive access (allow simulation thread to run)
         mtx.unlock();
 
         // render while simulation is running
-        render(window);
-
+	if(settings.graphics)
+	  {
+	    render(window);
+	  }
     }
 
     // stop simulation thread

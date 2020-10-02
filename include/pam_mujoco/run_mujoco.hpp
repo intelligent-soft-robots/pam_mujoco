@@ -87,8 +87,16 @@ namespace pam_mujoco
 				     std::string muscle_json_config_path_antago,
 				     std::array<double,8> a_init,
 				     std::array<double,8> l_MTC_change_init);
+
+  class MujocoConfig
+  {
+  public:
+    bool graphics = true;
+    bool extended_graphics = false;
+    bool realtime = true;
+  };
   
-  void init_mujoco();
+  void init_mujoco(const MujocoConfig& config);
   void execute(std::string mujoco_id, std::string model_path);
 
   #include "run_mujoco.hxx"

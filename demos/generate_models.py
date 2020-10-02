@@ -44,7 +44,11 @@ pam_mujoco.generate_model(model,
                           hit_points=hit_points)
 
 # starting mujoco using the generated model
-pam_mujoco.init_mujoco()
+config = pam_mujoco.MujocoConfig()
+config.graphics = True
+config.extended_graphics = False
+config.realtime = True
+pam_mujoco.init_mujoco(config)
 pam_mujoco.execute(mujoco_id,model)
 
 while True:

@@ -24,7 +24,11 @@ balls = items["balls"]
 # running mujoco thread
 def execute_mujoco(segment_ids,mujoco_id,model_name,balls):
     # init mujoco
-    pam_mujoco.init_mujoco()
+    config = pam_mujoco.MujocoConfig()
+    config.graphics = True
+    config.extended_graphics = False
+    config.realtime = False
+    pam_mujoco.init_mujoco(config)
     # adding the mirror ball controllers
     for segment_id,ball in zip(segment_ids,balls):
         pam_mujoco.add_mirror_free_joint(segment_id,
@@ -57,7 +61,7 @@ trajectories = []
 ball_trajectories = context.BallTrajectories()
 for segment_id in segment_ids:
     frontends.append(o80_pam.MirrorFreeJointFrontEnd(segment_id))
-    trajectories.append(list(ball_trajectories.random_trajectory()))
+    trajectories.append(ball_trajectories.random_trajectory()[1])
 
 # preparing the full ball trajectories 
 # duration of 10ms : sampling rate of the trajectory
