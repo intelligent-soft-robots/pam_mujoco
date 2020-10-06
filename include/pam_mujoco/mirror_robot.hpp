@@ -26,8 +26,6 @@ namespace pam_mujoco
 		std::string robot_joint_base);
     void apply(const mjModel* m,
 		 mjData* d);
-  private:
-    void set_state(mjData* d);
   public:
     static void clear(std::string segment_id);
   private:
