@@ -23,6 +23,7 @@
 
 #include "real_time_tools/thread.hpp"
 #include "pam_mujoco/run_management.hpp"
+#include "o80/frequency_manager.hpp"
 
 
 //-------------------------------- global -----------------------------------------------
@@ -1841,6 +1842,8 @@ void render(GLFWwindow* window)
 void simulate(void)
 {
 
+    o80::FrequencyManager frequency_manager(1.0 / (m->opt.timestep));
+
     // cpu-sim syncronization point
     double cpusync = 0;
     mjtNum simsync = 0;
@@ -1875,12 +1878,12 @@ void simulate(void)
             // running
             if( settings.run )
             {
+
                 // record cpu time at start of iteration
                 double tmstart = glfwGetTime();
 
-		if(settings.realtime)
+		if(settings.realtime && settings.graphics)
 		  {
-		
 		    // out-of-sync (for any reason)
 		    if( d->time<simsync || tmstart<cpusync || cpusync==0 ||
 			mju_abs((d->time-simsync)-(tmstart-cpusync))>syncmisalign )
@@ -1901,7 +1904,6 @@ void simulate(void)
 		    // in-sync
 		    else
 		      {
-			// step while simtime lags behind cputime, and within safefactor
 			while( (d->time-simsync)<(glfwGetTime()-cpusync) &&
 			       (glfwGetTime()-tmstart)<refreshfactor/vmode.refreshRate )
 			  {
@@ -1922,6 +1924,10 @@ void simulate(void)
 		  }
 		else
 		  {
+		    if(settings.realtime)
+		      {
+			frequency_manager.wait();
+		      }
 		    mj_step(m, d);
 		  }
             }
