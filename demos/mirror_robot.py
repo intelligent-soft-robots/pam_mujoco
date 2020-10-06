@@ -45,7 +45,7 @@ frontend = o80_pam.MirrorRobotFrontEnd(segment_id)
 
 # getting to init posture (all joints to pi/4)
 # in 3000 iteration
-nb_iterations = 3000
+nb_iterations = 500
 iterations = o80.Iteration(nb_iterations,True,True)
 state = o80.State2d(np.pi/4.0,0)
 # adding a command for each joint

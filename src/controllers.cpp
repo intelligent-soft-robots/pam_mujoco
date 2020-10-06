@@ -2,7 +2,29 @@
 
 namespace pam_mujoco
 {
+  const int ControllerBase::MUJOCO_TIME_STEP_MS;
 
+  ControllerBase::ControllerBase()
+    : mujoco_time_step_{ControllerBase::MUJOCO_TIME_STEP_MS},
+      previous_stamp_{-1}
+  {}
+  
+  bool ControllerBase::must_update(mjData* d)
+  {
+    o80::TimePoint time_stamp{static_cast<long int>(d->time*1e9)};
+    if(time_stamp-previous_stamp_ >= mujoco_time_step_)
+      {
+	previous_stamp_ = time_stamp;
+	return true;
+      }
+    return false;
+  }
+
+  const o80::TimePoint& ControllerBase::get_time_stamp()
+  {
+    return previous_stamp_;
+  }
+  
   void Controllers::add(ControllerBase& controller)
   {
     Controllers::controllers_.push_back(std::shared_ptr<ControllerBase>(&controller));

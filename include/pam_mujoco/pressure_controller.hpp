@@ -48,6 +48,7 @@ namespace pam_mujoco
     std::vector<Muscle> muscles_;
     std::array<double,NB_DOFS*2> bias_forces_;
     int iteration_;
+    States states_;
   };
 
 #include "pressure_controller.hxx"

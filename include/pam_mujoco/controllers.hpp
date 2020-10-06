@@ -6,6 +6,7 @@
 #include "mjmodel.h"
 #include "mjdata.h"
 
+#include "o80/time.hpp"
 
 namespace pam_mujoco
 {
@@ -21,8 +22,16 @@ namespace pam_mujoco
   class ControllerBase
   {
   public:
+    ControllerBase();
     virtual void apply(const mjModel* m,
 			 mjData* d)=0;
+    bool must_update(mjData* d);
+    const o80::TimePoint& get_time_stamp();
+  private:
+    o80::Milliseconds mujoco_time_step_;
+    o80::TimePoint previous_stamp_;
+  private:
+    static const int MUJOCO_TIME_STEP_MS = 2;
   };
 
   class Controllers

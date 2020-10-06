@@ -15,9 +15,12 @@ namespace pam_mujoco
   void BurstController::apply(const mjModel* m,
 			      mjData* d)
   {
-    if(!is_stop_requested(mujoco_id_))
+    if(this->must_update(d))
       {
-	burster_.pulse();
+	if(!is_stop_requested(mujoco_id_))
+	  {
+	    burster_.pulse();
+	  }
       }
   }
 
