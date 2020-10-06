@@ -45,10 +45,12 @@ namespace pam_mujoco
     int index_qpos_;
     int index_qvel_;
     Backend backend_;
-    States states_;
+    States read_states_;
+    States set_states_;
     bool contact_interrupt_;
     bool interrupted_;
     std::string segment_id_contact_;
+    bool first_iteration_;
     
   };
 

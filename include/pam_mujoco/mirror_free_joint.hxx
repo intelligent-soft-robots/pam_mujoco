@@ -10,7 +10,8 @@ MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
 			index_qpos_(index_qpos),
 			index_qvel_(index_qvel),
 			contact_interrupt_(false),
-			interrupted_(false)
+			interrupted_(false),
+			first_iteration_(true)
 {}
 
 
@@ -38,25 +39,28 @@ template<int QUEUE_SIZE>
 void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
 				    mjData* d)
 {
-  states_.values[0].value
-    = d->qpos[index_qpos_];
-  states_.values[2].value
-    = d->qpos[index_qpos_+1];
-  states_.values[4].value
-    = d->qpos[index_qpos_+2];
+
+  if(first_iteration_ || this->must_update(d))
+    {
+      first_iteration_=false;
+      read_states_.values[0].value
+	= d->qpos[index_qpos_];
+      read_states_.values[2].value
+	= d->qpos[index_qpos_+1];
+      read_states_.values[4].value
+	= d->qpos[index_qpos_+2];
       
-  states_.values[1].value
-    = d->qvel[index_qvel_];
-  states_.values[3].value
-    = d->qvel[index_qvel_+1];
-  states_.values[5].value
-    = d->qvel[index_qvel_+2];
+      read_states_.values[1].value
+	= d->qvel[index_qvel_];
+      read_states_.values[3].value
+	= d->qvel[index_qvel_+1];
+      read_states_.values[5].value
+	= d->qvel[index_qvel_+2];
 
-
-  const States& states = backend_.pulse(o80::TimePoint(static_cast<long int>(d->time*1e9)),
-					states_,
-					o80::VoidExtendedState());
-  
+      set_states_ = backend_.pulse(o80::TimePoint(static_cast<long int>(d->time*1e9)),
+				   read_states_,
+				   o80::VoidExtendedState());
+    }  
   
   // if the item has been set to have the trajectory interrupted
   // in case of contact (i.e. either customed model or mujoco engine
@@ -84,18 +88,18 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
     {
       // x,y,z positions
       d->qpos[index_qpos_]
-	= states.get(0).value;
+	= set_states_.get(0).value;
       d->qpos[index_qpos_+1]
-	= states.get(2).value;
+	= set_states_.get(2).value;
       d->qpos[index_qpos_+2]
-	= states.get(4).value;
+	= set_states_.get(4).value;
       // x,y,z velocities
       d->qvel[index_qvel_]
-	= states.get(1).value;
+	= set_states_.get(1).value;
       d->qvel[index_qvel_+1]
-	= states.get(3).value;
+	= set_states_.get(3).value;
       d->qvel[index_qvel_+2]
-	= states.get(5).value;
+	= set_states_.get(5).value;
     }
 
 }
