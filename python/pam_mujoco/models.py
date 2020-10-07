@@ -10,7 +10,7 @@ class HitPoint:
     
     def __init__(self,
                  name,
-                 position=[0,0,0],
+                 position=[0,0,-0.62],
                  size=[0.03,0.0007],
                  color=[1.0,0.65,0.1,1]):
         self.name = name
@@ -36,30 +36,17 @@ class HitPoint:
                 name_joint,nb_bodies)
 
 
-class Goal:
+class Goal(HitPoint):
 
     def __init__(self,
                  name,
-                 position,
-                 radius1=0.05,
-                 radius2=0.2,
-                 color1=[0.2,1.0,0.2,1.0],
-                 color2=[0.2,1.0,0.2,0.05]):
-        self.name = name
-        self.position = position
-        self.radius1 = radius1
-        self.radius2 = radius2
-        self.color1 = color1
-        self.color2 = color2
-        
-    def get_xml(self):
-        (xml,nb_bodies) = xml_templates.get_goal_xml(self.name,
-                                                     self.position,
-                                                     self.radius1,
-                                                     self.radius2,
-                                                     self.color1,
-                                                     self.color2)
-        return (xml,nb_bodies)
+                 position=[0,0,-0.62],
+                 size=[0.05,0.0005],
+                 color=[0.2,1.0,0.2,1]):
+        HitPoint.__init__(self,name,
+                          position=position,
+                          size=size,
+                          color=color)
         
 
 class Ball:
@@ -198,13 +185,17 @@ def generate_model(model_name,
         index_qpos+=nb_bodies*7
         index_qvel+=nb_bodies*6
 
-    # ...
+    # goal, instance of Goal
     for goal in goals:
-        xml,nb_bodies = goal.get_xml()
+        xml,geom,joint,nb_bodies = goal.get_xml()
         bodies.append(xml)
+        goal.index_qpos = index_qpos
+        goal.index_qvel = index_qvel
+        goal.geom = geom
+        goal.joint = joint
         index_qpos+=nb_bodies*7
         index_qvel+=nb_bodies*6
-
+        
     # ...
     for table in tables:
         (xml,name_plate_geom,

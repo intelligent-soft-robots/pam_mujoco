@@ -8,8 +8,8 @@ import sys
 MODEL_NAME = "pam_mujoco"
 MUJOCO_ID = pam_mujoco.mujoco_ids.robot
 SEGMENT_ID_BALL = pam_mujoco.segment_ids.ball
-SEGMENT_ID_TARGET = pam_mujoco.segment_ids.target
-SEGMENT_ID_MARKER = pam_mujoco.segment_ids.hit_point
+SEGMENT_ID_GOAL = pam_mujoco.segment_ids.goal
+SEGMENT_ID_HIT_POINT = pam_mujoco.segment_ids.hit_point
 SEGMENT_ID_ROBOT_MIRROR = pam_mujoco.segment_ids.mirroring
 SEGMENT_ID_BURST = SEGMENT_ID_ROBOT_MIRROR
 SEGMENT_ID_CONTACT_ROBOT = pam_mujoco.segment_ids.contact_robot
@@ -21,6 +21,8 @@ def execute_visualization():
     mujoco_id = MUJOCO_ID + suffix
     segment_id_robot = SEGMENT_ID_ROBOT_MIRROR+suffix
     segment_id_ball = SEGMENT_ID_BALL+suffix
+    segment_id_goal = SEGMENT_ID_GOAL+suffix
+    segment_id_hit_point = SEGMENT_ID_HIT_POINT+suffix
     
     process = pam_mujoco.start_mujoco.ball_and_robot(mujoco_id,
                                                      segment_id_robot,
@@ -28,18 +30,24 @@ def execute_visualization():
                                                      segment_id_ball,
                                                      graphics=True,
                                                      extended_graphics=False,
-                                                     realtime=False)
+                                                     realtime=False,
+                                                     segment_id_goal=segment_id_goal,
+                                                     segment_id_hit_point=segment_id_hit_point)
 
     # connects to the other instance of running pam_mujoco
     # we want to visualize
     robot_get = o80_pam.o80RobotMirroring(SEGMENT_ID_ROBOT_MIRROR)
     ball_get = o80_pam.o80Ball(SEGMENT_ID_BALL)
-
+    goal_get = o80_pam.o80Goal(SEGMENT_ID_GOAL)
+    hit_point_get = o80_pam.o80HitPoint(SEGMENT_ID_HIT_POINT)
+    
     # connects to the instance of pam_mujoco that we
     # just spawned in process
     robot_set = o80_pam.o80RobotMirroring(segment_id_robot)
     ball_set = o80_pam.o80Ball(segment_id_ball)
-
+    goal_set = o80_pam.o80Goal(segment_id_goal)
+    hit_point_set = o80_pam.o80HitPoint(segment_id_hit_point)
+    
     # running at 300 hz
     frequency_manager = o80.FrequencyManager(300)
 
@@ -49,6 +57,12 @@ def execute_visualization():
             ball_position,ball_velocity = ball_get.get()
             ball_set.set(ball_position,ball_velocity,duration_ms=100)
 
+            goal_position,goal_velocity = goal_get.get()
+            goal_set.set(goal_position,goal_velocity,duration_ms=100)
+
+            hit_point_position,hit_point_velocity = hit_point_get.get()
+            hit_point_set.set(hit_point_position,hit_point_velocity,duration_ms=100)
+            
             joint_positions,joint_velocities = robot_get.get()
             robot_set.set(joint_positions,joint_velocities,duration_ms=100)
 

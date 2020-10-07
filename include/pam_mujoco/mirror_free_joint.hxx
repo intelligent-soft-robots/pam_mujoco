@@ -55,6 +55,16 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
       read_states_.values[5].value
 	= d->qvel[index_qvel_+2];
 
+      /*
+      std::cout << "free joint setting: ";
+      for (std::size_t dof=0;dof<4;dof++)
+	{
+	  std::cout << d->qpos[index_qpos_+dof] << " , "
+		    << d->qvel[index_qvel_+dof] << " | ";
+	}
+      std::cout << "\n";
+      */
+
       set_states_ = backend_.pulse(o80::TimePoint(static_cast<long int>(d->time*1e9)),
 				   read_states_,
 				   o80::VoidExtendedState());

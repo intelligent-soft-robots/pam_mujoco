@@ -75,22 +75,35 @@ def ball_and_robot(mujoco_id,
                    segment_id_burst=None,
                    graphics=True,
                    extended_graphics=False,
-                   realtime=True):
+                   realtime=True,
+                   segment_id_goal=None,
+                   segment_id_hit_point=None):
 
     # creating the xml mujoco model
+    use_goal = True if segment_id_goal is not None else False
+    use_hit_point = True if segment_id_hit_point is not None else False
     items = pam_mujoco.model_factory(segment_id_robot,
-                                     table=True,robot1=True)
+                                     table=True,robot1=True,
+                                     goal=use_goal,
+                                     hit_point=use_hit_point)
     ball = items["ball"]
     robot = items["robot"]
-
+    goal = items["goal"] if use_goal else None
+    hit_point = items["hit_point"] if use_hit_point else None
+    
+    
     segment_ids = {"ball":segment_id_ball,
                    "robot":segment_id_robot,
                    "contact_robot":segment_id_contact_robot,
-                   "burst":segment_id_burst}
+                   "burst":segment_id_burst,
+                   "goal":segment_id_goal,
+                   "hit_point":segment_id_hit_point}
 
     def _execute_mujoco(mujoco_id,
                         ball,
                         robot,
+                        goal,
+                        hit_point,
                         segment_ids):
 
         model_name = segment_ids["robot"]
@@ -119,6 +132,16 @@ def ball_and_robot(mujoco_id,
             pam_mujoco.add_mirror_free_joint(segment_ids["ball"],
                                                            ball.joint,
                                                            ball.index_qpos,ball.index_qvel)
+
+        if segment_ids["goal"] is not None:
+            pam_mujoco.add_mirror_free_joint(segment_ids["goal"],
+                                             goal.joint,
+                                             goal.index_qpos,goal.index_qvel)
+            
+        if segment_ids["hit_point"] is not None:
+            pam_mujoco.add_mirror_free_joint(segment_ids["hit_point"],
+                                             hit_point.joint,
+                                             hit_point.index_qpos,hit_point.index_qvel)
             
         # adding mirroring robot controller
         pam_mujoco.add_mirror_robot(segment_ids["robot"],robot.joint)
@@ -139,6 +162,8 @@ def ball_and_robot(mujoco_id,
                                        args=(mujoco_id,
                                              ball,
                                              robot,
+                                             goal,
+                                             hit_point,
                                              segment_ids))
     pam_mujoco.clear(mujoco_id)
     process.start()

@@ -18,6 +18,8 @@ namespace pam_mujoco
   private:
     o80::Burster burster_;
     std::string mujoco_id_;
+    long int count_;
+    bool break_;
   };
   
 }

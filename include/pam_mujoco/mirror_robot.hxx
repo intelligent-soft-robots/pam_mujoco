@@ -27,13 +27,17 @@ void MirrorRobot<QUEUE_SIZE,
     }
   if(this->must_update(d))
     {
+      //std::cout << "mirror robot setting: ";
       o80::State2d joint_state;
       for(std::size_t dof=0; dof<NB_DOFS; dof++)
 	{
 	  joint_state.set<0>(d->qpos[index_q_robot_+dof]);
 	  joint_state.set<1>(d->qvel[index_qvel_robot_+dof]);
 	  read_states_.set(dof,joint_state);
+	  //std::cout << d->qpos[index_q_robot_+dof]
+	  //<< " , " << d->qvel[index_qvel_robot_+dof] << " | ";
 	}
+      //std::cout << "\n";
       set_states_ = backend_.pulse(this->get_time_stamp(),
 				   read_states_,
 				   o80::VoidExtendedState());
