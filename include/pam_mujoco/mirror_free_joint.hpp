@@ -50,7 +50,6 @@ namespace pam_mujoco
     bool contact_interrupt_;
     bool interrupted_;
     std::string segment_id_contact_;
-    bool first_iteration_;
     
   };
 

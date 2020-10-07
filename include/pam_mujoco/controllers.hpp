@@ -30,6 +30,7 @@ namespace pam_mujoco
   private:
     o80::Milliseconds mujoco_time_step_;
     o80::TimePoint previous_stamp_;
+    bool first_iteration_;
   private:
     static const int MUJOCO_TIME_STEP_MS = 2;
   };

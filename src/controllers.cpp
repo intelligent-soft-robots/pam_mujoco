@@ -6,11 +6,17 @@ namespace pam_mujoco
 
   ControllerBase::ControllerBase()
     : mujoco_time_step_{ControllerBase::MUJOCO_TIME_STEP_MS},
-      previous_stamp_{-1}
+      previous_stamp_{-1},
+      first_iteration_{true}
   {}
   
   bool ControllerBase::must_update(mjData* d)
   {
+    if(first_iteration_)
+      {
+	first_iteration_=false;
+	return true;
+      }
     o80::TimePoint time_stamp{static_cast<long int>(d->time*1e9)};
     if(time_stamp-previous_stamp_ >= mujoco_time_step_)
       {

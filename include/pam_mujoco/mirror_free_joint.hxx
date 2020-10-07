@@ -10,8 +10,7 @@ MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
 			index_qpos_(index_qpos),
 			index_qvel_(index_qvel),
 			contact_interrupt_(false),
-			interrupted_(false),
-			first_iteration_(true)
+			interrupted_(false)
 {}
 
 
@@ -40,9 +39,8 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m,
 				    mjData* d)
 {
 
-  if(first_iteration_ || this->must_update(d))
+  if(this->must_update(d))
     {
-      first_iteration_=false;
       read_states_.values[0].value
 	= d->qpos[index_qpos_];
       read_states_.values[2].value
