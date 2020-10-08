@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import time
 import pam_mujoco
@@ -23,7 +23,6 @@ if __name__ == "__main__":
 
     _,__,joint_positions,joint_velocities = o80_pressure.read()
     o80_mirroring.set(joint_positions,joint_velocities,duration_ms=1000,wait=True)
-    
     
     try :
         while True:

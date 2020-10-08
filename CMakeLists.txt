@@ -71,5 +71,8 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_visualization
                ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_visualization
                COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_mirroring
+               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_mujoco_mirroring
+               COPYONLY)
 
 build_sphinx_documentation()

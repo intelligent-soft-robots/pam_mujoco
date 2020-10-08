@@ -1,0 +1,3 @@
+#! /bin/bash
+
+(pam_mujoco no-graphics) & (sleep 2 && pam_visualization) & (sleep 3 && pam_mirroring)
