@@ -1,123 +1,138 @@
 #!/usr/bin/env python
 
+import multiprocessing
 import pam_mujoco
 import o80_pam
 import sys
+import logging
+import signal_handler
+from lightargs import BrightArgs,Set,Range,Positive,FileExists
 
-MODEL_NAME = "pam_mujoco"
-MUJOCO_ID = pam_mujoco.mujoco_ids.robot
-SEGMENT_ID_BALL = pam_mujoco.segment_ids.ball
-SEGMENT_ID_GOAL = pam_mujoco.segment_ids.goal
-SEGMENT_ID_HIT_POINT = pam_mujoco.segment_ids.hit_point
-SEGMENT_ID_ROBOT_MIRROR = pam_mujoco.segment_ids.mirroring
-SEGMENT_ID_BURST = SEGMENT_ID_ROBOT_MIRROR
-SEGMENT_ID_CONTACT_ROBOT = pam_mujoco.segment_ids.contact_robot
-    
 
-def execute(bursting_mode,graphics,realtime):
+def start_mujoco(config):
 
-    items = pam_mujoco.model_factory(MODEL_NAME,
-                                     table=True,robot1=True,
-                                     goal=True,hit_point=True)
+    def execute(config):
+        
+        logging.info("creating mujoco model")
+        model_name = "pam_mujoco_"+config.mujoco_id
+        items = pam_mujoco.model_factory(model_name,
+                                         table=True,robot1=True,
+                                         goal=True,hit_point=True)
+        ball = items["ball"]
+        robot = items["robot"]
+        goal = items["goal"]
+        hit_point = items["hit_point"]
 
-    ball = items["ball"]
-    robot = items["robot"]
-    goal = items["goal"]
-    hit_point = items["hit_point"]
-    
-    # init mujoco
-    config = pam_mujoco.MujocoConfig()
-    config.graphics = graphics
-    config.extended_graphics = False
-    config.realtime = realtime
-    pam_mujoco.init_mujoco(config)
+        logging.info("init mujoco")
+        mconfig = pam_mujoco.MujocoConfig()
+        mconfig.graphics = not config.no_graphics
+        mconfig.extended_graphics = False
+        mconfig.realtime = not config.no_accelerated
+        pam_mujoco.init_mujoco(mconfig)
 
-    # for detecting contact with the robot
-    pam_mujoco.add_robot1_contact_free_joint(SEGMENT_ID_CONTACT_ROBOT,
-                                             ball.index_qpos,ball.index_qvel,
-                                             ball.geom,robot.geom_racket)
+        logging.info("adding ball/robot contact detector")
+        pam_mujoco.add_robot1_contact_free_joint(config.segment_id_contact_robot,
+                                                 ball.index_qpos,ball.index_qvel,
+                                                 ball.geom,robot.geom_racket)
 
-    # adding the mirror ball controller, will play
-    # recorded ball trajectories, until contact with robot
-    pam_mujoco.add_mirror_until_contact_free_joint(SEGMENT_ID_BALL,
-                                                   ball.joint,
-                                                   ball.index_qpos,ball.index_qvel,
-                                                   SEGMENT_ID_CONTACT_ROBOT)
 
-    # for moving the goal marker
-    pam_mujoco.add_mirror_free_joint(SEGMENT_ID_GOAL,
-                                     goal.joint,
-                                     goal.index_qpos,goal.index_qvel)
+        logging.info("adding o80 ball controller")
+        pam_mujoco.add_mirror_until_contact_free_joint(config.segment_id_ball,
+                                                       ball.joint,
+                                                       ball.index_qpos,ball.index_qvel,
+                                                       SEGMENT_ID_CONTACT_ROBOT)
 
-    # for moving the hit point marker
-    pam_mujoco.add_mirror_free_joint(SEGMENT_ID_HIT_POINT,
-                                     hit_point.joint,
-                                     hit_point.index_qpos,goal.index_qvel)
-    
-    # adding mirroring robot controller
-    pam_mujoco.add_mirror_robot(SEGMENT_ID_ROBOT_MIRROR,robot.joint)
+        logging.info("adding o80 goal controller")
+        pam_mujoco.add_mirror_free_joint(config.segment_id_goal,
+                                         goal.joint,
+                                         goal.index_qpos,goal.index_qvel)
 
-    # set bursting mode if requested
-    if bursting_mode:
-        pam_mujoco.add_bursting(MUJOCO_ID,SEGMENT_ID_BURST)
+        logging.info("adding o80 hit-point controller")
+        pam_mujoco.add_mirror_free_joint(config.segment_id_hit_point,
+                                         hit_point.joint,
+                                         hit_point.index_qpos,goal.index_qvel)
 
-    # starting the thread
-    pam_mujoco.execute(MUJOCO_ID,MODEL_NAME)
+        logging.info("adding o80 robot mirroring controller")
+        pam_mujoco.add_mirror_robot(config.segment_id_robot_mirror,robot.joint)
 
-    # looping until requested to stop
-    while not pam_mujoco.is_stop_requested(MUJOCO_ID):
-        time.sleep(0.01)
+        if config.bursting_mode:
+            logging.info("adding bursting controller")
+            pam_mujoco.add_bursting(config.mujoco_id,config.segment_id_robot_mirror)
+
+        logging.info("starting mujoco")
+        pam_mujoco.execute(MUJOCO_ID,MODEL_NAME)
 
         
-def parse_args(args):
+    process  = multiprocessing.Process(target=execute,
+                                       args=(config,))
+    pam_mujoco.clear(config.mujoco_id)
+    process.start()
+    pam_mujoco.wait_for_mujoco(config.mujoco_id)
+    return process
 
-    if any([a in args for a in ("help","-h","-help")]):
-        return True,None,None,None
+        
+        
+def configure():
+    config = BrightArgs("pam mujoco: a mujoco pam robot controlled via mirroring commands")
+    config.add_operation("bursting_mode",
+                         "will the backend be started in bursting mode ?")
+    config.add_operation("no_graphics",
+                         "will mujoco graphics be displayed ?")
+    config.add_operation("no_accelerated",
+                         "if false, mujoco will in accelerated time")
+    config.add_option("segment_id",
+                      o80_pam.segment_ids.robot,
+                      "o80 backend segment_id",
+                      str)
+    config.add_option("mujoco_id",
+                      pam_mujoco.mujoco_ids.robot,
+                      "pam mujoco id",
+                      str)
+    config.add_option("segment_id_ball",
+                      pam_mujoco.segment_ids.ball,
+                      "segment_id of o80 ball controller",
+                      str)
+    config.add_option("segment_id_goal",
+                      pam_mujoco.segment_ids.goal,
+                      "segment_id of o80 goal controller",
+                      str)
+    config.add_option("segment_id_hit_point",
+                      pam_mujoco.segment_ids.hit_point,
+                      "segment_id of o80 hit point controller",
+                      str)
+    config.add_option("segment_id_robot_mirror",
+                      pam_mujoco.segment_ids.mirroring,
+                      "segment_id of o80 robot mirroring controller",
+                      str),
+    config.add_option("segment_id_contact_robot",
+                      pam_mujoco.segment_ids.contact_robot,
+                      "segment_id of contact information ball/robot",
+                      str)
+    change_all = False
+    config.dialog(change_all)
+    print()
+    return config
+
     
-    graphics = True
-    realtime = True
-    bursting = False
-
-    if "no-graphics" in args:
-        graphics = False
-
-    if "accelerated" in args:
-        realtime = False
-
-    if "bursting" in args:
-        bursting = True
-
-    return False, graphics, realtime, bursting
-
-
-def usage():
-
-    s = str("\n\tusage: pam_mujoco <list of optional args>\n"+
-            "\t\t with optional args:\n"+
-            "\t\t\t-h: display this message\n"+
-            "\t\t\tno-graphics: no graphics\n"+
-            "\t\t\taccelerated: run mujoco as fast as it can\n"+
-            "\t\t\tbursting: o80 bursting mode\n\n")
-    
-    print(s)
-            
-
-def start():
-
-    help_,graphics,realtime,bursting = parse_args(sys.argv)
-
-    if(help_):
-        usage()
-        return
-
-    print("\nstarting:")
-    print("\tbursting:",bursting)
-    print("\tgraphics:",graphics)
-    print("\taccelerated:",not realtime,"\n")
-    
-    execute(bursting,graphics,realtime)
-
     
 if __name__ == "__main__":
 
-    start()
+    config = configure()
+
+    log_handler = logging.StreamHandler(sys.stdout)
+    logging.basicConfig(
+        format="[PAM Mujoco mujoco_id: {}] %(message)s".format(config.mujoco_id),
+        level=logging.DEBUG,
+        handlers=[log_handler]
+    )
+
+    process = start_mujoco(config)
+    try:
+        process.join()
+    except KeyboardInterrupt:
+        logging.info("keyboard interrupt, requesting mujoco to stop")
+        pam_mujoco.request_stop(config.mujoco_id)
+
+    logging.info("exit")
+    print()
+

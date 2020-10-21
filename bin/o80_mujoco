@@ -1,0 +1,129 @@
+#!/usr/bin/env python
+
+import sys
+import time
+import logging
+import signal_handler
+import multiprocessing
+import pam_mujoco
+import pam_models
+import o80_pam
+from lightargs import BrightArgs,Set,Range,Positive,FileExists
+
+
+def start_mujoco(config):
+    
+    def _execute_mujoco(config):
+        model_name = config.segment_id
+        logging.info("generating mujoco model")
+        items = pam_mujoco.model_factory(model_name,robot1=True)
+        robot = items["robot"]
+        pam_model_config_path= pam_models.get_default_config_path()
+        a_init = [config.a_init]*8
+        l_MTC_change_init = [config.l_MTC_change_init]*8
+        pam_model_config = [ config.segment_id,robot.joint,
+                             config.scale_min_pressure,config.scale_max_pressure,
+                             config.scale_min_activation, config.scale_max_activation,
+                             config.pam_model_config_path,config.pam_model_config_path,
+                             a_init,l_MTC_change_init ]
+        mujoco_time_step_ms = config.mujoco_time_step
+        mconfig = pam_mujoco.MujocoConfig()
+        mconfig.graphics = not config.no_graphics
+        mconfig.realtime = not config.no_accelerated
+        logging.info("initializing mujoco")
+        pam_mujoco.init_mujoco(mconfig)
+        logging.info("adding pressure controller")
+        pam_mujoco.add_pressure_controller(*pam_model_config)
+        if config.bursting_mode:
+            logging.info("adding bursting controller")
+            pam_mujoco.add_bursting(mujoco_id,segment_id)
+        logging.info("starting mujoco")
+        pam_mujoco.execute(config.mujoco_id,model_name)
+
+    process  = multiprocessing.Process(target=_execute_mujoco,
+                                       args=(config,))
+    pam_mujoco.clear(config.mujoco_id)
+    process.start()
+    pam_mujoco.wait_for_mujoco(config.mujoco_id)
+    return process
+
+
+def configure():
+    config = BrightArgs("o80 PAM Mujoco robot")
+    config.add_option("segment_id",
+                      o80_pam.segment_ids.robot,
+                      "o80 backend segment_id",
+                      str)
+    config.add_option("mujoco_id",
+                      o80_pam.mujoco_id,
+                      "pam mujoco id",
+                      str)
+    config.add_operation("bursting_mode",
+                         "will the backend be started in bursting mode ?")
+    config.add_operation("no_graphics",
+                         "will mujoco graphics be displayed ?")
+    config.add_operation("no_accelerated",
+                         "if false, mujoco will in accelerated time")
+    config.add_option("pam_model_config_path",
+                      pam_models.get_default_config_path(),
+                      "path to the pam model configuration file",
+                      str,
+                      integrity_checks= [FileExists()])
+    config.add_option("mujoco_time_step",
+                      2,
+                      "mujoco time step in ms",
+                      int,
+                      [Positive()])
+    config.add_option("scale_max_pressure",
+                      24000,
+                      "maximal pressure",
+                      float)
+    config.add_option("scale_min_pressure",
+                      6000,
+                      "min pressure",
+                      float)
+    config.add_option("a_init",
+                      0.5,
+                      "pam model fine tuning: a init",
+                      float)
+    config.add_option("scale_max_activation",
+                      1.0,
+                      "pam model fine tuning: scale activation",
+                      float)
+    config.add_option("scale_min_activation",
+                      0.001,
+                      "pam model fine tuning: scale activation",
+                      float,
+                      [Positive()])
+    config.add_option("l_MTC_change_init",
+                      0.0,
+                      "pam model fine tuning: l MTC change init",
+                      float)
+    change_all = False
+    config.dialog(change_all)
+    print()
+    return config
+
+
+if __name__ == "__main__":
+    
+    config = configure()
+
+    log_handler = logging.StreamHandler(sys.stdout)
+    logging.basicConfig(
+        format="[o80 PAM Mujoco segment_id: {} mujoco_id: {}] %(message)s".format(config.segment_id,
+                                                                                  config.mujoco_id),
+        level=logging.DEBUG,
+        handlers=[log_handler]
+    )
+
+    process = start_mujoco(config)
+    try:
+        process.join()
+    except KeyboardInterrupt:
+        logging.info("keyboard interrupt, requesting mujoco to stop")
+        pam_mujoco.request_stop(config.mujoco_id)
+
+    logging.info("exit")
+    print()
+        
