@@ -44,10 +44,17 @@ namespace pam_mujoco
     shared_memory::set<bool>(mujoco_id,"started",value);
   }
   
-  bool has_mujoco_started(std::string mujoco_id)
+  bool has_mujoco_started(const std::string& mujoco_id)
   {
     bool value;
-    shared_memory::get<bool>(mujoco_id,"started",value);
+    try
+      {
+	shared_memory::get<bool>(mujoco_id,"started",value);
+      }
+    catch(...)
+      {
+	return false;
+      }
     return value;
   }
   

@@ -40,7 +40,7 @@ def start_mujoco(config):
         pam_mujoco.add_mirror_until_contact_free_joint(config.segment_id_ball,
                                                        ball.joint,
                                                        ball.index_qpos,ball.index_qvel,
-                                                       SEGMENT_ID_CONTACT_ROBOT)
+                                                       config.segment_id_contact_robot)
 
         logging.info("adding o80 goal controller")
         pam_mujoco.add_mirror_free_joint(config.segment_id_goal,
@@ -60,14 +60,14 @@ def start_mujoco(config):
             pam_mujoco.add_bursting(config.mujoco_id,config.segment_id_robot_mirror)
 
         logging.info("starting mujoco")
-        pam_mujoco.execute(MUJOCO_ID,MODEL_NAME)
+        pam_mujoco.execute(config.mujoco_id,model_name)
 
         
     process  = multiprocessing.Process(target=execute,
                                        args=(config,))
     pam_mujoco.clear(config.mujoco_id)
     process.start()
-    pam_mujoco.wait_for_mujoco(config.mujoco_id)
+    pam_mujoco.mujoco_ids.wait_for_mujoco(config.mujoco_id)
     return process
 
         

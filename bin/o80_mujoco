@@ -44,7 +44,7 @@ def start_mujoco(config):
                                        args=(config,))
     pam_mujoco.clear(config.mujoco_id)
     process.start()
-    pam_mujoco.wait_for_mujoco(config.mujoco_id)
+    pam_mujoco.mujoco_ids.wait_for_mujoco(config.mujoco_id)
     return process
 
 

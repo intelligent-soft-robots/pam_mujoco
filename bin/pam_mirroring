@@ -37,7 +37,7 @@ def configure():
     return config
 
 
-if __name__ == "__main__":
+def run():
 
     config = configure()
 
@@ -50,11 +50,17 @@ if __name__ == "__main__":
     )
 
     logging.info("waiting for mujoco_id: {}".format(config.mujoco_id_pam_mujoco))
-    pam_mujoco.wait_for_mujoco(config.mujoco_id_pam_mujoco)
+    status = pam_mujoco.mujoco_ids.wait_for_mujoco(config.mujoco_id_pam_mujoco)
+    if not status:
+        logging.info("keyboard interrupt, exiting")
+        return
     
     logging.info("waiting for mujoco_id: {}".format(config.mujoco_id_o80_pam))
-    pam_mujoco.wait_for_mujoco(config.mujoco_id_o80_pam)
-
+    status = pam_mujoco.mujoco_ids.wait_for_mujoco(config.mujoco_id_o80_pam)
+    if not status:
+        logging.info("keyboard interrupt, exiting")
+        return
+    
     logging.info("creating o80 frontend to pam_mujoco robot mirroring")
     o80_mirroring = o80_pam.o80RobotMirroring(config.segment_id_robot_mirror)
 
@@ -83,4 +89,9 @@ if __name__ == "__main__":
 
     logging.info("exit")
     print()
+
+
+if __name__ == "__main__":
+
+    run()
             

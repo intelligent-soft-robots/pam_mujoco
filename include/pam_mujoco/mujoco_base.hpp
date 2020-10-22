@@ -2157,7 +2157,7 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mid)
         glfwTerminate();
     #endif
 
-    // indicating end user all is finished
-	pam_mujoco::set_stopped(*mujoco_id);
-
+    // clearing shared memory
+    pam_mujoco::clear(*mujoco_id);
+    
 }
