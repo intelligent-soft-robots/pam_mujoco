@@ -100,15 +100,20 @@ def configure():
                       "pam model fine tuning: l MTC change init",
                       float)
     change_all = False
-    config.dialog(change_all)
+    finished = config.dialog(change_all,sys.argv[1:])
     print()
+    if not finished:
+        return None
     return config
 
 
-if __name__ == "__main__":
-    
+def execute():
+
     config = configure()
 
+    if config is None:
+        return
+    
     log_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(
         format="[o80 PAM Mujoco segment_id: {} mujoco_id: {}] %(message)s".format(config.segment_id,
@@ -126,4 +131,8 @@ if __name__ == "__main__":
 
     logging.info("exit")
     print()
-        
+
+    
+if __name__ == "__main__":
+    
+    execute()

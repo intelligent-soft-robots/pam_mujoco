@@ -37,7 +37,7 @@ def configure():
                       "segment_id of contact information ball/robot",
                       str)
     change_all = False
-    finished = config.dialog(change_all)
+    finished = config.dialog(change_all,sys.argv[1:])
     print()
     if finished:
         return config

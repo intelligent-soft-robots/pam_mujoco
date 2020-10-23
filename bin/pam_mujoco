@@ -109,16 +109,20 @@ def configure():
                       "segment_id of contact information ball/robot",
                       str)
     change_all = False
-    config.dialog(change_all)
+    finished = config.dialog(change_all,sys.argv[1:])
     print()
+    if not finished:
+        return None
     return config
 
-    
-    
-if __name__ == "__main__":
 
+def execute():
+    
     config = configure()
 
+    if config is None:
+        return
+    
     log_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(
         format="[PAM Mujoco mujoco_id: {}] %(message)s".format(config.mujoco_id),
@@ -135,4 +139,10 @@ if __name__ == "__main__":
 
     logging.info("exit")
     print()
+
+    
+    
+if __name__ == "__main__":
+
+    execute()
 
