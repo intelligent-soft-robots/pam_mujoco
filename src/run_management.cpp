@@ -13,8 +13,6 @@ namespace pam_mujoco
   void clear(std::string mujoco_id)
   {
     shared_memory::clear_shared_memory(mujoco_id);
-    set_mujoco_started(mujoco_id,false);
-    set_stopped(mujoco_id);
   }
   
   void set_started(std::string mujoco_id)
@@ -49,7 +47,7 @@ namespace pam_mujoco
     bool value;
     try
       {
-	shared_memory::get<bool>(mujoco_id,"started",value);
+	shared_memory::get<bool>(mujoco_id,"started",value,false);
       }
     catch(...)
       {
@@ -58,12 +56,9 @@ namespace pam_mujoco
     return value;
   }
   
-  void wait_for_mujoco(std::string mujoco_id)
+  void wait_for_mujoco(std::string mujoco_id,int timeout_ms)
   {
-    while (! has_mujoco_started(mujoco_id) )
-      {
-	usleep(100);
-      }
+    shared_memory::wait_for_segment(mujoco_id,timeout_ms);
   }
 
 }

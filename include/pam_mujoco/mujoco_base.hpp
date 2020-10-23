@@ -2141,13 +2141,19 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mid)
     // stop simulation thread
     settings.exitrequest = 1;
     simthread.join();
+
+    // clearing shared memory
+    pam_mujoco::clear(*mujoco_id);
     
     // delete everything we allocated
-    uiClearCallback(window);
-    mj_deleteData(d); 
-    mj_deleteModel(m);
-    mjv_freeScene(&scn);
-    mjr_freeContext(&con);
+    if(settings.graphics)
+      {
+	uiClearCallback(window);
+	mj_deleteData(d); 
+	mj_deleteModel(m);
+	mjv_freeScene(&scn);
+	mjr_freeContext(&con);
+      }
 
     // deactive MuJoCo
     mj_deactivate();
@@ -2157,7 +2163,5 @@ THREAD_FUNCTION_RETURN_TYPE run(void* mid)
         glfwTerminate();
     #endif
 
-    // clearing shared memory
-    pam_mujoco::clear(*mujoco_id);
     
 }

@@ -62,7 +62,7 @@ def pseudo_real_robot(mujoco_id,segment_id,graphics=True,
 
     pam_mujoco.clear(mujoco_id)
     process.start()
-    pam_mujoco.wait_for_mujoco(mujoco_id)
+    pam_mujoco.wait_for_mujoco(mujoco_id,-1)
 
     return process
 
@@ -154,9 +154,12 @@ def ball_and_robot(mujoco_id,
         pam_mujoco.execute(mujoco_id,model_name)
 
         # looping until requested to stop
-        while not pam_mujoco.is_stop_requested(mujoco_id):
-            time.sleep(0.01)
-
+        try:
+            while not pam_mujoco.is_stop_requested(mujoco_id):
+                time.sleep(0.01)
+        except:
+            pass
+                
     # starting mujoco
     process  = multiprocessing.Process(target=_execute_mujoco,
                                        args=(mujoco_id,
@@ -167,7 +170,7 @@ def ball_and_robot(mujoco_id,
                                              segment_ids))
     pam_mujoco.clear(mujoco_id)
     process.start()
-    pam_mujoco.wait_for_mujoco(mujoco_id)
+    pam_mujoco.wait_for_mujoco(mujoco_id,-1)
 
     return process
 

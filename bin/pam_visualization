@@ -1,29 +1,65 @@
 #!/usr/bin/env python
 
+import time
 import o80
 import pam_mujoco
 import o80_pam
 import sys
-
-MODEL_NAME = "pam_mujoco"
-MUJOCO_ID = pam_mujoco.mujoco_ids.robot
-SEGMENT_ID_BALL = pam_mujoco.segment_ids.ball
-SEGMENT_ID_GOAL = pam_mujoco.segment_ids.goal
-SEGMENT_ID_HIT_POINT = pam_mujoco.segment_ids.hit_point
-SEGMENT_ID_ROBOT_MIRROR = pam_mujoco.segment_ids.mirroring
-SEGMENT_ID_BURST = SEGMENT_ID_ROBOT_MIRROR
-SEGMENT_ID_CONTACT_ROBOT = pam_mujoco.segment_ids.contact_robot
+import logging
+import signal_handler
+from lightargs import BrightArgs,Set,Range,Positive,FileExists
 
 
-def execute_visualization():
+def configure():
+    config = BrightArgs("pam mujoco visualization: graphics for an instance of pam_mujoco")
+    config.add_option("mujoco_id",
+                      pam_mujoco.mujoco_ids.robot,
+                      "mujoco id of the pam_mujoco instance to represent ",
+                      str)
+    config.add_option("segment_id_ball",
+                      pam_mujoco.segment_ids.ball,
+                      "segment_id of o80 ball controller",
+                      str)
+    config.add_option("segment_id_goal",
+                      pam_mujoco.segment_ids.goal,
+                      "segment_id of o80 goal controller",
+                      str)
+    config.add_option("segment_id_hit_point",
+                      pam_mujoco.segment_ids.hit_point,
+                      "segment_id of o80 hit point controller",
+                      str)
+    config.add_option("segment_id_robot_mirror",
+                      pam_mujoco.segment_ids.mirroring,
+                      "segment_id of o80 robot mirroring controller",
+                      str),
+    config.add_option("segment_id_contact_robot",
+                      pam_mujoco.segment_ids.contact_robot,
+                      "segment_id of contact information ball/robot",
+                      str)
+    change_all = False
+    finished = config.dialog(change_all)
+    print()
+    if finished:
+        return config
+    return None
 
-    suffix = "_visualization"
-    mujoco_id = MUJOCO_ID + suffix
-    segment_id_robot = SEGMENT_ID_ROBOT_MIRROR+suffix
-    segment_id_ball = SEGMENT_ID_BALL+suffix
-    segment_id_goal = SEGMENT_ID_GOAL+suffix
-    segment_id_hit_point = SEGMENT_ID_HIT_POINT+suffix
+
+def execute_visualization(config):
+
+    logging.info("waiting for mujoco_id: {}".format(config.mujoco_id))
+    status = pam_mujoco.mujoco_ids.wait_for_mujoco(config.mujoco_id)
+    if not status:
+        logging.info("keyboard interrupt, exiting")
+        return
     
+    suffix = "_visualization"
+    mujoco_id = config.mujoco_id + suffix
+    segment_id_robot = config.segment_id_robot_mirror+suffix
+    segment_id_ball = config.segment_id_ball+suffix
+    segment_id_goal = config.segment_id_goal+suffix
+    segment_id_hit_point = config.segment_id_hit_point+suffix
+
+    logging.info("starting mujoco")
     process = pam_mujoco.start_mujoco.ball_and_robot(mujoco_id,
                                                      segment_id_robot,
                                                      None, # we do not compute contact
@@ -36,44 +72,74 @@ def execute_visualization():
 
     # connects to the other instance of running pam_mujoco
     # we want to visualize
-    robot_get = o80_pam.o80RobotMirroring(SEGMENT_ID_ROBOT_MIRROR)
-    ball_get = o80_pam.o80Ball(SEGMENT_ID_BALL)
-    goal_get = o80_pam.o80Goal(SEGMENT_ID_GOAL)
-    hit_point_get = o80_pam.o80HitPoint(SEGMENT_ID_HIT_POINT)
-    
-    # connects to the instance of pam_mujoco that we
-    # just spawned in process
+    logging.info("creating o80 robot mirroring frontend")
+    robot_get = o80_pam.o80RobotMirroring(config.segment_id_robot_mirror)
     robot_set = o80_pam.o80RobotMirroring(segment_id_robot)
+    logging.info("creating o80 ball mirroring frontend")
+    ball_get = o80_pam.o80Ball(config.segment_id_ball)
     ball_set = o80_pam.o80Ball(segment_id_ball)
+    logging.info("creating o80 goal mirroring frontend")
+    goal_get = o80_pam.o80Goal(config.segment_id_goal)
     goal_set = o80_pam.o80Goal(segment_id_goal)
+    logging.info("creating o80 hit point mirroring frontend")
+    hit_point_get = o80_pam.o80HitPoint(config.segment_id_hit_point)
     hit_point_set = o80_pam.o80HitPoint(segment_id_hit_point)
     
     # running at 300 hz
+    logging.info("creating frequency manager")
     frequency_manager = o80.FrequencyManager(300)
 
-    try:
-        while True:
+    logging.info("running ...")
+    t_start = time.time()-6
 
-            ball_position,ball_velocity = ball_get.get()
-            ball_set.set(ball_position,ball_velocity,duration_ms=100)
+    signal_handler.init()
+    while not signal_handler.has_received_sigint():
+        
+        if time.time()-t_start > 5:
+            t_start = time.time()
+            logging.info("running ...")
 
-            goal_position,goal_velocity = goal_get.get()
-            goal_set.set(goal_position,goal_velocity,duration_ms=100)
+        ball_position,ball_velocity = ball_get.get()
+        ball_set.set(ball_position,ball_velocity,duration_ms=100)
 
-            hit_point_position,hit_point_velocity = hit_point_get.get()
-            hit_point_set.set(hit_point_position,hit_point_velocity,duration_ms=100)
+        goal_position,goal_velocity = goal_get.get()
+        goal_set.set(goal_position,goal_velocity,duration_ms=100)
+
+        hit_point_position,hit_point_velocity = hit_point_get.get()
+        hit_point_set.set(hit_point_position,hit_point_velocity,duration_ms=100)
+
+        joint_positions,joint_velocities = robot_get.get()
+        robot_set.set(joint_positions,joint_velocities,duration_ms=100)
+
+        frequency_manager.wait()
             
-            joint_positions,joint_velocities = robot_get.get()
-            robot_set.set(joint_positions,joint_velocities,duration_ms=100)
+    logging.info("keyboard interrupt, requesting mujoco to stop")
+    pam_mujoco.request_stop(mujoco_id)
 
-            frequency_manager.wait()
-            
-    except KeyboardInterrupt:
-        pam_mujoco.request_stop(mujoco_id)
-
-    process.joint()
+    process.join()
 
 
+def execute():
+
+    config = configure()
+
+    if config is None:
+        print()
+        return
+    
+    log_handler = logging.StreamHandler(sys.stdout)
+    logging.basicConfig(
+        format="[PAM Mujoco visualization (mujoco_id: {})] %(message)s".format(config.mujoco_id),
+        level=logging.DEBUG,
+        handlers=[log_handler]
+    )
+
+    execute_visualization(config)
+
+    logging.info("exit")
+    print()
+
+    
 if __name__ == "__main__":
 
-    execute_visualization()
+    execute()

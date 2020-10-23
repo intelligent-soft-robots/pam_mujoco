@@ -25,9 +25,9 @@ def start_mujoco(config):
 
         logging.info("init mujoco")
         mconfig = pam_mujoco.MujocoConfig()
-        mconfig.graphics = not config.no_graphics
+        mconfig.graphics = config.graphics
         mconfig.extended_graphics = False
-        mconfig.realtime = not config.no_accelerated
+        mconfig.realtime = config.accelerated
         pam_mujoco.init_mujoco(mconfig)
 
         logging.info("adding ball/robot contact detector")
@@ -76,10 +76,10 @@ def configure():
     config = BrightArgs("pam mujoco: a mujoco pam robot controlled via mirroring commands")
     config.add_operation("bursting_mode",
                          "will the backend be started in bursting mode ?")
-    config.add_operation("no_graphics",
+    config.add_operation("graphics",
                          "will mujoco graphics be displayed ?")
-    config.add_operation("no_accelerated",
-                         "if false, mujoco will in accelerated time")
+    config.add_operation("accelerated",
+                         "if true, mujoco will in accelerated time")
     config.add_option("segment_id",
                       o80_pam.segment_ids.robot,
                       "o80 backend segment_id",
