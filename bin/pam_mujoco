@@ -27,7 +27,8 @@ def start_mujoco(config):
         mconfig = pam_mujoco.MujocoConfig()
         mconfig.graphics = config.graphics
         mconfig.extended_graphics = False
-        mconfig.realtime = config.accelerated
+        mconfig.realtime = not config.accelerated
+
         pam_mujoco.init_mujoco(mconfig)
 
         logging.info("adding ball/robot contact detector")
@@ -113,6 +114,7 @@ def configure():
     print()
     if not finished:
         return None
+
     return config
 
 

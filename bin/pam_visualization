@@ -66,7 +66,7 @@ def execute_visualization(config):
                                                      segment_id_ball,
                                                      graphics=True,
                                                      extended_graphics=False,
-                                                     realtime=False,
+                                                     realtime=True,
                                                      segment_id_goal=segment_id_goal,
                                                      segment_id_hit_point=segment_id_hit_point)
 
@@ -85,9 +85,9 @@ def execute_visualization(config):
     hit_point_get = o80_pam.o80HitPoint(config.segment_id_hit_point)
     hit_point_set = o80_pam.o80HitPoint(segment_id_hit_point)
     
-    # running at 300 hz
+    # running at 200 hz
     logging.info("creating frequency manager")
-    frequency_manager = o80.FrequencyManager(300)
+    frequency_manager = o80.FrequencyManager(200)
 
     logging.info("running ...")
     t_start = time.time()-6
