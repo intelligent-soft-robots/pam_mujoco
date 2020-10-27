@@ -52,7 +52,6 @@ namespace pam_mujoco
       }
     catch(shared_memory::Non_existing_segment_exception)
       {
-	std::cout << mujoco_id << " : error\n";
 	return false;
       }
     return value;

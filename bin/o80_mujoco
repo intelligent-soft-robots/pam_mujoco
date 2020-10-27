@@ -14,7 +14,9 @@ from lightargs import BrightArgs,Set,Range,Positive,FileExists
 def start_mujoco(config):
     
     def _execute_mujoco(config):
+
         model_name = config.segment_id
+        
         logging.info("generating mujoco model")
         items = pam_mujoco.model_factory(model_name,robot1=True)
         robot = items["robot"]
@@ -30,13 +32,16 @@ def start_mujoco(config):
         mconfig = pam_mujoco.MujocoConfig()
         mconfig.graphics = not config.no_graphics
         mconfig.realtime = not config.no_accelerated
+        
         logging.info("initializing mujoco")
         pam_mujoco.init_mujoco(mconfig)
+        
         logging.info("adding pressure controller")
         pam_mujoco.add_pressure_controller(*pam_model_config)
         if config.bursting_mode:
             logging.info("adding bursting controller")
             pam_mujoco.add_bursting(mujoco_id,segment_id)
+            
         logging.info("starting mujoco")
         pam_mujoco.execute(config.mujoco_id,model_name)
 

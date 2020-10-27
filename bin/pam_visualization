@@ -75,19 +75,22 @@ def execute_visualization(config):
     logging.info("creating o80 robot mirroring frontend")
     robot_get = o80_pam.o80RobotMirroring(config.segment_id_robot_mirror)
     robot_set = o80_pam.o80RobotMirroring(segment_id_robot)
+    
     logging.info("creating o80 ball mirroring frontend")
     ball_get = o80_pam.o80Ball(config.segment_id_ball)
     ball_set = o80_pam.o80Ball(segment_id_ball)
+
     logging.info("creating o80 goal mirroring frontend")
     goal_get = o80_pam.o80Goal(config.segment_id_goal)
     goal_set = o80_pam.o80Goal(segment_id_goal)
+
     logging.info("creating o80 hit point mirroring frontend")
     hit_point_get = o80_pam.o80HitPoint(config.segment_id_hit_point)
     hit_point_set = o80_pam.o80HitPoint(segment_id_hit_point)
     
-    # running at 200 hz
+    # running at 300 hz
     logging.info("creating frequency manager")
-    frequency_manager = o80.FrequencyManager(200)
+    frequency_manager = o80.FrequencyManager(300)
 
     logging.info("running ...")
     t_start = time.time()-6
