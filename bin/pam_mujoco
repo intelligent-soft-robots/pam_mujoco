@@ -25,7 +25,7 @@ def start_mujoco(config):
 
         logging.info("init mujoco")
         mconfig = pam_mujoco.MujocoConfig()
-        mconfig.graphics = not config.no_graphics
+        mconfig.graphics = config.graphics
         mconfig.extended_graphics = False
         mconfig.realtime = not config.no_accelerated
         pam_mujoco.init_mujoco(mconfig)
@@ -76,7 +76,7 @@ def configure():
     config = BrightArgs("pam mujoco: a mujoco pam robot controlled via mirroring commands")
     config.add_operation("bursting_mode",
                          "will the backend be started in bursting mode ?")
-    config.add_operation("no_graphics",
+    config.add_operation("graphics",
                          "will mujoco graphics be displayed ?")
     config.add_operation("no_accelerated",
                          "if false, mujoco will in accelerated time")
