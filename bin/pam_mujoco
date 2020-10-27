@@ -27,7 +27,8 @@ def start_mujoco(config):
         mconfig = pam_mujoco.MujocoConfig()
         mconfig.graphics = config.graphics
         mconfig.extended_graphics = False
-        mconfig.realtime = not config.no_accelerated
+        mconfig.realtime = not config.accelerated
+
         pam_mujoco.init_mujoco(mconfig)
 
         logging.info("adding ball/robot contact detector")
@@ -78,8 +79,8 @@ def configure():
                          "will the backend be started in bursting mode ?")
     config.add_operation("graphics",
                          "will mujoco graphics be displayed ?")
-    config.add_operation("no_accelerated",
-                         "if false, mujoco will in accelerated time")
+    config.add_operation("accelerated",
+                         "if true, mujoco will in accelerated time")
     config.add_option("segment_id",
                       o80_pam.segment_ids.robot,
                       "o80 backend segment_id",
@@ -109,16 +110,21 @@ def configure():
                       "segment_id of contact information ball/robot",
                       str)
     change_all = False
-    config.dialog(change_all)
+    finished = config.dialog(change_all,sys.argv[1:])
     print()
+    if not finished:
+        return None
+
     return config
 
-    
-    
-if __name__ == "__main__":
 
+def execute():
+    
     config = configure()
 
+    if config is None:
+        return
+    
     log_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(
         format="[PAM Mujoco mujoco_id: {}] %(message)s".format(config.mujoco_id),
@@ -135,4 +141,10 @@ if __name__ == "__main__":
 
     logging.info("exit")
     print()
+
+    
+    
+if __name__ == "__main__":
+
+    execute()
 

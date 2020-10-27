@@ -26,7 +26,7 @@ namespace pam_mujoco
   bool is_stop_requested(const std::string& mujoco_id);
   void set_mujoco_started(std::string mujoco_id,bool value);
   bool has_mujoco_started(const std::string& mujoco_id);
-  void wait_for_mujoco(std::string mujoco_id);
+  void wait_for_mujoco(std::string mujoco_id, int timeout_ms);
     
   
 }

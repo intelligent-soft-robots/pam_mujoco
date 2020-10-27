@@ -32,8 +32,10 @@ def configure():
                       float,
                       [Positive()])
     change_all = False
-    config.dialog(change_all)
+    finished = config.dialog(change_all,sys.argv[1:])
     print()
+    if not finished:
+        return None
     return config
 
 
@@ -41,6 +43,9 @@ def run():
 
     config = configure()
 
+    if config is None:
+        return
+    
     log_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(
         format="[pam mirroring {} {}] %(message)s".format(config.segment_id_o80_pam,
