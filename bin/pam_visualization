@@ -66,7 +66,7 @@ def execute_visualization(config):
                                                      segment_id_ball,
                                                      graphics=True,
                                                      extended_graphics=False,
-                                                     realtime=True,
+                                                     realtime=False,
                                                      segment_id_goal=segment_id_goal,
                                                      segment_id_hit_point=segment_id_hit_point)
 

@@ -1177,8 +1177,10 @@ void loadmodel(void)
 	ui0.sect[SECT_SIMULATION].item[6].slider.range[0] = 0;
 	ui0.sect[SECT_SIMULATION].item[6].slider.range[1] = mjMAX(0, m->nkey - 1);
 	ui0.sect[SECT_SIMULATION].item[6].slider.divisions = mjMAX(1, m->nkey - 1);
-	makesections();
-	
+	if(settings.extended_graphics)
+	  {
+	    makesections();
+	  }
 	// full ui update
 	uiModify(window, &ui0, &uistate, &con);
 	uiModify(window, &ui1, &uistate, &con);

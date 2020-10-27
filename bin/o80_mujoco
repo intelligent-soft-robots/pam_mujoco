@@ -31,7 +31,7 @@ def start_mujoco(config):
         mujoco_time_step_ms = config.mujoco_time_step
         mconfig = pam_mujoco.MujocoConfig()
         mconfig.graphics = not config.no_graphics
-        mconfig.realtime = not config.no_accelerated
+        mconfig.realtime = not config.accelerated
         
         logging.info("initializing mujoco")
         pam_mujoco.init_mujoco(mconfig)
@@ -67,8 +67,8 @@ def configure():
                          "will the backend be started in bursting mode ?")
     config.add_operation("no_graphics",
                          "will mujoco graphics be displayed ?")
-    config.add_operation("no_accelerated",
-                         "if false, mujoco will in accelerated time")
+    config.add_operation("accelerated",
+                         "if true, mujoco will in accelerated time")
     config.add_option("pam_model_config_path",
                       pam_models.get_default_config_path(),
                       "path to the pam model configuration file",
