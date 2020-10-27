@@ -2,6 +2,7 @@
 
 #include <string>
 #include "shared_memory/shared_memory.hpp"
+#include "shared_memory/exceptions.hpp"
 
 
 namespace pam_mujoco

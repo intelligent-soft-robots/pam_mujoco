@@ -47,12 +47,15 @@ namespace pam_mujoco
   bool has_mujoco_started(const std::string& mujoco_id)
   {
     bool value;
+    bool create=false;
     try
       {
-	shared_memory::get<bool>(mujoco_id,"started",value);
+	shared_memory::get<bool>(mujoco_id,"started",value,create);
+	std::cout << mujoco_id << " : "<< value <<"\n";
       }
-    catch(...)
+    catch(shared_memory::Non_existing_segment_exception)
       {
+	std::cout << mujoco_id << " : error\n";
 	return false;
       }
     return value;
