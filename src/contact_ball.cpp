@@ -120,17 +120,25 @@ namespace pam_mujoco
 				 false);
       }
 
+    // look at mujoco_state and history to compute if a contact is occuring
     internal::ContactAction contact_action = contact_logic_.apply(m,d,
 								  index_geom_,
 								  index_geom_contactee_);
-    
+
+    // a contact has already been detected during
+    // a previous iteration, and is already managed
     if (contact_action.muted)
       {
 	return;
       }
 
+    // new contact detected. we need to update contact information,
+    // and recompute the ball velocity based on our custom model
     if (contact_action.in_contact)
       {
+	// creating a new instance of ContactStates (current)
+	// and "filling it" with the current state using
+	// mujoco's data (call to save_state)
 	internal::ContactStates current;
 	internal::save_state(d,
 			     index_qpos_,
@@ -138,8 +146,13 @@ namespace pam_mujoco
 			     index_geom_,
 			     index_geom_contactee_,
 			     current,false);
+	// updating contact_information with the contact
 	contact_information_.register_contact(current.ball_position,
 					      d->time);
+	// Applying our customized contact model (see include/recompute_state_after_contact.hpp).
+	// Call to this function updates the values of d->qpos[index_qpos_] and
+	// d->qvel[index_qvel_], changing the position and velocity of the object in
+	// mujoco
 	recompute_state_after_contact(config_,
 				      previous_,
 				      current,
@@ -148,17 +161,24 @@ namespace pam_mujoco
       }
     else
       {
+	// saving the previous state. "save_state" copies the mujoco state
+	// into previous_
 	internal::save_state(d,
 			     index_qpos_,
 			     index_qvel_,
 			     index_geom_,
 			     index_geom_contactee_,
 			     previous_,true);
+	// computing the distance between the 2 objects
 	double d_ball_contactee = mju_dist3(previous_.ball_position.data(),
 					    previous_.contactee_position.data());
+	// updating contact_information with this distance. register_distance
+	// will check wether or not this is the smallest distance ever observed,
+	// and if so, save it as minimal distance
 	contact_information_.register_distance(d_ball_contactee);
       }
 
+    // writing contact_information in the shared memory, making it publicly accessible
     shared_memory::serialize(segment_id_,
 			     segment_id_,
 			     contact_information_);
