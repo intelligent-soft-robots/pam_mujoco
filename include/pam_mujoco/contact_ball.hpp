@@ -58,9 +58,9 @@ namespace pam_mujoco
     internal::ContactLogic contact_logic_;
   };
 
-  bool activate_contact(const std::string& segment_id);
-  bool deactivate_contact(const std::string& segment_id);
-  bool reset_contact(const std::string& segment_id);
+  void activate_contact(const std::string& segment_id);
+  void deactivate_contact(const std::string& segment_id);
+  void reset_contact(const std::string& segment_id);
 
   
 }

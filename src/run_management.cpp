@@ -48,7 +48,7 @@ namespace pam_mujoco
     bool create=false;
     try
       {
-	shared_memory::get<bool>(mujoco_id,"started",value,false);
+	shared_memory::get<bool>(mujoco_id,"started",value,create);
       }
     catch(shared_memory::Non_existing_segment_exception)
       {

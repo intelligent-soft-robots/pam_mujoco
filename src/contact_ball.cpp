@@ -208,21 +208,21 @@ namespace pam_mujoco
   }
 
 
-  bool reset_contact(const std::string& segment_id)
+  void reset_contact(const std::string& segment_id)
   {
     shared_memory::set<bool>(segment_id,
 			     "reset",
 			     true);
   }
 
-  bool activate_contact(const std::string& segment_id)
+  void activate_contact(const std::string& segment_id)
   {
     shared_memory::set<bool>(segment_id,
 			     "activated",
 			     true);
   }
   
-  bool deactivate_contact(const std::string& segment_id)
+  void deactivate_contact(const std::string& segment_id)
   {
     shared_memory::set<bool>(segment_id,
 			     "activated",

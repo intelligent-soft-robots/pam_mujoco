@@ -1,23 +1,34 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model
+   href="http://download.ros.org/schema/package_format3.xsd"
+   schematypens="http://www.w3.org/2001/XMLSchema"?>
+
+<package format="3">
   <name>pam_mujoco</name>
   <version>1.0.0</version>
   <description>interfacing PAM and mujoco</description>
   <author email="vincent.berenz@tuebingen.mpg.de">Vincent Berenz</author>
   <maintainer email="vincent.berenz@tuebingen.mpg.de">Vincent Berenz</maintainer>
-  <license>TODO</license>
-  <buildtool_depend>catkin</buildtool_depend>
+  <license>BSD 3-Clause</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>real_time_tools</depend>
-  <depend>mujoco200</depend>
   <depend>o80</depend>
   <depend>o80_pam</depend>
   <depend>pam_interface</depend>
+  <depend>shared_memory</depend>
   <depend>context</depend>
   <depend>pam_models</depend>
   <depend>mpi_cmake_modules</depend>
   <depend>json_helper</depend>
+  <depend>signal_handler</depend>
+  <depend>pybind11_vendor</depend>
   
+  <test_depend>ament_cmake_gtest</test_depend>
+
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
+
 </package>

@@ -1,41 +1,67 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.10.2)
 
 project(pam_mujoco)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
-find_package(catkin REQUIRED COMPONENTS
-  real_time_tools
+
+################
+# Dependencies #
+################
+
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(mpi_cmake_modules REQUIRED)
+find_package(real_time_tools REQUIRED)
+find_package(shared_memory REQUIRED)
+find_package(o80 REQUIRED)
+find_package(o80_pam REQUIRED)
+find_package(pam_models REQUIRED)
+find_package(mpi_cmake_modules REQUIRED)
+find_package(json_helper REQUIRED)
+find_package(context REQUIRED)
+find_package(signal_handler REQUIRED)
+find_package(pam_interface REQUIRED)
+find_package(pybind11_vendor REQUIRED)
+find_package(pybind11 REQUIRED)
+find_package(mujoco REQUIRED)
+
+ament_export_dependencies(
   o80
-  context
-  mujoco200
-  pam_models
-  mpi_cmake_modules
+  o80_example
+  json_helper
   pam_interface
+  pam_models
   o80_pam
-)
+  real_time_tools
+  shared_memory
+  signal_handler
+  pybind11
+  mujoco)
 
-search_for_pthread()
-search_for_eigen()
+# prepare to export all needed targets
+set(all_targets)
+set(all_target_exports)
 
-catkin_package(
- LIBRARIES pam_models
- INCLUDE_DIRS include
- CATKIN_DEPENDS mujoco200 pam_models mpi_cmake_modules real_time_tools
-)
 
-DEFINE_OS()
+#######################
+# Configuration files #
+#######################
 
-include_directories(include
-  ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS})
-
-# absolute path to the models folder
 get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
-set(MODELS_PATH "${MODEL_CONFIG_DIR}/tmp/")
+install(DIRECTORY
+  "${MODEL_CONFIG_DIR}" DESTINATION /opt/mpi-is/)
+install(DIRECTORY
+  "${MODEL_CONFIG_DIR}" DESTINATION opt/mpi-is/)
+set(MODELS_PATH "opt/mpi-is/models/tmp/")
 
-add_library(pam_mujoco
+
+###########
+# Library #
+###########
+
+add_library( ${PROJECT_NAME} SHARED
   src/read_robot_state.cpp
   src/contact_ball.cpp
   src/contact_states.cpp
@@ -45,37 +71,74 @@ add_library(pam_mujoco
   src/run_management.cpp
   src/run_mujoco.cpp
   src/controllers.cpp )
-target_link_libraries(pam_mujoco ${catkin_LIBRARIES} stdc++fs)
+target_include_directories(
+  ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(${PROJECT_NAME} context::context)
+target_link_libraries(${PROJECT_NAME} shared_memory::shared_memory)
+target_link_libraries(${PROJECT_NAME} pam_models::pam_models)
+target_link_libraries(${PROJECT_NAME} o80_pam::o80_pam)
+target_link_libraries(${PROJECT_NAME} mujoco::mujoco200)
+target_link_libraries(${PROJECT_NAME} mujoco::glew)
+target_link_libraries(${PROJECT_NAME} mujoco::glewegl)
+target_link_libraries(${PROJECT_NAME} mujoco::glfw)
+target_link_libraries(${PROJECT_NAME} stdc++fs)
 target_compile_definitions(pam_mujoco PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
+ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+list(APPEND all_targets ${PROJECT_NAME})
+list(APPEND all_target_exports export_${PROJECT_NAME})
 
-pybind11_add_module(pam_mujoco_py srcpy/wrappers.cpp)
-target_link_libraries(pam_mujoco_py PRIVATE pam_mujoco ${catkin_LIBRARIES})
-set_target_properties(pam_mujoco_py PROPERTIES
-  LIBRARY_OUTPUT_DIRECTORY ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_PYTHON_DESTINATION}
-  OUTPUT_NAME pam_mujoco_wrp
-  )
-install(TARGETS pam_mujoco_py DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
-target_compile_definitions(pam_mujoco_py PRIVATE
+
+###################
+# Python wrappers #
+###################
+
+add_library(${PROJECT_NAME}_py MODULE srcpy/wrappers.cpp)
+target_link_libraries(${PROJECT_NAME}_py PRIVATE pybind11::module)
+target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PYTHON_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PROJECT_NAME})
+set_target_properties(${PROJECT_NAME}_py
+  PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}"
+  OUTPUT_NAME ${PROJECT_NAME})
+target_include_directories(
+  ${PROJECT_NAME}_py
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+         $<INSTALL_INTERFACE:include> SYSTEM
+  PUBLIC ${PYTHON_INCLUDE_DIRS})
+target_compile_definitions(pam_mujoco PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
+_ament_cmake_python_get_python_install_dir()
+install(TARGETS ${PROJECT_NAME}_py DESTINATION ${PYTHON_INSTALL_DIR})
 
-# python package (will be extended with pam_mujoco_wrp)
-catkin_python_setup()
+
+###############
+# Executables #
+###############
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/o80_mujoco
-               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/o80_mujoco
-               COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco
-               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_mujoco
-               COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring
-               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_mirroring
-               COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_visualization
-               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_visualization
-               COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_mirroring
-               ${CATKIN_DEVEL_PREFIX}/${CATKIN_GLOBAL_BIN_DESTINATION}/pam_mujoco_mirroring
-               COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 
-build_sphinx_documentation()
+
+######################
+# Install and export #
+######################
+
+install(DIRECTORY include/ DESTINATION include)
+install(
+  TARGETS ${all_targets}
+  EXPORT ${all_target_exports}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES
+  DESTINATION include)
+ament_package()
