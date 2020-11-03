@@ -1,4 +1,4 @@
-Package: pam_mujoco
+Package: pam-mujoco
 Version: 1.00-1
 Section: base
 Priority: optional

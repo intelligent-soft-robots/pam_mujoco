@@ -24,6 +24,7 @@
   <depend>json_helper</depend>
   <depend>signal_handler</depend>
   <depend>pybind11_vendor</depend>
+  <depend>mujoco_interface</depend>
   
   <test_depend>ament_cmake_gtest</test_depend>
 

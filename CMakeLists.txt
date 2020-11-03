@@ -25,7 +25,7 @@ find_package(signal_handler REQUIRED)
 find_package(pam_interface REQUIRED)
 find_package(pybind11_vendor REQUIRED)
 find_package(pybind11 REQUIRED)
-find_package(mujoco REQUIRED)
+find_package(mujoco_interface REQUIRED)
 
 ament_export_dependencies(
   o80
@@ -37,8 +37,8 @@ ament_export_dependencies(
   real_time_tools
   shared_memory
   signal_handler
-  pybind11
-  mujoco)
+  mujoco_interface
+  pybind11)
 
 # prepare to export all needed targets
 set(all_targets)
@@ -73,16 +73,18 @@ add_library( ${PROJECT_NAME} SHARED
   src/controllers.cpp )
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(${PROJECT_NAME} context::context)
 target_link_libraries(${PROJECT_NAME} shared_memory::shared_memory)
 target_link_libraries(${PROJECT_NAME} pam_models::pam_models)
 target_link_libraries(${PROJECT_NAME} o80_pam::o80_pam)
-target_link_libraries(${PROJECT_NAME} mujoco::mujoco200)
-target_link_libraries(${PROJECT_NAME} mujoco::glew)
-target_link_libraries(${PROJECT_NAME} mujoco::glewegl)
-target_link_libraries(${PROJECT_NAME} mujoco::glfw)
+target_link_libraries(${PROJECT_NAME} mujoco_interface::mujoco_interface)
+foreach(mujoco_lib ${mujoco_libs})
+  target_link_libraries(${PROJECT_NAME} ${mujoco_lib_dir}/${mujoco_lib})
+endforeach(mujoco_lib)
 target_link_libraries(${PROJECT_NAME} stdc++fs)
+target_link_libraries(${PROJECT_NAME} EGL GL GLU glut)
 target_compile_definitions(pam_mujoco PRIVATE
   MODEL_PATHS="${MODELS_PATH}")
 ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
@@ -100,7 +102,7 @@ target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PROJECT_NAME})
 set_target_properties(${PROJECT_NAME}_py
   PROPERTIES PREFIX "" SUFFIX "${PYTHON_MODULE_EXTENSION}"
-  OUTPUT_NAME ${PROJECT_NAME})
+  OUTPUT_NAME ${PROJECT_NAME}_wrp)
 target_include_directories(
   ${PROJECT_NAME}_py
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -112,6 +114,13 @@ _ament_cmake_python_get_python_install_dir()
 install(TARGETS ${PROJECT_NAME}_py DESTINATION ${PYTHON_INSTALL_DIR})
 
 
+######################
+# Python Native code #
+######################
+
+ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
+
+
 ###############
 # Executables #
 ###############
@@ -119,13 +128,20 @@ install(TARGETS ${PROJECT_NAME}_py DESTINATION ${PYTHON_INSTALL_DIR})
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/o80_mujoco
   ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco
-  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mirroring COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_visualization
-  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_visualization COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_mirroring COPYONLY)
+
+
+#######################
+# Debian control file #
+#######################
+
+install(FILES debian/control DESTINATION debian)
 
 
 ######################

@@ -1,13 +1,25 @@
 import os
 
-def get_models_path():
-    from catkin_pkg import workspaces
-    packages = workspaces.get_spaces()
-    context_pkg_path = [ p for p in packages
-                         if p.endswith("pam_mujoco") ][0]
-    return os.path.join(context_pkg_path,
-                        "models")
+# models folder expected to have been
+# installed in /opt/mpi-is/models.
+# see: CMakeLists.txt
+_models_folder = "/opt/mpi-is/models"
+_tmp_folder = "/tmp/"
 
+def get_models_path():
+    #
+    # deprecated : used to use the in-source
+    # models folder
+    #
+    #from catkin_pkg import workspaces
+    #packages = workspaces.get_spaces()
+    #context_pkg_path = [ p for p in packages
+    #                     if p.endswith("pam_mujoco") ][0]
+    #return os.path.join(context_pkg_path,
+    #                    "models")
+    global _models_folder
+    return _models_folder
+    
 def get_main_template_xml():
     path = get_models_path()+os.sep+"template.xml"
     with open(path,"r") as f:
@@ -18,7 +30,8 @@ def get_robot_templates_path():
     return get_models_path()+os.sep+"robot_templates"
 
 def get_tmp_path():
-    return get_models_path()+os.sep+"tmp"
+    global _tmp_folder
+    return _tmp_folder
 
 def get_robot_xml(filename, ir):
     path = get_robot_templates_path()+os.sep+filename+".xml"
