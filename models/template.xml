@@ -1,5 +1,5 @@
 <mujoco>
-  <compiler coordinate="local" meshdir="../igus/" angle="degree"/>
+  <compiler coordinate="local" meshdir="$models_path$/igus/" angle="degree"/>
   <size njmax="6000" nconmax="6000"/>
   <option gravity="0 0 -9.81" integrator="RK4" timestep="$timestep$"  density="1.2" collision="predefined">
     <flag gravity="enable" contact="enable" passive="enable"/>

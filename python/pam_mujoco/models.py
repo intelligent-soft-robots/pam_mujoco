@@ -158,6 +158,7 @@ def generate_model(model_name,
 
     template = paths.get_main_template_xml()
     template = template.replace("$timestep$",str(time_step))
+    template = template.replace("$models_path$",paths.get_models_path())
     
     bodies = []
     index_qpos = 0
