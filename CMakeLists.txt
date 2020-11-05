@@ -54,7 +54,7 @@ install(DIRECTORY
   "${MODEL_CONFIG_DIR}" DESTINATION /opt/mpi-is/)
 install(DIRECTORY
   "${MODEL_CONFIG_DIR}" DESTINATION opt/mpi-is/)
-set(MODELS_PATH "opt/mpi-is/models/tmp/")
+set(MODELS_PATH "/tmp/")
 
 
 ###########
