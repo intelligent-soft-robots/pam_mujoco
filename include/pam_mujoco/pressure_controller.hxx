@@ -83,8 +83,35 @@ void PressureController<QUEUE_SIZE,
     }
   for (std::size_t dof=0;dof<NB_DOFS;dof++)
     {
-      d->ctrl[dof*2]=pressure2activation(states_.get(dof*2).get());
-      d->ctrl[dof*2+1]=pressure2activation(states_.get(dof*2+1).get());
+      double activation_ago = pressure2activation(states_.get(dof*2).get());
+      double activation_antago = pressure2activation(states_.get(dof*2+1).get());
+      if(activation_ago<-1.0 || activation_ago>1.0)
+	{
+	  std::cout << "\n\nwarning: pam mujoco pressure controller, activation of : " << activation_ago << "\n";
+	  if(activation_ago<-1.0)
+	    {
+	      activation_ago = -0.99;
+	    }
+	  else
+	    {
+	      activation_ago = +0.99;
+	    }
+	}
+      if(activation_antago<-1.0 || activation_antago>1.0)
+	{
+	  std::cout << "\n\nwarning: pam mujoco pressure controller, activation of : " << activation_antago << "\n";
+	  if(activation_antago<-1.0)
+	    {
+	      activation_antago = -0.99;
+	    }
+	  else
+	    {
+	      activation_antago = +0.99;
+	    }
+	}
+
+      d->ctrl[dof*2]= activation_ago;
+      d->ctrl[dof*2+1]=activation_antago;
     }
   // applying them to the muscles
   for (std::size_t muscle=0;muscle<NB_DOFS*2;muscle++)
