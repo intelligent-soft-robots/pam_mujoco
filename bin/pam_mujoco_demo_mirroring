@@ -27,6 +27,7 @@ def _run(segment_id_o80_pam,
     min_pressure = 10000
     max_pressure = 18000
     zero_pressure = [(max_pressure,max_pressure)]*nb_dofs
+    zero_position = [0.0]*nb_dofs
     reference_posture = [-math.pi/4.0,math.pi/3.5,
                          math.pi/8.0,0.0]
     
@@ -41,7 +42,11 @@ def _run(segment_id_o80_pam,
         mirroring.go_to_pressure_posture(o80_pressures,o80_mirroring,
                                          zero_pressure,0.5,accelerated_time)
 
-
+        print("going to position posture |",zero_position)
+        mirroring.go_to_position_posture(o80_pressures,o80_mirroring,
+                                         zero_position,pam_config,
+                                         accelerated_time)
+        
         print("going to position posture |",reference_posture)
         mirroring.go_to_position_posture(o80_pressures,o80_mirroring,
                                          reference_posture,pam_config,
