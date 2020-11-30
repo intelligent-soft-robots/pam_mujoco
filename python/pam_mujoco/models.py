@@ -122,12 +122,13 @@ class Robot:
         self.index_qpos = -1
         self.index_qvel = -1
         
-    def get_xml(self):
+    def get_xml(self,muscles):
         (xml,joint,geom_racket,
          geom_racket_handle,
          nb_bodies)= xml_templates.get_robot_xml(self.name,
                                                  self.position,
-                                                 self.xy_axes)
+                                                 self.xy_axes,
+                                                 muscles)
         return (xml,joint,geom_racket,geom_racket_handle,nb_bodies)
 
     
@@ -153,6 +154,7 @@ def generate_model(model_name,
                    tables=[],
                    goals=[],
                    hit_points=[],
+                   muscles=True,
                    solrefs = defaults_solrefs(),
                    gaps = defaults_gaps()):
 
@@ -210,7 +212,7 @@ def generate_model(model_name,
     # ...
     for robot in robots:
         (xml,joint,geom_racket,
-         geom_racket_handle,nb_bodies) = robot.get_xml()
+         geom_racket_handle,nb_bodies) = robot.get_xml(muscles)
         bodies.append(xml)
         robot.geom_racket = geom_racket
         robot.geom_racket_handle = geom_racket_handle
@@ -222,18 +224,18 @@ def generate_model(model_name,
         
     template = template.replace("<!-- bodies -->","\n".join(bodies))
 
-    actuations = ["<tendon>"]
-    for robot in robots:
-        xml_tendon = paths.get_robot_tendon_xml(robot.name)
-        actuations.append(xml_tendon)
-    actuations.append("</tendon>")
-    actuations.append("<actuator>")
-    for robot in robots:
-        xml_actuator = paths.get_robot_actuator_xml(robot.name)
-        actuations.append(xml_actuator)
-    actuations.append("</actuator>")
-
-    template = template.replace("<!-- actuations -->","\n".join(actuations))
+    if muscles:
+        actuations = ["<tendon>"]
+        for robot in robots:
+            xml_tendon = paths.get_robot_tendon_xml(robot.name)
+            actuations.append(xml_tendon)
+        actuations.append("</tendon>")
+        actuations.append("<actuator>")
+        for robot in robots:
+            xml_actuator = paths.get_robot_actuator_xml(robot.name)
+            actuations.append(xml_actuator)
+        actuations.append("</actuator>")
+        template = template.replace("<!-- actuations -->","\n".join(actuations))
 
     contacts = xml_templates.get_contacts_xml(robots,balls,tables,solrefs,gaps)
 
@@ -251,7 +253,8 @@ def model_factory(model_name,
                   time_step = 0.002,
                   table=False,nb_balls=1,robot1=False,
                   robot2=False,goal=False,hit_point=False,
-                  ball_colors=None):
+                  ball_colors=None,
+                  muscles=True):
 
     r = {}
     
@@ -303,6 +306,7 @@ def model_factory(model_name,
                    balls=balls,
                    tables=tables,
                    goals=goals,
-                   hit_points=hit_points)
+                   hit_points=hit_points,
+                   muscles=muscles)
 
     return r

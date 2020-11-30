@@ -40,17 +40,19 @@ def get_robot_xml(filename, ir):
     template = template.replace("?id?",str(ir))
     return template
     
-def get_robot_body_xml(ir):
-    return get_robot_xml("body_template",ir)
-
+def get_robot_body_xml(ir,muscles):
+    if muscles:
+        return get_robot_xml("body_template",ir)
+    return get_robot_xml("body_template_no_muscles",ir)
+    
 def get_robot_tendon_xml(ir):
     return get_robot_xml("tendon_template",ir)
 
 def get_robot_actuator_xml(ir):
     return get_robot_xml("actuator_template",ir)
 
-def write_robot_body_xml(ir):
-    xml = get_robot_body_xml(ir)
+def write_robot_body_xml(ir,muscles):
+    xml = get_robot_body_xml(ir,muscles)
     filename = "robot_body_"+str(ir)+".xml"
     with open(get_tmp_path()+os.sep+filename,"w+") as f:
         f.write(xml)

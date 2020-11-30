@@ -17,7 +17,8 @@ def start_mujoco(config):
         model_name = "pam_mujoco_"+config.mujoco_id
         items = pam_mujoco.model_factory(model_name,
                                          table=True,robot1=True,
-                                         goal=True,hit_point=True)
+                                         goal=True,hit_point=True,
+                                         muscles=False)
         ball = items["ball"]
         robot = items["robot"]
         goal = items["goal"]

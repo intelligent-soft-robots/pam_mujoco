@@ -29,12 +29,15 @@ namespace pam_mujoco
   public:
     static void clear(std::string segment_id);
   private:
+    bool same(const States& s1, const States& s2) const;
+  private:
     Backend backend_;
     std::string robot_joint_base_;
     int index_q_robot_;
     int index_qvel_robot_;
     States read_states_;
     States set_states_;
+    States previous_set_states_;
   };
 
 #include "mirror_robot.hxx"

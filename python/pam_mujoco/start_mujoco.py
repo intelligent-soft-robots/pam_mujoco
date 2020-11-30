@@ -85,7 +85,8 @@ def ball_and_robot(mujoco_id,
     items = pam_mujoco.model_factory(segment_id_robot,
                                      table=True,robot1=True,
                                      goal=use_goal,
-                                     hit_point=use_hit_point)
+                                     hit_point=use_hit_point,
+                                     muscles=False)
     ball = items["ball"]
     robot = items["robot"]
     goal = items["goal"] if use_goal else None

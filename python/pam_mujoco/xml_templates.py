@@ -114,12 +114,12 @@ def get_goal_xml(name,position,radius1,radius2,color1,color2):
     return xml,1
 
 
-def get_robot_xml(name,position,xy_axes):
+def get_robot_xml(name,position,xy_axes,muscles):
 
     # using the robot template xml file in pam_mujoco/models/robot_templates
     # to generate robot description xml file that will be included in the main
     # xml file
-    filename = paths.write_robot_body_xml(name)
+    filename = paths.write_robot_body_xml(name,muscles)
 
     if xy_axes is not None:
         template = str('<body name="$name$" pos="$position$" xyaxes="$xy_axes$">\n'+
