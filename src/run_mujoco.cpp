@@ -153,14 +153,13 @@ namespace pam_mujoco
     init();
   }
   
-  void execute(std::string mujoco_id, std::string model_name)
+  void execute(std::string mujoco_id, std::string model_path)
   {
 
     // reading model from file and loading it
     // (MODEL_PATH set in the CMakeLists.txt file
     // as the abs path to the models folder of the pam_mujoco
     // catkin package)
-    std::string model_path = MODEL_PATHS+model_name+std::string(".xml");
     mju_strncpy(filename, model_path.c_str(), 1000);
     loadmodel();
 

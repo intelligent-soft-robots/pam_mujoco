@@ -70,8 +70,11 @@ def write_robot_actuator_xml(model_name,ir):
         f.write(xml)
     return filename
 
+def get_model_path(model_name):
+    return get_tmp_path(model_name)+os.sep+model_name+".xml"
+
 def write_model_xml(model_name,xml_content):
-    path = get_tmp_path(model_name)+os.sep+model_name+".xml"
+    path = get_model_path(model_name)
     with open(path,"w+") as f:
         f.write(xml_content)
     return path

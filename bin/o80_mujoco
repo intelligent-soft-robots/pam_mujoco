@@ -51,7 +51,8 @@ def start_mujoco(config):
             pam_mujoco.add_bursting(config.mujoco_id,config.segment_id)
             
         logging.info("starting mujoco")
-        pam_mujoco.execute(config.mujoco_id,model_name)
+        model_path = pam_mujoco.paths.get_model_path(model_name)
+        pam_mujoco.execute(config.mujoco_id,model_path)
 
     process  = multiprocessing.Process(target=_execute_mujoco,
                                        args=(config,))

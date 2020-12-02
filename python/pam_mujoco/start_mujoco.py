@@ -62,7 +62,8 @@ def pseudo_real_robot(mujoco_id,segment_id,
         pam_mujoco.add_pressure_controller(*pam_model_config)
 
         # starting the thread
-        pam_mujoco.execute(mujoco_id,model_name)
+        model_path = pam_mujoco.paths.get_model_path(model_name)
+        pam_mujoco.execute(mujoco_id,model_path)
 
         # looping until requested to stop
         while not pam_mujoco.is_stop_requested(mujoco_id):
@@ -165,7 +166,8 @@ def ball_and_robot(mujoco_id,
             pam_mujoco.add_bursting(mujoco_id,segment_ids["burst"])
 
         # starting the thread
-        pam_mujoco.execute(mujoco_id,model_name)
+        model_path = pam_mujoco.paths.get_model_path(model_name)
+        pam_mujoco.execute(mujoco_id,model_path)
 
         # looping until requested to stop
         try:
