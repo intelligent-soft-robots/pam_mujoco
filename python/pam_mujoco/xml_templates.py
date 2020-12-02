@@ -33,7 +33,8 @@ def _from_template(template,locals_):
     return template_
         
 
-def get_free_joint_body_xml(name,
+def get_free_joint_body_xml(model_name,
+                            name,
                             geom_type,
                             position,
                             size,
@@ -60,7 +61,7 @@ def get_free_joint_body_xml(name,
     return xml,name_geom,name_joint,nb_bodies
 
 
-def get_table_xml(name,position,size,color):
+def get_table_xml(model_name,name,position,size,color):
 
     template_body = '<body pos = "$position$" name = "$name$">'
     template_geom_plate = str('<geom name="$name_plate_geom$" type="box"'+
@@ -95,7 +96,7 @@ def get_table_xml(name,position,size,color):
     return "\n".join(xml),name_plate_geom,name_net_geom,nb_bodies
     
 
-def get_goal_xml(name,position,radius1,radius2,color1,color2):
+def get_goal_xml(model_name,name,position,radius1,radius2,color1,color2):
 
     template =  str('<body pos = "$position$" name="$name$">\n'+
                     '<geom name="$name_inner$" type="cylinder" '+
@@ -114,12 +115,12 @@ def get_goal_xml(name,position,radius1,radius2,color1,color2):
     return xml,1
 
 
-def get_robot_xml(name,position,xy_axes,muscles):
+def get_robot_xml(model_name,name,position,xy_axes,muscles):
 
     # using the robot template xml file in pam_mujoco/models/robot_templates
     # to generate robot description xml file that will be included in the main
     # xml file
-    filename = paths.write_robot_body_xml(name,muscles)
+    filename = paths.write_robot_body_xml(model_name,name,muscles)
 
     if xy_axes is not None:
         template = str('<body name="$name$" pos="$position$" xyaxes="$xy_axes$">\n'+

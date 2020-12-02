@@ -9,10 +9,12 @@ from . import paths
 class HitPoint:
     
     def __init__(self,
+                 model_name,
                  name,
                  position=[0,0,-0.62],
                  size=[0.03,0.0007],
                  color=[1.0,0.65,0.1,1]):
+        self.model_name=model_name
         self.name = name
         self.position = position
         self.size = size
@@ -26,7 +28,8 @@ class HitPoint:
         
     def get_xml(self):
         (xml,name_geom,
-         name_joint,nb_bodies) = xml_templates.get_free_joint_body_xml(self.name,
+         name_joint,nb_bodies) = xml_templates.get_free_joint_body_xml(self.model_name,
+                                                                       self.name,
                                                                        "cylinder",
                                                                        self.position,
                                                                        self.size,
@@ -39,11 +42,14 @@ class HitPoint:
 class Goal(HitPoint):
 
     def __init__(self,
+                 model_name,
                  name,
                  position=[0,0,-0.62],
                  size=[0.05,0.0005],
                  color=[0.2,1.0,0.2,1]):
-        HitPoint.__init__(self,name,
+        HitPoint.__init__(self,
+                          model_name,
+                          name,
                           position=position,
                           size=size,
                           color=color)
@@ -52,11 +58,13 @@ class Goal(HitPoint):
 class Ball:
 
     def __init__(self,
+                 model_name,
                  name,
                  size=0.02,
                  color=[1.0,0.65,0.1,1.0],
                  position=[0,0,0],
                  mass=0.0027):
+        self.model_name = model_name
         self.name = name
         self.size = size
         self.color = color
@@ -71,7 +79,8 @@ class Ball:
 
     def get_xml(self):
         (xml,name_geom,
-         name_joint,nb_bodies) = xml_templates.get_free_joint_body_xml(self.name,
+         name_joint,nb_bodies) = xml_templates.get_free_joint_body_xml(self.model_name,
+                                                                       self.name,
                                                                        "sphere",
                                                                        self.position,
                                                                        self.size,
@@ -84,10 +93,12 @@ class Ball:
 class Table:
 
     def __init__(self,
+                 model_name,
                  name,
                  position=[0.8,1.7,-0.475],
                  size=[0.7625,1.37,0.02],
                  color=[0.05,0.3,0.23,1.0]):
+        self.model_name = model_name
         self.name = name
         self.position = position
         self.size = size
@@ -100,17 +111,21 @@ class Table:
     def get_xml(self):
         (xml,name_plate_geom,
          name_net_geom,nb_bodies) = xml_templates.get_table_xml(self.name,
-                                                              self.position,
-                                                              self.size,
-                                                              self.color)
+                                                                self.model_name,
+                                                                self.position,
+                                                                self.size,
+                                                                self.color)
         return (xml,name_plate_geom,
                 name_net_geom,nb_bodies)
 
 
 class Robot:
 
-    def __init__(self,name,
+    def __init__(self,
+                 model_name,
+                 name,
                  position,xy_axes):
+        self.model_name = model_name
         self.name = name
         self.position = position
         self.xy_axes = xy_axes
@@ -125,7 +140,8 @@ class Robot:
     def get_xml(self,muscles):
         (xml,joint,geom_racket,
          geom_racket_handle,
-         nb_bodies)= xml_templates.get_robot_xml(self.name,
+         nb_bodies)= xml_templates.get_robot_xml(self.model_name,
+                                                 self.name,
                                                  self.position,
                                                  self.xy_axes,
                                                  muscles)
@@ -260,11 +276,11 @@ def model_factory(model_name,
     
     tables = []
     if table :
-        table = Table("table")
+        table = Table(model_name,"table")
         tables.append(table)
         r["table"]=table
 
-    balls = [Ball("ball_"+str(index))
+    balls = [Ball(model_name,"ball_"+str(index))
              for index,ball in enumerate(range(nb_balls))]
     if balls:
         if nb_balls==1:
@@ -278,23 +294,25 @@ def model_factory(model_name,
     
     robots = []
     if robot1:
-        robots.append(Robot("robot1",[0,0,-0.44],None))
+        robots.append(Robot(model_name,
+                            "robot1",[0,0,-0.44],None))
     if robot2:
-        robots.append(Robot("robot2",[1.6,3.4,-0.44],[-1,0,0,0,-1,0]))
+        robots.append(Robot(model_name,
+                            "robot2",[1.6,3.4,-0.44],[-1,0,0,0,-1,0]))
     if len(robots)==1:
         r["robot"]=robots[0]
     else:
         r["robots"]=robots
         
     if goal:
-        goal = Goal("goal")
+        goal = Goal(model_name,"goal")
         goals = [goal]
         r["goal"]=goal
     else:
         goals = []
         
     if hit_point:
-        hit_point = HitPoint("hit_point")
+        hit_point = HitPoint(model_name,"hit_point")
         hit_points = [hit_point]
         r["hit_point"]=hit_point
     else:

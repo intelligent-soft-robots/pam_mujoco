@@ -5,6 +5,7 @@ import time
 import logging
 import signal_handler
 import multiprocessing
+import pam_interface
 import pam_mujoco
 import pam_models
 import o80_pam
@@ -20,12 +21,19 @@ def start_mujoco(config):
         logging.info("generating mujoco model")
         items = pam_mujoco.model_factory(model_name,robot1=True)
         robot = items["robot"]
-        pam_model_config_path= pam_models.get_default_config_path()
         a_init = [config.a_init]*8
         l_MTC_change_init = [config.l_MTC_change_init]*8
+        pam_interface_config = pam_interface.JsonConfiguration(config.pam_interface_config_path)
+        scale_min_pressure = [None]*8
+        scale_max_pressure = [None]*8
+        for dof in range(4):
+            scale_min_pressure[2*dof]=pam_interface_config.min_pressures_ago[dof]
+            scale_min_pressure[2*dof+1]=pam_interface_config.min_pressures_antago[dof]
+            scale_max_pressure[2*dof]=pam_interface_config.max_pressures_ago[dof]
+            scale_max_pressure[2*dof+1]=pam_interface_config.max_pressures_antago[dof]
         pam_model_config = [ config.segment_id,robot.joint,
-                             config.scale_min_pressure,config.scale_max_pressure,
-                             config.scale_min_activation, config.scale_max_activation,
+                             scale_min_pressure,scale_max_pressure,
+                             [config.scale_min_activation]*8, [config.scale_max_activation]*8,
                              config.pam_model_config_path,config.pam_model_config_path,
                              a_init,l_MTC_change_init ]
         mujoco_time_step_ms = config.mujoco_time_step
@@ -74,19 +82,16 @@ def configure():
                       "path to the pam model configuration file",
                       str,
                       integrity_checks= [FileExists()])
+    config.add_option("pam_interface_config_path",
+                      pam_interface.DefaultConfiguration.get_path(),
+                      "path to the pam_interface configuration file",
+                      str,
+                      integrity_checks= [FileExists()])
     config.add_option("mujoco_time_step",
                       2,
                       "mujoco time step in ms",
                       int,
                       [Positive()])
-    config.add_option("scale_max_pressure",
-                      24000,
-                      "maximal pressure",
-                      float)
-    config.add_option("scale_min_pressure",
-                      6000,
-                      "min pressure",
-                      float)
     config.add_option("a_init",
                       0.5,
                       "pam model fine tuning: a init",

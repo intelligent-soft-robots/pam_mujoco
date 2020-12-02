@@ -58,8 +58,10 @@ namespace pam_mujoco
 
   void add_4dofs_pressure_controller(std::string segment_id,
 				     std::string robot_joint_base,
-				     double scale_min_pressure, double scale_max_pressure,
-				     double scale_min_activation, double scale_max_activation,
+				     std::array<double,NB_DOFS*2> scale_min_pressure,
+				     std::array<double,NB_DOFS*2> scale_max_pressure,
+				     std::array<double,NB_DOFS*2> scale_min_activation,
+				     std::array<double,NB_DOFS*2> scale_max_activation,
 				     std::string muscle_json_config_path_ago,
 				     std::string muscle_json_config_path_antago,
 				     std::array<double,8> a_init,

@@ -23,8 +23,10 @@ namespace pam_mujoco
   public:
     PressureController(std::string segment_id,
 		       std::string robot_joint_base,
-		       int scale_min_pressure, int scale_max_pressure,
-		       int scale_min_activation, int scale_max_activation,
+		       std::array<double,NB_DOFS*2> scale_min_pressure,
+		       std::array<double,NB_DOFS*2> scale_max_pressure,
+		       std::array<double,NB_DOFS*2> scale_min_activation,
+		       std::array<double,NB_DOFS*2> scale_max_activation,
 		       std::string muscle_json_config_path_ago,
 		       std::string muscle_json_config_path_antago,
 		       std::array<double,NB_DOFS*2> a_init,
@@ -35,16 +37,19 @@ namespace pam_mujoco
   public:
     static void clear(std::string segment_id);
   private:
-    double pressure2activation(double pressure);
-    double activation2pressure(double activation);
+    double pressure2activation(std::size_t index,
+			       double pressure);
+    double activation2pressure(std::size_t index,
+			       double activation);
   private:
     Backend backend_;
     std::string robot_joint_base_;
     int index_q_robot_;
     int index_qvel_robot_;
-    double scale_min_pressure_;
-    double scale_min_activation_;
-    double scale_ratio_;
+    std::array<double,NB_DOFS*2> scale_min_pressure_;
+    std::array<double,NB_DOFS*2> scale_min_activation_;
+    std::array<double,NB_DOFS*2> scale_max_pressure_;
+    std::array<double,NB_DOFS*2> scale_max_activation_;
     std::vector<Muscle> muscles_;
     std::array<double,NB_DOFS*2> bias_forces_;
     int iteration_;

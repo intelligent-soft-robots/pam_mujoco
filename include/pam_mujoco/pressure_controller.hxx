@@ -4,8 +4,10 @@ template<int QUEUE_SIZE, int NB_DOFS>
 PressureController<QUEUE_SIZE,
 		   NB_DOFS>::PressureController(std::string segment_id,
 						std::string robot_joint_base,
-						int scale_min_pressure, int scale_max_pressure,
-						int scale_min_activation, int scale_max_activation,
+						std::array<double,NB_DOFS*2> scale_min_pressure,
+						std::array<double,NB_DOFS*2> scale_max_pressure,
+						std::array<double,NB_DOFS*2> scale_min_activation,
+						std::array<double,NB_DOFS*2> scale_max_activation,
 						std::string muscle_json_config_path_ago,
 						std::string muscle_json_config_path_antago,
 						std::array<double,NB_DOFS*2> a_init,
@@ -17,8 +19,8 @@ PressureController<QUEUE_SIZE,
 		       index_qvel_robot_(-1),
 		       scale_min_pressure_(scale_min_pressure),
 		       scale_min_activation_(scale_min_activation),
-		       scale_ratio_((scale_max_pressure-scale_min_pressure)-
-				    (scale_max_activation-scale_min_activation)),
+		       scale_max_pressure_(scale_max_pressure),
+		       scale_max_activation_(scale_max_activation),
 		       iteration_(0)
 {
   for(std::size_t dof=0;dof<NB_DOFS;dof++)
@@ -53,8 +55,8 @@ void PressureController<QUEUE_SIZE,
       States current_states;
       for (std::size_t dof=0;dof<NB_DOFS;dof++)
 	{
-	  current_states.values[dof*2].set(activation2pressure(d->act[dof*2]));
-	  current_states.values[dof*2+1].set(activation2pressure(d->act[dof*2+1]));
+	  current_states.values[dof*2].set(activation2pressure(dof*2,d->act[dof*2]));
+	  current_states.values[dof*2+1].set(activation2pressure(dof*2+1,d->act[dof*2+1]));
 	}
   
       // reading current robot state
@@ -66,8 +68,8 @@ void PressureController<QUEUE_SIZE,
       for (std::size_t dof=0;dof<NB_DOFS;dof++)
 	{
 	  robot_state.set_joint(dof,
-				activation2pressure(d->act[dof*2]), // current pressure agonist
-				activation2pressure(d->act[dof*2+1]), // current pressure antagonist
+				activation2pressure(dof*2,d->act[dof*2]), // current pressure agonist
+				activation2pressure(dof*2+1,d->act[dof*2+1]), // current pressure antagonist
 				d->ctrl[dof*2], // desired pressure agonist
 				d->ctrl[dof*2+1], // desired pressure antagonist
 				d->qpos[index_q_robot_+dof], // position
@@ -83,8 +85,8 @@ void PressureController<QUEUE_SIZE,
     }
   for (std::size_t dof=0;dof<NB_DOFS;dof++)
     {
-      double activation_ago = pressure2activation(states_.get(dof*2).get());
-      double activation_antago = pressure2activation(states_.get(dof*2+1).get());
+      double activation_ago = pressure2activation(dof*2,states_.get(dof*2).get());
+      double activation_antago = pressure2activation(dof*2+1,states_.get(dof*2+1).get());
       if(activation_ago<-1.0 || activation_ago>1.0)
 	{
 	  std::cout << "\n\nwarning: pam mujoco pressure controller, activation of : " << activation_ago << "\n";
@@ -143,18 +145,28 @@ mjtNum PressureController<QUEUE_SIZE,
 
 template<int QUEUE_SIZE, int NB_DOFS>
 double PressureController<QUEUE_SIZE,
-			  NB_DOFS>::PressureController::pressure2activation(double pressure)
+			  NB_DOFS>::PressureController::pressure2activation(std::size_t index,
+									    double pressure)
 {
-  return (pressure-scale_min_pressure_)
-    / scale_ratio_ + scale_min_activation_;
+  double a;
+  a = (pressure-scale_min_pressure_[index]);
+  a /= (scale_max_pressure_[index]-scale_min_pressure_[index]);
+  a *= (scale_max_activation_[index]-scale_min_activation_[index]);
+  a += scale_min_activation_[index];
+  return a;
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>
 double PressureController<QUEUE_SIZE,
-			  NB_DOFS>::PressureController::activation2pressure(double activation)
+			  NB_DOFS>::PressureController::activation2pressure(std::size_t index,
+									    double activation)
 {
-  return (activation - scale_min_activation_)
-    * scale_ratio_ + scale_min_pressure_;
+  double p;
+  p = (activation-scale_min_activation_[index]);
+  p *= (scale_max_pressure_[index]-scale_min_pressure_[index]);
+  p /= (scale_max_activation_[index]-scale_min_activation_[index]);
+  p += scale_min_pressure_[index];
+  return p;
 }
 
 template<int QUEUE_SIZE, int NB_DOFS>

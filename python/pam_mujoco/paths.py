@@ -29,9 +29,14 @@ def get_main_template_xml():
 def get_robot_templates_path():
     return get_models_path()+os.sep+"robot_templates"
 
-def get_tmp_path():
+def get_tmp_path(model_name):
     global _tmp_folder
-    return _tmp_folder
+    path = os.path.join(_tmp_folder,model_name)
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        pass
+    return path
 
 def get_robot_xml(filename, ir):
     path = get_robot_templates_path()+os.sep+filename+".xml"
@@ -51,29 +56,22 @@ def get_robot_tendon_xml(ir):
 def get_robot_actuator_xml(ir):
     return get_robot_xml("actuator_template",ir)
 
-def write_robot_body_xml(ir,muscles):
+def write_robot_body_xml(model_name,ir,muscles):
     xml = get_robot_body_xml(ir,muscles)
     filename = "robot_body_"+str(ir)+".xml"
-    with open(get_tmp_path()+os.sep+filename,"w+") as f:
+    with open(get_tmp_path(model_name)+os.sep+filename,"w+") as f:
         f.write(xml)
     return filename
 
-def write_robot_tendon_xml(ir):
-    xml = get_robot_tendon_xml(ir)
-    filename = "robot_tendon_"+str(ir)+".xml"
-    with open(get_tmp_path()+os.sep+filename,"w+") as f:
-        f.write(xml)
-    return filename
-
-def write_robot_actuator_xml(ir):
+def write_robot_actuator_xml(model_name,ir):
     xml = get_robot_actuator_xml(ir)
     filename = "robot_actuator_"+str(ir)+".xml"
-    with open(get_tmp_path()+os.sep+filename,"w+") as f:
+    with open(get_tmp_path(model_name)+os.sep+filename,"w+") as f:
         f.write(xml)
     return filename
 
 def write_model_xml(model_name,xml_content):
-    path = get_tmp_path()+os.sep+model_name+".xml"
+    path = get_tmp_path(model_name)+os.sep+model_name+".xml"
     with open(path,"w+") as f:
         f.write(xml_content)
     return path

@@ -2,16 +2,24 @@ import multiprocessing
 import pam_mujoco
 import o80_pam
 import pam_models
+import pam_interface
 
 
-def _get_pam_model_configuration(segment_id,robot):
+def _get_pam_model_configuration(segment_id,
+                                 pam_interface_config,
+                                 robot):
     pam_model_config_path= pam_models.get_default_config_path()
     a_init = [0.5]*8
     l_MTC_change_init = [0.0]*8
-    scale_max_activation = 1.0
-    scale_max_pressure = 24000
-    scale_min_activation = 0.001
-    scale_min_pressure = 6000
+    scale_min_activation = [0.001]*8
+    scale_max_activation = [1.0]*8
+    scale_min_pressure = [None]*8
+    scale_max_pressure = [None]*8
+    for dof in range(4):
+        scale_min_pressure[2*dof]=pam_interface_config.min_pressures_ago[dof]
+        scale_min_pressure[2*dof+1]=pam_interface_config.min_pressures_antago[dof]
+        scale_max_pressure[2*dof]=pam_interface_config.max_pressures_ago[dof]
+        scale_max_pressure[2*dof+1]=pam_interface_config.max_pressures_antago[dof]
     pam_model_config = [ segment_id,
                          robot.joint,
                          scale_min_pressure,scale_max_pressure,
@@ -20,8 +28,11 @@ def _get_pam_model_configuration(segment_id,robot):
                          a_init,l_MTC_change_init ]
     return pam_model_config
 
-def pseudo_real_robot(mujoco_id,segment_id,graphics=True,
+def pseudo_real_robot(mujoco_id,segment_id,
+                      pam_interface_config:pam_interface.Configuration,
+                      graphics=True,
                       extended_graphics=False,realtime=True):
+                      
 
     # creating the xml mujoco model
     items = pam_mujoco.model_factory(segment_id,
@@ -29,7 +40,9 @@ def pseudo_real_robot(mujoco_id,segment_id,graphics=True,
     robot = items["robot"]
 
     # artificial muscles config
-    pam_model_config = _get_pam_model_configuration(segment_id,robot)
+    pam_model_config = _get_pam_model_configuration(segment_id,
+                                                    pam_interface_config,
+                                                    robot)
     
     # function running mujoco
     def _execute_mujoco(mujoco_id,
