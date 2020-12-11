@@ -87,10 +87,9 @@ void PressureController<QUEUE_SIZE,
     {
       double activation_ago = pressure2activation(dof*2,states_.get(dof*2).get());
       double activation_antago = pressure2activation(dof*2+1,states_.get(dof*2+1).get());
-      if(activation_ago<-1.0 || activation_ago>1.0)
+      if(activation_ago<=-0.99 || activation_ago>=0.99)
 	{
-	  std::cout << "\n\nwarning: pam mujoco pressure controller, activation of : " << activation_ago << "\n";
-	  if(activation_ago<-1.0)
+	  if(activation_ago<0.0)
 	    {
 	      activation_ago = -0.99;
 	    }
@@ -99,10 +98,9 @@ void PressureController<QUEUE_SIZE,
 	      activation_ago = +0.99;
 	    }
 	}
-      if(activation_antago<-1.0 || activation_antago>1.0)
+      if(activation_antago<-0.99 || activation_antago>0.99)
 	{
-	  std::cout << "\n\nwarning: pam mujoco pressure controller, activation of : " << activation_antago << "\n";
-	  if(activation_antago<-1.0)
+	  if(activation_antago<0.0)
 	    {
 	      activation_antago = -0.99;
 	    }
