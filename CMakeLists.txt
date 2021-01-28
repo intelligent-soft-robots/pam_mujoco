@@ -26,8 +26,10 @@ find_package(pam_interface REQUIRED)
 find_package(pybind11_vendor REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(mujoco_interface REQUIRED)
+find_package(Boost REQUIRED COMPONENTS filesystem system thread)
 
 ament_export_dependencies(
+  Boost
   o80
   o80_example
   json_helper
