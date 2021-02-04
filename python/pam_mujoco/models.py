@@ -321,13 +321,15 @@ def model_factory(model_name,
     else:
         hit_points = []
 
-    generate_model(model_name,
-                   time_step = time_step,
-                   robots=robots,
-                   balls=balls,
-                   tables=tables,
-                   goals=goals,
-                   hit_points=hit_points,
-                   muscles=muscles)
+    model_path = generate_model(model_name,
+                                time_step = time_step,
+                                robots=robots,
+                                balls=balls,
+                                tables=tables,
+                                goals=goals,
+                                hit_points=hit_points,
+                                muscles=muscles)
+
+    r["path"] = model_path
 
     return r
