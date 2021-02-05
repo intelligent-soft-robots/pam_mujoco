@@ -81,9 +81,8 @@ for run in range(3):
 
     # initializing o80 frontend for sending ball/hit_point position/velocity
     # to mujoco thread
-    frontend_ball1 = o80_pam.MirrorFreeJointFrontEnd("ball1")
-    frontend_ball2 = o80_pam.MirrorFreeJointFrontEnd("ball2")
-    frontends = (frontend_ball1,frontend_ball2)
+    frontend_ball1 = o80_pam.BallFrontEnd("ball1")
+    frontend_ball2 = o80_pam.BallFrontEnd("ball2")
 
     # reading a random pre-recorded ball trajectory
     _,trajectory_points = list(context.BallTrajectories().random_trajectory())
@@ -96,23 +95,16 @@ for run in range(3):
     duration = o80.Duration_us.milliseconds(int(duration_s*1000))
     total_duration = duration_s * len(trajectory_points)
     for traj_point in trajectory_points:
-        # looping over x,y,z
-        for dim in range(3):
-            for frontend in frontends:
-                # setting position for dimension (x, y or z)
-                frontend.add_command(2*dim,
-                                     o80.State1d(traj_point.position[dim]+translation[dim]),
-                                     duration,
-                                     o80.Mode.QUEUE)
-                # setting velocity for dimension (x, y or z)
-                frontend.add_command(2*dim+1,
-                                     o80.State1d(traj_point.velocity[dim]),
-                                     duration,
-                                     o80.Mode.QUEUE)
+        translated_position = [p+t for p,t in zip(traj_point.position,translation)]
+        frontend_ball1.add_command(translated_position,traj_point.velocity,
+                             duration,o80.Mode.QUEUE)
+        frontend_ball2.add_command(translated_position,traj_point.velocity,
+                             duration,o80.Mode.QUEUE)
 
+        
     # sending for full trajectory
-    for frontend in frontends:
-        frontend.pulse()
+    frontend_ball1.pulse()
+    frontend_ball2.pulse()
 
     # first mujoco iterations place the balls to starting point
     time.sleep(0.1)
@@ -137,11 +129,8 @@ for run in range(3):
     observations_ball2 = frontend_ball2.get_observations_since(first_iteration) 
     distances = []
     for ball1,ball2 in zip(observations_ball1,observations_ball2):
-        # state has information : [position_x,velocity_x,position_y,velocity_y,...]
-        state1 = ball1.get_observed_states()
-        state2 = ball2.get_observed_states()
-        position1 = [state1.get(2*dim).get() for dim in range(3)]
-        position2 = [state2.get(2*dim).get() for dim in range(3)]
+        position1 = ball1.get_position()
+        position2 = ball2.get_position()
         distance = math.sqrt(sum([(p1-p2)**2 for p1,p2 in zip(position1,position2)]))
         distances.append(distance)
     # plotting the distance
