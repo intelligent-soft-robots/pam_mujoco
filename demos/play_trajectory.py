@@ -49,18 +49,11 @@ def execute_mujoco(mujoco_id,model_path,
     config.realtime = True
     pam_mujoco.init_mujoco(config)
     #for detecting contact with the table
-    pam_mujoco.add_table_contact_free_joint("table",
-                                            balls[1].index_qpos,balls[1].index_qvel,
-                                            balls[1].geom,table.geom_plate)
+    pam_mujoco.add_table_contact("table",balls[1],table)
     # adding the mirror ball controller, full trajectory
-    pam_mujoco.add_mirror_free_joint("ball1",
-                                     balls[0].joint,
-                                     balls[0].index_qpos,balls[0].index_qvel)
+    pam_mujoco.add_o80_ball_control("ball1",balls[0])
     # adding the mirror ball controller, until contact with table
-    pam_mujoco.add_mirror_until_contact_free_joint("ball2",
-                                                   balls[1].joint,
-                                                   balls[1].index_qpos,balls[1].index_qvel,
-                                                   "table")
+    pam_mujoco.add_o80_ball_control_until_contact("ball2","table",balls[1])
     # starting the thread
     pam_mujoco.execute(mujoco_id,model_path)
     # looping until requested to stop
