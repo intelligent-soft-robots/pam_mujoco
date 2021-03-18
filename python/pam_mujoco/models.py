@@ -11,7 +11,7 @@ class HitPoint:
     def __init__(self,
                  model_name,
                  name,
-                 position=[0,0,-0.62],
+                 position=[0,0,0],
                  size=[0.03,0.0007],
                  color=[1.0,0.65,0.1,1]):
         self.model_name=model_name
@@ -44,9 +44,9 @@ class Goal(HitPoint):
     def __init__(self,
                  model_name,
                  name,
-                 position=[0,0,-0.62],
+                 position=[0,0,0],
                  size=[0.05,0.0005],
-                 color=[0.2,1.0,0.2,1]):
+                 color=[1.0,0.2,0.2,1]):
         HitPoint.__init__(self,
                           model_name,
                           name,

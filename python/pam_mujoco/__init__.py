@@ -27,18 +27,16 @@ def add_table_contact(contact_id,item,table):
                                  item.index_qpos,item.index_qvel,
                                  item.geom,table.geom_plate)
 
-def add_robot1_contact(contact_id,item,robot):
+def add_robot_contact(contact_id,item,robot):
     add_robot1_contact_free_joint(contact_id,
                                   item.index_qpos,item.index_qvel,
                                   item.geom,robot.geom_racket)
 
-def add_robot2_contact(contact_id,item,robot):
-    add_robot1_contact_free_joint(contact_id,
-                                  item.index_qpos,item.index_qvel,
-                                  item.geom,robot.geom_racket)
-    
 def add_o80_ball_control_until_contact(ball_id,contact_id,ball):
     add_mirror_until_contact_free_joint(ball_id,
                                         ball.joint,
                                         ball.index_qpos,ball.index_qvel,
                                         contact_id)
+
+def add_o80_joint_control(joint_control_id,robot):
+    add_mirror_robot(joint_control_id,robot.joint)
