@@ -1855,6 +1855,7 @@ void simulate(void)
       	   && (!pam_mujoco::is_stop_requested(settings.mujoco_id)) )
     {
 
+      /* seems to f* things up
         if(settings.graphics)
 	  {
 	    if(!pam_mujoco::is_bursting_mode())
@@ -1867,7 +1868,8 @@ void simulate(void)
 		  std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	      }
 	  }
-      
+      */
+
         // start exclusive access
         mtx.lock();
 
