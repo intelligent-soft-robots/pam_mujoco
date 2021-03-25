@@ -3,7 +3,7 @@
 namespace pam_mujoco
 {
 
-  bool BurstingMode::activated = true;
+  bool BurstingMode::activated = false;
   
   bool is_bursting_mode()
   {
