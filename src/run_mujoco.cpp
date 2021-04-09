@@ -32,12 +32,13 @@ namespace pam_mujoco
   void add_mirror_free_joint(std::string segment_id,
 			     std::string joint,
 			     int index_qpos,
-			     int index_qvel)
+			     int index_qvel,
+			     bool active_only)
   {
     pam_mujoco::MirrorFreeJoint<QUEUE_SIZE>::clear(segment_id);
     typedef pam_mujoco::MirrorFreeJoint<QUEUE_SIZE> mfj;
     std::shared_ptr<mfj> mirroring =
-      std::make_shared<mfj>(segment_id,joint,index_qpos,index_qvel);
+      std::make_shared<mfj>(segment_id,joint,index_qpos,index_qvel,active_only);
     pam_mujoco::Controllers::add(mirroring);
   }
 
@@ -46,13 +47,14 @@ namespace pam_mujoco
 					   std::string joint,
 					   int index_qpos,
 					   int index_qvel,
-					   std::string contact_segment_id)
+					   std::string contact_segment_id,
+					   bool active_only)
   {
     pam_mujoco::MirrorFreeJoint<QUEUE_SIZE>::clear(segment_id);
     typedef pam_mujoco::MirrorFreeJoint<QUEUE_SIZE> mfj;
     std::shared_ptr<mfj> mirroring =
       std::make_shared<mfj>(segment_id,joint,index_qpos,index_qvel,
-			    contact_segment_id);
+			    contact_segment_id,active_only);
     pam_mujoco::Controllers::add(mirroring);
   }
 

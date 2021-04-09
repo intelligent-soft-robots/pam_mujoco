@@ -27,12 +27,14 @@ namespace pam_mujoco
     MirrorFreeJoint(std::string segment_id,
 		    std::string joint,
 		    int index_qpos,
-		    int index_qvel);
+		    int index_qvel,
+		    bool active_only=true);
     MirrorFreeJoint(std::string segment_id,
 		    std::string joint,
 		    int index_qpos,
 		    int index_qvel,
-		    std::string interrupt_segment_id);
+		    std::string interrupt_segment_id,
+		    bool active_only=true);
     void set_contact_interrupt(std::string segment_id);
     void apply(const mjModel* m,
 	       mjData* d);
@@ -41,6 +43,7 @@ namespace pam_mujoco
     static void clear(std::string segment_id);
     
   private:
+    std::string segment_id_;
     std::string joint_;
     int index_qpos_;
     int index_qvel_;
@@ -50,6 +53,7 @@ namespace pam_mujoco
     bool contact_interrupt_;
     bool interrupted_;
     std::string segment_id_contact_;
+    bool active_only_;
     
   };
 

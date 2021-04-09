@@ -46,7 +46,7 @@ def get_free_joint_body_xml(model_name,
     if mass>0:
         template+='size="$size$" rgba="$color$" pos="$position$" mass="$mass$"/>\n'
     else:
-        template+='size="$size$" rgba="$color$" pos="$position$"/>\n'
+        template+='size="$size$" rgba="$color$" pos="$position$" />\n'
 
     template+=str('<joint type="free" name="$name_joint$"/>\n'+
                   '</body>\n')

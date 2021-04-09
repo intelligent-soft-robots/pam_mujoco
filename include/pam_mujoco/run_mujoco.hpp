@@ -34,13 +34,15 @@ namespace pam_mujoco
   void add_mirror_free_joint(std::string segment_id,
 			     std::string joint,
 			     int index_qpos,
-			     int index_qvel);
+			     int index_qvel,
+			     bool active_only);
   
   void add_mirror_until_contact_free_joint(std::string segment_id,
 					   std::string joint,
 					   int index_qpos,
 					   int index_qvel,
-					   std::string contact_segment_id);
+					   std::string contact_segment_id,
+					   bool active_only);
 
   void add_contact_free_joint(std::string segment_id,
 			      int index_qpos,

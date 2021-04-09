@@ -30,6 +30,9 @@ def start_mujoco(config):
         mconfig.extended_graphics = False
         mconfig.realtime = not config.accelerated
 
+        active_only=True
+        not_active_only=False
+        
         pam_mujoco.init_mujoco(mconfig)
 
         logging.info("adding ball/robot contact detector")
@@ -42,17 +45,20 @@ def start_mujoco(config):
         pam_mujoco.add_mirror_until_contact_free_joint(config.segment_id_ball,
                                                        ball.joint,
                                                        ball.index_qpos,ball.index_qvel,
-                                                       config.segment_id_contact_robot)
+                                                       config.segment_id_contact_robot,
+                                                       active_only)
 
         logging.info("adding o80 goal controller")
         pam_mujoco.add_mirror_free_joint(config.segment_id_goal,
                                          goal.joint,
-                                         goal.index_qpos,goal.index_qvel)
+                                         goal.index_qpos,goal.index_qvel,
+                                         not_active_only)
 
         logging.info("adding o80 hit-point controller")
         pam_mujoco.add_mirror_free_joint(config.segment_id_hit_point,
                                          hit_point.joint,
-                                         hit_point.index_qpos,goal.index_qvel)
+                                         hit_point.index_qpos,goal.index_qvel,
+                                         not_active_only)
 
         logging.info("adding o80 robot mirroring controller")
         pam_mujoco.add_mirror_robot(config.segment_id_robot_mirror,robot.joint)

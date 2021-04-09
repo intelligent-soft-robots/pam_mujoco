@@ -130,6 +130,9 @@ def ball_and_robot(mujoco_id,
         config.realtime = realtime
         pam_mujoco.init_mujoco(config)
 
+        active_only=True
+        not_active_only=False
+        
         # for detecting contact with the robot
         if segment_ids["contact_robot"] is not None:
             pam_mujoco.add_robot1_contact_free_joint(segment_ids["contact_robot"],
@@ -145,18 +148,21 @@ def ball_and_robot(mujoco_id,
                                                            segment_ids["contact_robot"])
         else:
             pam_mujoco.add_mirror_free_joint(segment_ids["ball"],
-                                                           ball.joint,
-                                                           ball.index_qpos,ball.index_qvel)
+                                             ball.joint,
+                                             ball.index_qpos,ball.index_qvel,
+                                             active_only)
 
         if segment_ids["goal"] is not None:
             pam_mujoco.add_mirror_free_joint(segment_ids["goal"],
                                              goal.joint,
-                                             goal.index_qpos,goal.index_qvel)
+                                             goal.index_qpos,goal.index_qvel,
+                                             not_active_only)
             
         if segment_ids["hit_point"] is not None:
             pam_mujoco.add_mirror_free_joint(segment_ids["hit_point"],
                                              hit_point.joint,
-                                             hit_point.index_qpos,hit_point.index_qvel)
+                                             hit_point.index_qpos,hit_point.index_qvel,
+                                             not_active_only)
             
         # adding mirroring robot controller
         pam_mujoco.add_mirror_robot(segment_ids["robot"],robot.joint)

@@ -46,8 +46,7 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
                            duration_s:float,
                            accelerated_time:bool,
                            mujoco_time_step=0.002,
-                           o80_time_step=0.002,
-                           record_buffer=None):
+                           o80_time_step=0.002):
 
     def _reached_target(error=50):
         pressures_ago,pressures_antago,_,__ = o80_pressures.read()
@@ -71,8 +70,6 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
             o80_mirroring.set(positions,velocities,nb_iterations=1,burst=1)
         return
 
-    if record_buffer is not None:
-        record_buffer.append((time.time(),action,int(duration_s*1000+0.5)))
     o80_pressures.set(action,duration_ms=int(duration_s*1000+0.5),
                       wait=False,burst=False)
     time_start = time.time()
