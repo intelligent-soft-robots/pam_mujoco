@@ -51,8 +51,12 @@ set(all_target_exports)
 #######################
 
 get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
-install(DIRECTORY
-  "${MODEL_CONFIG_DIR}" DESTINATION /opt/mpi-is/)
+# installing files in /opt/mpi-is/ if exists
+if (EXISTS "/opt/mpi-is")
+  install(DIRECTORY
+    "${MODEL_CONFIG_DIR}" DESTINATION /opt/mpi-is/)
+endif()
+# installing in workspace/install
 install(DIRECTORY
   "${MODEL_CONFIG_DIR}" DESTINATION opt/mpi-is/)
 set(MODELS_PATH "/tmp/")
