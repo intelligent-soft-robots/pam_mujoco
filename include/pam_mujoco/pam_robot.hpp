@@ -6,12 +6,10 @@
 
 namespace pam_mujoco
 {
+class PamRobot
+{
+private:
+    std::array<pam_models::Muscle, N_MUSCLES> muscles_;
+};
 
-  class PamRobot
-  {
-  private:
-    std::array<pam_models::Muscle,N_MUSCLES> muscles_;
-  };
-  
-  
-}
+}  // namespace pam_mujoco

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "o80/memory_clearing.hpp"
 #include "o80/back_end.hpp"
+#include "o80/memory_clearing.hpp"
 #include "o80/state2d.hpp"
 #include "o80/time.hpp"
 #include "pam_mujoco/controllers.hpp"
@@ -9,28 +9,30 @@
 
 namespace pam_mujoco
 {
+template <int QUEUE_SIZE, int NB_DOFS>
+class MirrorRobot : public ControllerBase
+{
+private:
+    typedef o80::
+        BackEnd<QUEUE_SIZE, NB_DOFS, o80::State2d, o80::VoidExtendedState>
+            Backend;
+    typedef o80::States<NB_DOFS, o80::State2d> States;
 
-  template<int QUEUE_SIZE, int NB_DOFS>
-  class MirrorRobot : public ControllerBase
-  {
-    
-  private:
-    typedef o80::BackEnd<QUEUE_SIZE,
-			 NB_DOFS,
-			 o80::State2d,
-			 o80::VoidExtendedState> Backend;
-    typedef o80::States<NB_DOFS,o80::State2d> States;
+public:
+    MirrorRobot(std::string segment_id, std::string robot_joint_base);
+    void apply(const mjModel* m, mjData* d);
 
-  public:
-    MirrorRobot(std::string segment_id,
-		std::string robot_joint_base);
-    void apply(const mjModel* m,
-		 mjData* d);
-  public:
+private:
+    void reset(const mjModel* m, mjData* d);
+
+public:
     static void clear(std::string segment_id);
-  private:
+
+private:
     bool same(const States& s1, const States& s2) const;
-  private:
+
+private:
+    std::string segment_id_;
     Backend backend_;
     std::string robot_joint_base_;
     int index_q_robot_;
@@ -38,8 +40,10 @@ namespace pam_mujoco
     States read_states_;
     States set_states_;
     States previous_set_states_;
-  };
+    States initial_states_;
+    bool initialized_;
+};
 
 #include "mirror_robot.hxx"
-  
-}
+
+}  // namespace pam_mujoco
