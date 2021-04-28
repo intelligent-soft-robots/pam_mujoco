@@ -1855,27 +1855,25 @@ void simulate(void)
       	   && (!pam_mujoco::is_stop_requested(settings.mujoco_id)) )
     {
 
-      /* seems to f* things up
-        if(settings.graphics)
-	  {
-	    if(!pam_mujoco::is_bursting_mode())
-	      {
-		// sleep for 1 ms or yield, to let main thread run
-		//  yield results in busy wait - which has better timing but kills battery life
-		if( settings.run && settings.busywait )
-		  std::this_thread::yield();
-		else
-		  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-	      }
-	  }
-      */
-
         // start exclusive access
         mtx.lock();
-
+	
         // run only if model is present
         if( m )
         {
+ 
+	   // will be true if a client called
+	   // pam_mujoco::request_reset, resetting
+	   // simulation to initial state
+           if( pam_mujoco::must_reset(settings.mujoco_id) )
+                {
+		  mj_resetData(m, d);
+		  mj_forward(m, d);
+		  profilerupdate();
+		  sensorupdate();
+		  updatesettings();
+                }
+	  
             // record start time
             double startwalltm = glfwGetTime();
 

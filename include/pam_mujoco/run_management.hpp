@@ -27,6 +27,12 @@ namespace pam_mujoco
   void set_mujoco_started(std::string mujoco_id,bool value);
   bool has_mujoco_started(const std::string& mujoco_id);
   void wait_for_mujoco(std::string mujoco_id, int timeout_ms);
-    
+
+  /*! request the mujoco simulation to reset at its next iteration */ 
+  void request_reset(std::string mujoco_id);
+
+  /*! called by the mujoco to check if a client
+   *  called request_reset */
+  bool must_reset(const std::string& mujoco_id);
   
 }
