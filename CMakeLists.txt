@@ -104,6 +104,7 @@ target_include_directories(
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(mujoco_original shared_memory::shared_memory)
 target_link_libraries(mujoco_original mujoco_interface::mujoco_interface)
+target_link_libraries(mujoco_original o80::o80)
 foreach(mujoco_lib ${mujoco_libs})
   target_link_libraries(mujoco_original ${mujoco_lib_dir}/${mujoco_lib})
 endforeach(mujoco_lib)

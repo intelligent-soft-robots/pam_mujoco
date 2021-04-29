@@ -23,6 +23,7 @@
 #include "shared_memory/shared_memory.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/listener.hpp"
+#include "o80/burster.hpp"
 
 
 //-------------------------------- global -----------------------------------------------
@@ -1906,7 +1907,7 @@ void reset()
 
 
 // simulate in background thread (while rendering in main thread)
-void simulate(std::string mujoco_id)
+void simulate(std::string mujoco_id, o80::Burster* burster)
 {
     // cpu-sim syncronization point
     double cpusync = 0;
@@ -1927,6 +1928,11 @@ void simulate(std::string mujoco_id)
 
 	// start exclusive access
 	mtx.lock();
+
+	if(burster)
+	  {
+	    burster->pulse();
+	  }
 
 	if(reset_listener.do_once())
 	  {
@@ -2093,8 +2099,15 @@ int main(int argc, const char** argv)
     std::cout << "loading model: "<< filename << std::endl;
     settings.loadrequest = 2;
 
+    // setting up a burster, if requested to
+    o80::Burster* burster;
+    if(config.burst_mode)
+      {
+	burster = new o80::Burster(mujoco_id);
+      }
+    
     // start simulation thread
-    std::thread simthread(simulate,mujoco_id);
+    std::thread simthread(simulate,mujoco_id,burster);
 
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest )
@@ -2140,5 +2153,10 @@ int main(int argc, const char** argv)
         glfwTerminate();
     #endif
 
+    if(burster)
+    {
+      delete burster;
+    }
+	
     return 0;
 }

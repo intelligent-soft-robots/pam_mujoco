@@ -11,6 +11,12 @@ namespace pam_mujoco
   class Config
   {
   public:
+    Config()
+      :burst_mode{false}{}
+    void set_burst_mode(bool use_burst)
+    {
+      burst_mode=use_burst;
+    }
     void set_model_path(std::string path)
     {
       strcpy(model_path,path.c_str());
@@ -18,10 +24,11 @@ namespace pam_mujoco
     template <class Archive>
     void serialize(Archive& archive)
     {
-      archive(model_path);
+      archive(model_path,burst_mode);
     }
   public:
     char model_path[200];
+    bool burst_mode;
   };
 
 

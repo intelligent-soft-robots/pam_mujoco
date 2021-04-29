@@ -22,6 +22,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
 
   pybind11::class_<pam_mujoco::Config>(m,"Config")
     .def(pybind11::init<>())
+    .def("set_burst_mode",&pam_mujoco::Config::set_burst_mode)
     .def("set_model_path",&pam_mujoco::Config::set_model_path);
   m.def("set_mujoco_config",&pam_mujoco::set_mujoco_config);
   
