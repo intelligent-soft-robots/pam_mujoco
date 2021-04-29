@@ -22,6 +22,7 @@
 #include <experimental/filesystem>
 #include "shared_memory/shared_memory.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
+#include "pam_mujoco/listener.hpp"
 
 
 //-------------------------------- global -----------------------------------------------
@@ -1824,14 +1825,96 @@ void render(GLFWwindow* window)
 }
 
 
+void do_simulate(double& cpusync, mjtNum& simsync)
+{
+
+  // run only if model is present
+  if( m )
+    {
+      // record start time
+      double startwalltm = glfwGetTime();
+
+      // running
+      if( settings.run )
+	{
+	  // record cpu time at start of iteration
+	  double tmstart = glfwGetTime();
+
+	  // out-of-sync (for any reason)
+	  if( d->time<simsync || tmstart<cpusync || cpusync==0 ||
+	      mju_abs((d->time-simsync)-(tmstart-cpusync))>syncmisalign )
+	    {
+	      // re-sync
+	      cpusync = tmstart;
+	      simsync = d->time;
+
+	      // clear old perturbations, apply new
+	      mju_zero(d->xfrc_applied, 6*m->nbody);
+	      mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
+	      mjv_applyPerturbForce(m, d, &pert);
+
+	      // run single step, let next iteration deal with timing
+	      mj_step(m, d);
+	    }
+
+	  // in-sync
+	  else
+	    {
+	      // step while simtime lags behind cputime, and within safefactor
+	      while( (d->time-simsync)<(glfwGetTime()-cpusync) &&
+		     (glfwGetTime()-tmstart)<refreshfactor/vmode.refreshRate )
+		{
+		  // clear old perturbations, apply new
+		  mju_zero(d->xfrc_applied, 6*m->nbody);
+		  mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
+		  mjv_applyPerturbForce(m, d, &pert);
+
+		  // run mj_step
+		  mjtNum prevtm = d->time;
+		  mj_step(m, d);
+
+		  // break on reset
+		  if( d->time<prevtm )
+		    break;
+		}
+	    }
+	}
+
+      // paused
+      else
+	{
+	  // apply pose perturbation
+	  mjv_applyPerturbPose(m, d, &pert, 1);      // move mocap and dynamic bodies
+
+	  // run mj_forward, to update rendering and joint sliders
+	  mj_forward(m, d);
+	}
+    }
+
+}
+
+void reset()
+{
+  if(m)
+    {
+      mj_resetData(m, d);
+      mj_forward(m, d);
+      profilerupdate();
+      sensorupdate();
+    }
+}
+
 
 // simulate in background thread (while rendering in main thread)
-void simulate(void)
+void simulate(std::string mujoco_id)
 {
     // cpu-sim syncronization point
     double cpusync = 0;
     mjtNum simsync = 0;
 
+    pam_mujoco::Listener reset_listener(mujoco_id,"reset");
+    pam_mujoco::Listener pause_listener(mujoco_id,"pause");
+    
     // run until asked to exit
     while( !settings.exitrequest )
     {
@@ -1842,74 +1925,28 @@ void simulate(void)
         else
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
-        // start exclusive access
-        mtx.lock();
+	// start exclusive access
+	mtx.lock();
 
-        // run only if model is present
-        if( m )
-        {
-            // record start time
-            double startwalltm = glfwGetTime();
+	if(reset_listener.do_once())
+	  {
+	    reset();
+	  }
+	
+	if(pause_listener.is_on())
+	  {
+	    settings.run=0;
+	  }
+	else
+	  {
+	    settings.run=1;
+	  }
 
-            // running
-            if( settings.run )
-            {
-                // record cpu time at start of iteration
-                double tmstart = glfwGetTime();
+	do_simulate(cpusync,simsync);
+	
+	// end exclusive access
+	mtx.unlock();
 
-                // out-of-sync (for any reason)
-                if( d->time<simsync || tmstart<cpusync || cpusync==0 ||
-                    mju_abs((d->time-simsync)-(tmstart-cpusync))>syncmisalign )
-                {
-                    // re-sync
-                    cpusync = tmstart;
-                    simsync = d->time;
-
-                    // clear old perturbations, apply new
-                    mju_zero(d->xfrc_applied, 6*m->nbody);
-                    mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
-                    mjv_applyPerturbForce(m, d, &pert);
-
-                    // run single step, let next iteration deal with timing
-                    mj_step(m, d);
-                }
-
-                // in-sync
-                else
-                {
-                    // step while simtime lags behind cputime, and within safefactor
-                    while( (d->time-simsync)<(glfwGetTime()-cpusync) &&
-                           (glfwGetTime()-tmstart)<refreshfactor/vmode.refreshRate )
-                    {
-                        // clear old perturbations, apply new
-                        mju_zero(d->xfrc_applied, 6*m->nbody);
-                        mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
-                        mjv_applyPerturbForce(m, d, &pert);
-
-                        // run mj_step
-                        mjtNum prevtm = d->time;
-                        mj_step(m, d);
-
-                        // break on reset
-                        if( d->time<prevtm )
-                            break;
-                    }
-                }
-            }
-
-            // paused
-            else
-            {
-                // apply pose perturbation
-                mjv_applyPerturbPose(m, d, &pert, 1);      // move mocap and dynamic bodies
-
-                // run mj_forward, to update rendering and joint sliders
-                mj_forward(m, d);
-            }
-        }
-
-        // end exclusive access
-        mtx.unlock();
     }
 }
 
@@ -2057,7 +2094,7 @@ int main(int argc, const char** argv)
     settings.loadrequest = 2;
 
     // start simulation thread
-    std::thread simthread(simulate);
+    std::thread simthread(simulate,mujoco_id);
 
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest )
