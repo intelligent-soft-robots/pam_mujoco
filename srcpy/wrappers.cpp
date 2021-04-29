@@ -5,6 +5,7 @@
 #include "o80/pybind11_helper.hpp"
 #include "pam_mujoco/run_mujoco.hpp"
 #include "pam_mujoco/read_robot_state.hpp"
+#include "pam_mujoco/mujoco_config.hpp"
 
 #define NB_DOFS 4
 #define QUEUE_SIZE 500000
@@ -18,6 +19,12 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     .def(pybind11::init<std::string>())
     .def("get_positions",&pam_mujoco::ReadRobotState::get_positions)
     .def("get_velocities",&pam_mujoco::ReadRobotState::get_velocities);
+
+  pybind11::class_<pam_mujoco::Config>(m,"Config")
+    .def(pybind11::init<>())
+    .def("set_model_path",&pam_mujoco::Config::set_model_path);
+  m.def("set_mujoco_config",&pam_mujoco::set_mujoco_config);
+  
 
   m.def("get_contact",[](std::string segment_id)
 	{

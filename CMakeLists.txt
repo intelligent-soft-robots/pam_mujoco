@@ -96,6 +96,21 @@ ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
 
+add_executable( mujoco_original
+  include/pam_mujoco/simulate.cpp )
+target_include_directories(
+  mujoco_original PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  ${mujoco_include_dir}
+  $<INSTALL_INTERFACE:include>)
+target_link_libraries(mujoco_original shared_memory::shared_memory)
+target_link_libraries(mujoco_original mujoco_interface::mujoco_interface)
+foreach(mujoco_lib ${mujoco_libs})
+  target_link_libraries(mujoco_original ${mujoco_lib_dir}/${mujoco_lib})
+endforeach(mujoco_lib)
+target_link_libraries(mujoco_original stdc++fs)
+target_link_libraries(mujoco_original EGL GL GLU glut)
+list(APPEND all_targets mujoco_original)
+
 
 ###################
 # Python wrappers #
