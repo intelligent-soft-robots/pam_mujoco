@@ -2105,9 +2105,8 @@ int main(int argc, const char** argv)
     pam_mujoco::Config config;
     bool verbose=true;
     pam_mujoco::wait_for_mujoco_config(mujoco_id,config,verbose);
-
     std::cout << config.to_string() << std::endl;
-    
+
     // initialize everything
     init();
 
@@ -2116,6 +2115,16 @@ int main(int argc, const char** argv)
     std::cout << "loading model: "<< filename << std::endl;
     settings.loadrequest = 2;
 
+
+    // populating the controllers
+    for(const MujocoItemControl& mic: config.controls)
+      {
+	add_item_control(config,mic);
+      }
+    mjcb_control = pam_mujoco::Controllers::apply;
+    mjcb_act_bias = pam_mujoco::Controllers::get_bias;
+
+    
     // setting up a burster, if requested to
     o80::Burster* burster=nullptr;
     if(config.burst_mode)
