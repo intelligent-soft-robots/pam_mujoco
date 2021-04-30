@@ -2,13 +2,12 @@
 
 namespace pam_mujoco
 {
-
-  namespace internal
-  {
-
-    ContactStates::ContactStates()
-      : time_stamp(-1){}
-
-  }
-    
+namespace internal
+{
+ContactStates::ContactStates() : time_stamp(-1)
+{
 }
+
+}  // namespace internal
+
+}  // namespace pam_mujoco

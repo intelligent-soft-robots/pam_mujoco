@@ -72,10 +72,9 @@ add_library( ${PROJECT_NAME} SHARED
   src/contact_states.cpp
   src/contact_logic.cpp
   src/recompute_state_after_contact.cpp
-  src/burst_controller.cpp
-  src/run_management.cpp
-  src/run_mujoco.cpp
-  src/controllers.cpp )
+  src/controllers.cpp
+  src/mujoco_config.cpp
+  src/listener.cpp)
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
@@ -105,6 +104,8 @@ target_include_directories(
 target_link_libraries(mujoco_original shared_memory::shared_memory)
 target_link_libraries(mujoco_original mujoco_interface::mujoco_interface)
 target_link_libraries(mujoco_original o80::o80)
+target_link_libraries(mujoco_original context::context)
+target_link_libraries(mujoco_original ${PROJECT_NAME})
 foreach(mujoco_lib ${mujoco_libs})
   target_link_libraries(mujoco_original ${mujoco_lib_dir}/${mujoco_lib})
 endforeach(mujoco_lib)

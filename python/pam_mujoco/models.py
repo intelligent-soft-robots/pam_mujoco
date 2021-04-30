@@ -267,11 +267,11 @@ def generate_model(model_name,
 
 def model_factory(model_name,
                   time_step = 0.002,
-                  table=False,nb_balls=1,
+                  table=False,balls=[],
                   robot1=False,robot1_position=[0.1,0.0,-0.44],
                   robot2=False,robot2_position=[1.6,3.4,-0.44],
                   robot2_orientation = [-1,0,0,0,-1,0],
-                  goal=False,hit_point=False,
+                  goals=[],hit_point=[],
                   ball_colors=None,
                   muscles=True):
 
@@ -286,10 +286,7 @@ def model_factory(model_name,
     balls = [Ball(model_name,"ball_"+str(index))
              for index,ball in enumerate(range(nb_balls))]
     if balls:
-        if nb_balls==1:
-            r["ball"]=balls[0]
-        else:
-            r["balls"]=balls
+        r["balls"]=balls
 
     if ball_colors is not None:
         for ball,color in zip(balls,ball_colors):
@@ -302,10 +299,7 @@ def model_factory(model_name,
     if robot2:
         robots.append(Robot(model_name,
                             "robot2",robot2_position,robot2_orientation))
-    if len(robots)==1:
-        r["robot"]=robots[0]
-    else:
-        r["robots"]=robots
+    r["robots"]=robots
         
     if goal:
         goal = Goal(model_name,"goal")
