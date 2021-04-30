@@ -11,11 +11,18 @@ namespace pam_mujoco
   class Config
   {
   public:
-    Config()
-      :burst_mode{false}{}
+    Config(std::string mujoco_id)
+      :burst_mode{false},
+       accelerated_time{false},
+       mujoco_id_{mujoco_id}
+    {}
     void set_burst_mode(bool use_burst)
     {
       burst_mode=use_burst;
+    }
+    void set_accelerated_time(bool use_accelerated)
+    {
+      accelerated_time=use_accelerated;
     }
     void set_model_path(std::string path)
     {
@@ -24,11 +31,23 @@ namespace pam_mujoco
     template <class Archive>
     void serialize(Archive& archive)
     {
-      archive(model_path,burst_mode);
+      archive(model_path,burst_mode,accelerated_time);
+    }
+    std::string to_string() const
+    {
+      std::stringstream ss;
+      ss << "--- configuration for mujoco: " << mujoco_id << "\n"
+	 << "\t burst mode: " << burst_mode << "\n"
+	 << "\t model path: " << model_path << "\n"
+	 << "\t accelerated time: " << accelerated_time << "\n"
+	 << "--- " << std::endl;
+      return ss.str();
     }
   public:
     char model_path[200];
     bool burst_mode;
+    bool accelerated_time;
+    std::string mujoco_id_;
   };
 
 

@@ -1915,6 +1915,8 @@ void simulate(std::string mujoco_id, o80::Burster* burster)
 
     pam_mujoco::Listener reset_listener(mujoco_id,"reset");
     pam_mujoco::Listener pause_listener(mujoco_id,"pause");
+
+    bool first_iteration=true;
     
     // run until asked to exit
     while( !settings.exitrequest )
@@ -1929,7 +1931,7 @@ void simulate(std::string mujoco_id, o80::Burster* burster)
 	// start exclusive access
 	mtx.lock();
 
-	if(burster)
+	if(burster && !first_iteration)
 	  {
 	    burster->pulse();
 	  }
@@ -1949,6 +1951,8 @@ void simulate(std::string mujoco_id, o80::Burster* burster)
 	  }
 
 	do_simulate(cpusync,simsync);
+
+	first_iteration=false;
 	
 	// end exclusive access
 	mtx.unlock();
@@ -2090,6 +2094,7 @@ int main(int argc, const char** argv)
     bool verbose=true;
     pam_mujoco::wait_for_mujoco_config(mujoco_id,config,verbose);
 
+    std::cout << config.to_string() << std::endl;
     
     // initialize everything
     init();
