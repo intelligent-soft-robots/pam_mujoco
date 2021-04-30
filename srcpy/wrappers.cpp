@@ -21,7 +21,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     .def("get_velocities",&pam_mujoco::ReadRobotState::get_velocities);
 
   pybind11::class_<pam_mujoco::Config>(m,"Config")
-    .def(pybind11::init<>())
+    .def(pybind11::init<std::string>())
     .def("set_burst_mode",&pam_mujoco::Config::set_burst_mode)
     .def("set_model_path",&pam_mujoco::Config::set_model_path)
     .def("set_accelerated_time",&pam_mujoco::Config::set_accelerated_time)

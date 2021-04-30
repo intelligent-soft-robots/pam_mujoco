@@ -1826,7 +1826,8 @@ void render(GLFWwindow* window)
 }
 
 
-void do_simulate(double& cpusync, mjtNum& simsync)
+void do_simulate(bool accelerated_time,
+		 double& cpusync, mjtNum& simsync)
 {
 
   // run only if model is present
@@ -1841,44 +1842,54 @@ void do_simulate(double& cpusync, mjtNum& simsync)
 	  // record cpu time at start of iteration
 	  double tmstart = glfwGetTime();
 
-	  // out-of-sync (for any reason)
-	  if( d->time<simsync || tmstart<cpusync || cpusync==0 ||
-	      mju_abs((d->time-simsync)-(tmstart-cpusync))>syncmisalign )
+	  if(!accelerated_time)
 	    {
-	      // re-sync
-	      cpusync = tmstart;
-	      simsync = d->time;
-
-	      // clear old perturbations, apply new
-	      mju_zero(d->xfrc_applied, 6*m->nbody);
-	      mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
-	      mjv_applyPerturbForce(m, d, &pert);
-
-	      // run single step, let next iteration deal with timing
-	      mj_step(m, d);
-	    }
-
-	  // in-sync
-	  else
-	    {
-	      // step while simtime lags behind cputime, and within safefactor
-	      while( (d->time-simsync)<(glfwGetTime()-cpusync) &&
-		     (glfwGetTime()-tmstart)<refreshfactor/vmode.refreshRate )
+	  
+	      // out-of-sync (for any reason)
+	      if( d->time<simsync || tmstart<cpusync || cpusync==0 ||
+		  mju_abs((d->time-simsync)-(tmstart-cpusync))>syncmisalign )
 		{
+		  // re-sync
+		  cpusync = tmstart;
+		  simsync = d->time;
+
 		  // clear old perturbations, apply new
 		  mju_zero(d->xfrc_applied, 6*m->nbody);
 		  mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
 		  mjv_applyPerturbForce(m, d, &pert);
 
-		  // run mj_step
-		  mjtNum prevtm = d->time;
+		  // run single step, let next iteration deal with timing
 		  mj_step(m, d);
+		}
 
-		  // break on reset
-		  if( d->time<prevtm )
-		    break;
+	      // in-sync
+	      else
+		{
+		  // step while simtime lags behind cputime, and within safefactor
+		  while( (d->time-simsync)<(glfwGetTime()-cpusync) &&
+			 (glfwGetTime()-tmstart)<refreshfactor/vmode.refreshRate )
+		    {
+		      // clear old perturbations, apply new
+		      mju_zero(d->xfrc_applied, 6*m->nbody);
+		      mjv_applyPerturbPose(m, d, &pert, 0);  // move mocap bodies only
+		      mjv_applyPerturbForce(m, d, &pert);
+
+		      // run mj_step
+		      mjtNum prevtm = d->time;
+		      mj_step(m, d);
+
+		      // break on reset
+		      if( d->time<prevtm )
+			break;
+		    }
 		}
 	    }
+
+	  else
+	    {
+	      mj_step(m, d);
+	    }
+	    
 	}
 
       // paused
@@ -1907,7 +1918,8 @@ void reset()
 
 
 // simulate in background thread (while rendering in main thread)
-void simulate(std::string mujoco_id, o80::Burster* burster)
+void simulate(std::string mujoco_id, o80::Burster* burster,
+	      bool accelerated_time)
 {
     // cpu-sim syncronization point
     double cpusync = 0;
@@ -1950,7 +1962,7 @@ void simulate(std::string mujoco_id, o80::Burster* burster)
 	    settings.run=1;
 	  }
 
-	do_simulate(cpusync,simsync);
+	do_simulate(accelerated_time,cpusync,simsync);
 
 	first_iteration=false;
 	
@@ -2105,14 +2117,14 @@ int main(int argc, const char** argv)
     settings.loadrequest = 2;
 
     // setting up a burster, if requested to
-    o80::Burster* burster;
+    o80::Burster* burster=nullptr;
     if(config.burst_mode)
       {
 	burster = new o80::Burster(mujoco_id);
       }
     
     // start simulation thread
-    std::thread simthread(simulate,mujoco_id,burster);
+    std::thread simthread(simulate,mujoco_id,burster,config.accelerated_time);
 
     // event loop
     while( !glfwWindowShouldClose(window) && !settings.exitrequest )

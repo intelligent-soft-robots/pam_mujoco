@@ -11,11 +11,15 @@ namespace pam_mujoco
   class Config
   {
   public:
-    Config(std::string mujoco_id)
+    Config()
       :burst_mode{false},
-       accelerated_time{false},
-       mujoco_id_{mujoco_id}
+       accelerated_time{false}
     {}
+    Config(std::string _mujoco_id)
+      :Config()
+    {
+      strcpy(mujoco_id,_mujoco_id.c_str());
+    }
     void set_burst_mode(bool use_burst)
     {
       burst_mode=use_burst;
@@ -31,7 +35,7 @@ namespace pam_mujoco
     template <class Archive>
     void serialize(Archive& archive)
     {
-      archive(model_path,burst_mode,accelerated_time);
+      archive(mujoco_id,model_path,burst_mode,accelerated_time);
     }
     std::string to_string() const
     {
@@ -40,21 +44,19 @@ namespace pam_mujoco
 	 << "\t burst mode: " << burst_mode << "\n"
 	 << "\t model path: " << model_path << "\n"
 	 << "\t accelerated time: " << accelerated_time << "\n"
-	 << "--- " << std::endl;
       return ss.str();
     }
   public:
     char model_path[200];
     bool burst_mode;
     bool accelerated_time;
-    std::string mujoco_id_;
+    char mujoco_id[200];
   };
 
 
-  void set_mujoco_config(const std::string& mujoco_id,
-			 const Config& config)
+  void set_mujoco_config(const Config& config)
   {
-    shared_memory::serialize(mujoco_id,"config",config);
+    shared_memory::serialize(std::string(config.mujoco_id),"config",config);
   }
 
   bool get_mujoco_config(const std::string& mujoco_id,
