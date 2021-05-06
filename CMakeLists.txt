@@ -73,12 +73,16 @@ add_library( ${PROJECT_NAME} SHARED
   src/contact_logic.cpp
   src/recompute_state_after_contact.cpp
   src/controllers.cpp
+  src/add_controllers.cpp
+  src/listener.cpp
   src/mujoco_config.cpp
   src/listener.cpp)
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
 target_link_libraries(${PROJECT_NAME} context::context)
 target_link_libraries(${PROJECT_NAME} shared_memory::shared_memory)
 target_link_libraries(${PROJECT_NAME} pam_models::pam_models)
@@ -101,6 +105,8 @@ target_include_directories(
   mujoco_original PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
+target_compile_definitions(mujoco_original PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
 target_link_libraries(mujoco_original shared_memory::shared_memory)
 target_link_libraries(mujoco_original mujoco_interface::mujoco_interface)
 target_link_libraries(mujoco_original o80::o80)
@@ -119,6 +125,8 @@ list(APPEND all_targets mujoco_original)
 ###################
 
 add_library(${PROJECT_NAME}_py MODULE srcpy/wrappers.cpp)
+target_compile_definitions(${PROJECT_NAME}_py PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
 target_link_libraries(${PROJECT_NAME}_py PRIVATE pybind11::module)
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PROJECT_NAME})

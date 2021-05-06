@@ -22,6 +22,7 @@
 #include "pam_mujoco/listener.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/controllers.hpp"
+#include "pam_mujoco/add_controllers.hpp"
 #include "shared_memory/shared_memory.hpp"
 
 //-------------------------------- global
@@ -2045,11 +2046,15 @@ int main(int argc, const char** argv)
 {
     std::string mujoco_id{argv[1]};
 
-    std::cout << "clearing memory for mujoco_id: " << mujoco_id << "\n";
+    std::cout << "clearing memory for mujoco_id: " << mujoco_id << std::endl;
     shared_memory::clear_shared_memory(mujoco_id);
 
+    // indicating potiential clients that it is not running yet
+    shared_memory::set<bool>(mujoco_id,"running",false);
+    
     pam_mujoco::MujocoConfig config;
     bool verbose = true;
+    std::cout << "waiting for configuration" << std::endl;
     pam_mujoco::wait_for_mujoco_config(mujoco_id, config, verbose);
     std::cout << config.to_string() << std::endl;
 
@@ -2062,10 +2067,19 @@ int main(int argc, const char** argv)
     settings.loadrequest = 2;
 
     // populating the controllers
-    for (const pam_mujoco::MujocoItemControl& mic : config.controls)
+    for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
     {
-        config.add_control(mic);
+      pam_mujoco::add_item_control(config,mic);
     }
+    for (const pam_mujoco::MujocoRobotJointControl& mrc : config.joint_controls)
+    {
+      pam_mujoco::add_joints_control(mrc);
+    }
+    for (const pam_mujoco::MujocoRobotPressureControl& mpc : config.pressure_controls)
+    {
+      pam_mujoco::add_pressures_control(mpc);
+    }
+
     mjcb_control = pam_mujoco::Controllers::apply;
     mjcb_act_bias = pam_mujoco::Controllers::get_bias;
 
@@ -2080,6 +2094,9 @@ int main(int argc, const char** argv)
     std::thread simthread(
         simulate, mujoco_id, burster, config.accelerated_time);
 
+    // indicating potiential client that things are now up and running
+    shared_memory::set<bool>(mujoco_id,"running",true);
+    
     // event loop
     while (!glfwWindowShouldClose(window) && !settings.exitrequest)
     {

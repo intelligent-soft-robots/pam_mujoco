@@ -2,8 +2,57 @@
 
 namespace pam_mujoco
 {
-  MujocoItemControl::MujocoItemControl()
-  {}
+MujocoRobotJointControl::MujocoRobotJointControl()
+{
+}
+
+MujocoRobotJointControl::MujocoRobotJointControl(std::string _segment_id,
+                                       std::string _joint,
+                                       bool _active_only)
+    : active_only{_active_only}
+{
+    std::strcpy(segment_id, _segment_id.c_str());
+    std::strcpy(joint, _joint.c_str());
+}
+
+std::string MujocoRobotJointControl::to_string() const
+{
+    std::stringstream ss;
+    ss << "\trobot";
+    ss << "joints control";
+    ss << " |\tsegment_id: " << segment_id << " ";
+    return ss.str();
+}
+
+MujocoRobotPressureControl::MujocoRobotPressureControl()
+{
+}
+
+MujocoRobotPressureControl::MujocoRobotPressureControl(
+    std::string _segment_id,
+    std::string _joint,
+    bool _active_only,
+    std::string _configuration_path)
+  : active_only{_active_only}
+{
+  std::strcpy(segment_id, _segment_id.c_str());
+  std::strcpy(joint, _joint.c_str());
+  std::strcpy(configuration_path, _configuration_path.c_str());
+}
+
+std::string MujocoRobotPressureControl::to_string() const
+{
+  std::stringstream ss;
+    ss << "\trobot ";
+    ss << "pressure control";
+    ss << " |\tsegment_id: " << segment_id << " ";
+    ss << " |\tconfiguration: " << configuration_path;
+    return ss.str();
+}
+
+MujocoItemControl::MujocoItemControl()
+{
+}
 MujocoItemControl::MujocoItemControl(MujocoItemTypes _type,
                                      std::string _segment_id,
                                      std::string _joint,
@@ -11,7 +60,6 @@ MujocoItemControl::MujocoItemControl(MujocoItemTypes _type,
                                      int _index_qvel,
                                      std::string _geometry,
                                      bool _active_only,
-                                     std::string _configuration_path,
                                      ContactTypes _contact_type)
     : type{_type},
       index_qpos{_index_qpos},
@@ -22,7 +70,6 @@ MujocoItemControl::MujocoItemControl(MujocoItemTypes _type,
     strcpy(segment_id, _segment_id.c_str());
     strcpy(joint, _joint.c_str());
     strcpy(geometry, _geometry.c_str());
-    strcpy(configuration_path, _configuration_path.c_str());
 }
 
 std::string MujocoItemControl::to_string() const
@@ -32,28 +79,22 @@ std::string MujocoItemControl::to_string() const
     if (type == MujocoItemTypes::ball) ss << "ball";
     if (type == MujocoItemTypes::hit_point) ss << "hit_point";
     if (type == MujocoItemTypes::goal) ss << "goal";
-    if (type == MujocoItemTypes::joints) ss << "robot joints control";
-    if (type == MujocoItemTypes::pressures) ss << "robot pressure control";
     ss << " |\tsegment_id: " << segment_id << " ";
-    if (contact_type==ContactTypes::table)
+    if (contact_type == ContactTypes::table)
     {
         ss << "(interrupted on contact with table) ";
     }
-    if (contact_type==ContactTypes::racket1)
+    if (contact_type == ContactTypes::racket1)
     {
         ss << "(interrupted on contact with racket 1) ";
     }
-    if (contact_type==ContactTypes::racket2)
+    if (contact_type == ContactTypes::racket2)
     {
         ss << "(interrupted on contact with racket 2) ";
     }
     if (active_only)
     {
         ss << "active control only ";
-    }
-    if (!std::string(configuration_path).compare(std::string("")))
-    {
-        ss << "configuration " << configuration_path << " ";
     }
     return ss.str();
 }
@@ -89,25 +130,47 @@ std::string MujocoConfig::to_string() const
        << "\t burst mode: " << burst_mode << "\n"
        << "\t model path: " << model_path << "\n"
        << "\t accelerated time: " << accelerated_time << "\n";
-    for (const MujocoItemControl& mic : controls)
+    for (const MujocoItemControl& mic : item_controls)
     {
         ss << mic.to_string() << "\n";
+    }
+    for (const MujocoRobotJointControl& mrc : joint_controls)
+    {
+        ss << mrc.to_string() << "\n";
+    }
+    for (const MujocoRobotPressureControl& mpc : pressure_controls)
+      {
+        ss << mpc.to_string() << "\n";
     }
     return ss.str();
 }
 
-void MujocoConfig::set_racket_and_table(std::string _racket1_geometry,
-					std::string _racket2_geometry,
-                                        std::string _table_geometry)
-{
-  strcpy(racket1_geometry, _racket1_geometry.c_str());
-  strcpy(racket2_geometry, _racket2_geometry.c_str());
-  strcpy(table_geometry, _table_geometry.c_str());
-}
+  void MujocoConfig::set_racket_robot1(std::string _racket1_geometry)
+  {
+    strcpy(racket1_geometry, _racket1_geometry.c_str());
+  }
+  void MujocoConfig::set_racket_robot2(std::string _racket2_geometry)
+  {
+    strcpy(racket2_geometry, _racket2_geometry.c_str());
+  }
+  void MujocoConfig::set_table(std::string _table_geometry)
+  {
+    strcpy(table_geometry, _table_geometry.c_str());
+  }
 
 void MujocoConfig::add_control(MujocoItemControl mic)
 {
-    controls.push_back(mic);
+    item_controls.push_back(mic);
+}
+
+void MujocoConfig::add_control(MujocoRobotJointControl mrc)
+{
+    joint_controls.push_back(mrc);
+}
+
+void MujocoConfig::add_control(MujocoRobotPressureControl mpc)
+{
+    pressure_controls.push_back(mpc);
 }
 
 void set_mujoco_config(const MujocoConfig& config)
@@ -154,4 +217,15 @@ void wait_for_mujoco_config(const std::string& mujoco_id,
     }
 }
 
+  void _wait_for_mujoco(const std::string& mujoco_id)
+  {
+    bool running=false;
+    while(!running)
+      {
+	usleep(50000);
+	shared_memory::get<bool>(mujoco_id,"running",running);
+      }
+  }
+
+  
 }  // namespace pam_mujoco

@@ -8,11 +8,9 @@
 #include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/mirror_free_joint.hpp"
 #include "pam_mujoco/mirror_robot.hpp"
-#include "pam_mujoco/mujoco_base.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/pressure_controller.hpp"
 #include "pam_mujoco/run_management.hpp"
-#include "pam_mujoco/share_robot_state.hpp"
 #include "real_time_tools/thread.hpp"
 #include "shared_memory/shared_memory.hpp"
 
@@ -22,9 +20,6 @@ static constexpr int NB_DOFS = 4;
 static constexpr long int QUEUE_SIZE = 500000;
 
 void add_mirror_robot(std::string segment_id, std::string robot_joint_base);
-
-void add_share_robot_state(std::string segment_id,
-                           std::string robot_joint_base);
 
 void add_mirror_free_joint(std::string segment_id,
                            std::string joint,
@@ -88,7 +83,9 @@ void add_4dofs_pressure_controller(std::string segment_id,
                                    std::array<double, 8> a_init,
                                    std::array<double, 8> l_MTC_change_init);
 
-void add_item_control(const MujocoConfig& config, MujocoItemControl mic);
+  void add_item_control(const MujocoConfig& config, MujocoItemControl mic);
+  void add_joints_control(MujocoRobotJointControl mrc);
+  void add_pressures_control(MujocoRobotPressureControl mpc);
 
 #include "add_controllers.hxx"
 
