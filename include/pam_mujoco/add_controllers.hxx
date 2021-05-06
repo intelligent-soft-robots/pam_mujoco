@@ -13,7 +13,7 @@ void add_pressure_controller(
     std::array<double, NB_DOFS * 2> a_init,
     std::array<double, NB_DOFS * 2> l_MTC_change_init)
 {
-    pam_mujoco::PressureController<QUEUE_SIZE, NB_DOFS>::clear(segment_id);
+  pam_mujoco::PressureController<QUEUE_SIZE, NB_DOFS>::clear(segment_id);
     typedef pam_mujoco::PressureController<QUEUE_SIZE, NB_DOFS> pc;
     std::shared_ptr<pc> pressure_controller =
         std::make_shared<pc>(segment_id,

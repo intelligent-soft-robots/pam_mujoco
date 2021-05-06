@@ -36,7 +36,8 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       .def("__str__",&pam_mujoco::MujocoRobotJointControl::to_string);
 
     pybind11::class_<pam_mujoco::MujocoRobotPressureControl>(m, "MujocoRobotPressureControl")
-      .def(pybind11::init<std::string,std::string,bool,std::string>())
+      .def(pybind11::init<std::string,std::string,
+	   bool,std::string,std::string,std::string>())
       .def("__str__",&pam_mujoco::MujocoRobotPressureControl::to_string);
 
     pybind11::class_<pam_mujoco::MujocoItemControl>(m, "MujocoItemControl")

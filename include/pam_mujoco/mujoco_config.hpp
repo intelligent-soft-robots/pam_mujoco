@@ -51,19 +51,27 @@ public:
     MujocoRobotPressureControl(std::string _segment_id,
 			       std::string _joint,
 			       bool _active_only,
-			       std::string _configuration_path);
+			       std::string _json_controller_path,
+			       std::string _json_ago_hill_path,
+			       std::string _json_antago_hill_path);
     std::string to_string() const;
   public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-      archive(segment_id,joint,
-	      configuration_path,active_only);
+      archive(segment_id,
+	      joint,
+	      json_controller_path,
+	      json_ago_hill_path,
+	      json_antago_hill_path,
+	      active_only);
     }
   public:
     char segment_id[200];
     char joint[200];
-    char configuration_path[200];
+    char json_controller_path[200];
+    char json_ago_hill_path[200];
+    char json_antago_hill_path[200];
     bool active_only;
   };
 

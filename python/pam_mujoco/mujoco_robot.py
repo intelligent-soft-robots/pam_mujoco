@@ -1,3 +1,4 @@
+import pam_models
 import pam_interface
 
 class MujocoRobot:
@@ -16,11 +17,15 @@ class MujocoRobot:
                  orientation=None,
                  control=NO_CONTROL,
                  active_only_control=CONSTANT_CONTROL,
-                 configuration_path=pam_interface.DefaultConfiguration.get_path()):
+                 json_control_path=pam_interface.DefaultConfiguration.get_path(),
+                 json_ago_hill_path=pam_models.get_default_config_path(), 
+                 json_antago_hill_path=pam_models.get_default_config_path()):
         
         self.segment_id=segment_id
         self.position=position
         self.orientation=orientation
         self.control=control
         self.active_only_control=active_only_control
-        self.configuration_path=configuration_path
+        self.json_control_path=json_control_path
+        self.json_ago_hill_path=json_ago_hill_path
+        self.json_antago_hill_path=json_antago_hill_path

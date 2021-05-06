@@ -32,12 +32,16 @@ MujocoRobotPressureControl::MujocoRobotPressureControl(
     std::string _segment_id,
     std::string _joint,
     bool _active_only,
-    std::string _configuration_path)
+    std::string _json_controller_path,
+    std::string _json_ago_hill_path,
+    std::string _json_antago_hill_path)
   : active_only{_active_only}
 {
   std::strcpy(segment_id, _segment_id.c_str());
   std::strcpy(joint, _joint.c_str());
-  std::strcpy(configuration_path, _configuration_path.c_str());
+  std::strcpy(json_controller_path, _json_controller_path.c_str());
+  std::strcpy(json_ago_hill_path, _json_ago_hill_path.c_str());
+  std::strcpy(json_antago_hill_path, _json_antago_hill_path.c_str());
 }
 
 std::string MujocoRobotPressureControl::to_string() const
@@ -46,7 +50,10 @@ std::string MujocoRobotPressureControl::to_string() const
     ss << "\trobot ";
     ss << "pressure control";
     ss << " |\tsegment_id: " << segment_id << " ";
-    ss << " |\tconfiguration: " << configuration_path;
+    ss << " |\tconfigurations:\n";
+    ss << "\t\t" << json_controller_path;
+    ss << "\t\t" << json_ago_hill_path;
+    ss << "\t\t" << json_antago_hill_path;
     return ss.str();
 }
 

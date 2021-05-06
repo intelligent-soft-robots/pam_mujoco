@@ -45,7 +45,9 @@ def _get_mujoco_robot_control(mujoco_robot: MujocoRobot,
         return pam_mujoco_wrp.MujocoRobotPressureControl(mujoco_robot.segment_id,
                                                          model_item.joint,
                                                          active_only,
-                                                         mujoco_robot.configuration)
+                                                         mujoco_robot.json_control_path,
+                                                         mujoco_robot.json_ago_hill_path,
+                                                         mujoco_robot.json_antago_hill_path)
     return None
 
         

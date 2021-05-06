@@ -25,6 +25,8 @@ PressureController<QUEUE_SIZE, NB_DOFS>::PressureController(
 {
     for (std::size_t dof = 0; dof < NB_DOFS; dof++)
     {
+      std::cout << muscle_json_config_path_ago << "\n";
+      std::cout << muscle_json_config_path_antago << "\n";
         muscles_.push_back(
             pam_models::hill::from_json(muscle_json_config_path_ago,
                                         a_init[dof * 2],

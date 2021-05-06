@@ -66,15 +66,6 @@ void add_4dofs_pressure_controller(
                                l_MTC_change_init);
 }
 
-/*void add_bursting(std::string mujoco_id,
-                  std::string segment_id)
-{
-  BurstingMode::activated = true;
-  std::shared_ptr<BurstController> bc
-    = std::make_shared<BurstController>(mujoco_id,segment_id);
-  pam_mujoco::Controllers::add(bc);
-  }*/
-
 void add_contact_free_joint(std::string segment_id,
                             int index_qpos,
                             int index_qvel,
@@ -137,8 +128,8 @@ void add_joints_control(MujocoRobotJointControl mrc)
 
 void add_pressures_control(MujocoRobotPressureControl mpc)
 {
-  std::string config_path(mpc.configuration_path);
-  pam_interface::JsonConfiguration<8> pam_interface_config(config_path);
+  std::string config_path(mpc.json_controller_path);
+  pam_interface::JsonConfiguration<4> pam_interface_config(config_path);
   std::string robot_joint_base;
   std::array<double, 8> scale_min_pressure;
   std::array<double, 8> scale_max_pressure;
@@ -167,11 +158,10 @@ void add_pressures_control(MujocoRobotPressureControl mpc)
 				scale_max_pressure,
 				scale_min_activation,
 				scale_max_activation,
-				std::string(mpc.configuration_path),
-				std::string(mpc.configuration_path),
+				std::string(mpc.json_ago_hill_path),
+				std::string(mpc.json_antago_hill_path),
 				a_init,
 				l_MTC_change_init);
- 
 }
 
 			   
