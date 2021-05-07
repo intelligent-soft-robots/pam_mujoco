@@ -326,6 +326,9 @@ def model_factory(model_name: str,
                                 goals=xml_goals,
                                 hit_points=xml_hit_points)
 
+    r["balls"] = xml_balls
+    r["goals"] = xml_goals
+    r["hit_points"] = xml_hit_points
     r["path"] = model_path
 
     return r

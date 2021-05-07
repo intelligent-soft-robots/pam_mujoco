@@ -20,6 +20,9 @@ def _get_mujoco_item_control(mujoco_item_type:pam_mujoco_wrp.MujocoItemTypes,
 
     if mujoco_item.control == MujocoItem.COMMAND_ACTIVE_CONTROL:
         active_only=True
+
+    if mujoco_item.contact_type is None:
+        mujoco_item.contact_type = pam_mujoco_wrp.ContactTypes.no_contact
         
     return pam_mujoco_wrp.MujocoItemControl(mujoco_item_type,
                                             mujoco_item.segment_id,
@@ -28,7 +31,6 @@ def _get_mujoco_item_control(mujoco_item_type:pam_mujoco_wrp.MujocoItemTypes,
                                             model_item.index_qvel,
                                             model_item.geom,
                                             active_only,
-                                            mujoco_item.configuration_path,
                                             mujoco_item.contact_type)
                                         
 
@@ -148,50 +150,61 @@ class MujocoHandle:
 
         # creating o80 frontends
         
-        frontends = {}
-        interfaces = {}
+        self.frontends = {}
+        self.interfaces = {}
         
         for item in balls:
             if item.control != MujocoItem.NO_CONTROL:
                 logging.info("creating o80 frontend for ball {} /  {}".format(mujoco_id,item.segment_id))
                 frontend = o80_pam.BallFrontEnd(item.segment_id)
                 interface = o80_pam.o80Ball(item.segment_id,frontend)
-                frontends[item.segment_id]=frontend
-                interfaces[item.segment_id]=interface
+                self.frontends[item.segment_id]=frontend
+                self.interfaces[item.segment_id]=interface
                 
         for item in goals:
             if item.control != MujocoItem.NO_CONTROL:
                 logging.info("creating o80 frontend for goal {} /  {}".format(mujoco_id,item.segment_id))
                 frontend = o80_pam.BallFrontEnd(item.segment_id)
                 interface = o80_pam.o80Goal(item.segment_id,frontend)
-                frontends[item.segment_id]=frontend
-                interfaces[item.segment_id]=interface
+                self.frontends[item.segment_id]=frontend
+                self.interfaces[item.segment_id]=interface
 
         for item in hit_points:
             if item.control != MujocoItem.NO_CONTROL:
                 logging.info("creating o80 frontend for hit point {} /  {}".format(mujoco_id,item.segment_id))
                 frontend = o80_pam.BallFrontEnd(item.segment_id)
                 interface = o80_pam.o80HitPoint(item.segment_id,frontend)
-                frontends[item.segment_id]=frontend
-                interfaces[item.segment_id]=interface
+                self.frontends[item.segment_id]=frontend
+                self.interfaces[item.segment_id]=interface
                 
         for robot in robot1,robot2:
             if robot:
                 if robot.control==MujocoRobot.JOINT_CONTROL:
                     logging.info("creating o80 frontend for joint control of {} /  {}".format(mujoco_id,robot.segment_id))
-                    frontends[robot.segment_id]=o80_pam.JointFrontEnd(robot.segment_id)
+                    self.frontends[robot.segment_id]=o80_pam.JointFrontEnd(robot.segment_id)
                 if robot.control==MujocoRobot.PRESSURE_CONTROL:
                     logging.info("creating o80 frontend for pressure control of {} /  {}".format(mujoco_id,robot.segment_id))
-                    frontends[robot.segment_id]=o80_pam.FrontEnd(robot.segment_id)
+                    self.frontends[robot.segment_id]=o80_pam.FrontEnd(robot.segment_id)
 
 
+        # for tracking contact
+        self.contacts={}
+        for item in list(balls)+list(goals)+list(hit_points):
+            if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
+                self.contacts[item.segment_id]=item.segment_id+"_table"
+            if item.contact_type == pam_mujoco_wrp.ContactTypes.racket1:
+                self.contacts[item.segment_id]=item.segment_id+"_racket1"
+            if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
+                self.contacts[item.segment_id]=item.segment_id+"_racket2"
 
     def reset(self):
         shared_memory.set_bool(self._mujoco_id,"reset",True)
 
     def pause(self,value):
         shared_memory.set_bool(self._mujoco_id,"pause",value)
-                    
-            
+
+    def get_contact(self,
+                    segment_id):
+        return pam_mujoco_wrp.get_contact(self.contacts[segment_id])
         
-                    
+    
