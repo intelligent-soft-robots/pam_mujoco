@@ -87,13 +87,13 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
         active = true;
     }
 
-    // std::cout << segment_id_ << "\t" << interrupted_ << "\t" << active <<
-    // "\n";
-
     // here mujoco's is overwritten by o80 desired state if:
     // 1. we are not post contact (if interrupt_segment_id has been provided)
     // and
     // 2. the backend is active (i.e. no o80 command is active)
+
+    static int foo=0;
+    
     if ((!interrupted_) && active)
     {
         // x,y,z positions

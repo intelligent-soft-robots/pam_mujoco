@@ -19,6 +19,7 @@
 #include <experimental/filesystem>
 #include <string>
 #include "o80/burster.hpp"
+#include "signal_handler/signal_handler.hpp"
 #include "pam_mujoco/listener.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/controllers.hpp"
@@ -1876,14 +1877,39 @@ void simulate(std::string mujoco_id,
     double cpusync = 0;
     mjtNum simsync = 0;
 
+    // to detect ctrl+c
+    signal_handler::SignalHandler::initialize();
+    
     pam_mujoco::Listener reset_listener(mujoco_id, "reset");
     pam_mujoco::Listener pause_listener(mujoco_id, "pause");
-
+    pam_mujoco::Listener exit_listener(mujoco_id,"exit");
+    
     bool first_iteration = true;
 
     // run until asked to exit
     while (!settings.exitrequest)
     {
+
+      // exit because mujoco gui turned off
+      if (settings.exitrequest)
+	break;
+
+      // exit because another process
+      // set the shared memory (mujoco_id,"exit") to True
+      if (exit_listener.is_on())
+	{
+	  settings.exitrequest=1;
+	  break;
+	}
+
+      // exit because user pressed ctrl+c
+      if (signal_handler::SignalHandler::has_received_sigint())
+        {
+	  settings.exitrequest=1;
+	  break;
+        }
+
+      
         // sleep for 1 ms or yield, to let main thread run
         //  yield results in busy wait - which has better timing but kills
         //  battery life
@@ -1900,11 +1926,16 @@ void simulate(std::string mujoco_id,
             burster->pulse();
         }
 
+	// resetting if requested to
         if (reset_listener.do_once())
         {
-            reset();
-        }
+	  // resetting the mujoco simulation
+	  reset();
+	  // resetting the controllers
+	  pam_mujoco::Controllers::reset_time();
+	}
 
+	// pausing if requested to
         if (pause_listener.is_on())
         {
             settings.run = 0;
@@ -1921,6 +1952,7 @@ void simulate(std::string mujoco_id,
         // end exclusive access
         mtx.unlock();
     }
+
 }
 
 //-------------------------------- init and main
@@ -1962,7 +1994,7 @@ void init()
         mju_error("Headers and library have different versions");
 
     // activate MuJoCo license
-    printf("copying mujoco licence from /opt/mujoco/\n");
+    printf("\ncopying mujoco licence from /opt/mujoco/\n");
     set_mujoco_key();
     mj_activate("mjkey.txt");
 
@@ -2044,18 +2076,26 @@ void init()
 // run event loop
 int main(int argc, const char** argv)
 {
+  if (argc!=2)
+    {
+      std::cerr << "launch_pam_mujoco: takes 1 argument (mujoco_id)" << std::endl;
+      return 1;
+    }
+  
     std::string mujoco_id{argv[1]};
 
-    std::cout << "clearing memory for mujoco_id: " << mujoco_id << std::endl;
+    std::cout << "\n**** PAM MUJOCO: " << mujoco_id 
+	      << " ****\n" << std::endl;
+    
+    std::cout << "clearing memory for mujoco_id: " << mujoco_id << "\n" << std::endl;
     shared_memory::clear_shared_memory(mujoco_id);
 
     // indicating potiential clients that it is not running yet
     shared_memory::set<bool>(mujoco_id,"running",false);
     
     pam_mujoco::MujocoConfig config;
-    bool verbose = true;
-    std::cout << "waiting for configuration" << std::endl;
-    pam_mujoco::wait_for_mujoco_config(mujoco_id, config, verbose);
+    std::cout << "waiting for configuration ... \n" << std::endl;
+    pam_mujoco::wait_for_mujoco_config(mujoco_id, config);
     std::cout << config.to_string() << std::endl;
 
     // initialize everything
@@ -2063,7 +2103,7 @@ int main(int argc, const char** argv)
 
     // loading the model
     mju_strncpy(filename, config.model_path, 1000);
-    std::cout << "loading model: " << filename << std::endl;
+    std::cout << "\nloading model: " << filename << std::endl;
     settings.loadrequest = 2;
 
     // populating the controllers
@@ -2087,7 +2127,8 @@ int main(int argc, const char** argv)
     o80::Burster* burster = nullptr;
     if (config.burst_mode)
     {
-        burster = new o80::Burster(mujoco_id);
+      std::cout << "\nsetting up burster\n" << std::endl;
+      burster = new o80::Burster(mujoco_id);
     }
 
     // start simulation thread
@@ -2096,6 +2137,8 @@ int main(int argc, const char** argv)
 
     // indicating potiential client that things are now up and running
     shared_memory::set<bool>(mujoco_id,"running",true);
+
+    std::cout << "\nrunning ...\n" <<std::endl;
     
     // event loop
     while (!glfwWindowShouldClose(window) && !settings.exitrequest)

@@ -6,18 +6,12 @@ const int ControllerBase::MUJOCO_TIME_STEP_MS;
 
 ControllerBase::ControllerBase()
     : mujoco_time_step_{ControllerBase::MUJOCO_TIME_STEP_MS},
-      previous_stamp_{-1},
-      first_iteration_{true}
+      previous_stamp_{-1}
 {
 }
 
 bool ControllerBase::must_update(mjData* d)
 {
-    if (first_iteration_)
-    {
-        first_iteration_ = false;
-        return true;
-    }
     o80::TimePoint time_stamp{static_cast<long int>(d->time * 1e9)};
     if (time_stamp - previous_stamp_ >= mujoco_time_step_)
     {
@@ -27,6 +21,11 @@ bool ControllerBase::must_update(mjData* d)
     return false;
 }
 
+  void ControllerBase::reset_time()
+  {
+    previous_stamp_=o80::TimePoint{-1};
+  }
+  
 const o80::TimePoint& ControllerBase::get_time_stamp()
 {
     return previous_stamp_;
@@ -48,6 +47,15 @@ void Controllers::add_bias(std::shared_ptr<ActuatorBiasBase> bias)
     Controllers::biases_.push_back(bias);
 }
 
+void Controllers::reset_time()
+{
+    for (std::shared_ptr<ControllerBase> controller : Controllers::controllers_)
+    {
+      controller->reset_time();
+    }
+}
+
+  
 void Controllers::apply(const mjModel* m, mjData* d)
 {
     for (std::shared_ptr<ControllerBase> controller : Controllers::controllers_)

@@ -18,7 +18,7 @@ MujocoRobotJointControl::MujocoRobotJointControl(std::string _segment_id,
 std::string MujocoRobotJointControl::to_string() const
 {
     std::stringstream ss;
-    ss << "\trobot";
+    ss << "\trobot: ";
     ss << "joints control";
     ss << " |\tsegment_id: " << segment_id << " ";
     return ss.str();
@@ -47,13 +47,13 @@ MujocoRobotPressureControl::MujocoRobotPressureControl(
 std::string MujocoRobotPressureControl::to_string() const
 {
   std::stringstream ss;
-    ss << "\trobot ";
-    ss << "pressure control";
-    ss << " |\tsegment_id: " << segment_id << " ";
-    ss << " |\tconfigurations:\n";
-    ss << "\t\t" << json_controller_path;
-    ss << "\t\t" << json_ago_hill_path;
-    ss << "\t\t" << json_antago_hill_path;
+    ss << "\trobot: ";
+    ss << "pressure control, ";
+    ss << "segment_id: " << segment_id << ", ";
+    ss << "configurations:\n";
+    ss << "\t\tcontroller: " << json_controller_path << "\n";
+    ss << "\t\tagnonist muscles: " << json_ago_hill_path << "\n";
+    ss << "\t\tantagonist muscles: " << json_antago_hill_path << "\n";
     return ss.str();
 }
 
@@ -83,10 +83,10 @@ std::string MujocoItemControl::to_string() const
 {
     std::stringstream ss;
     ss << "\t";
-    if (type == MujocoItemTypes::ball) ss << "ball";
-    if (type == MujocoItemTypes::hit_point) ss << "hit_point";
-    if (type == MujocoItemTypes::goal) ss << "goal";
-    ss << " |\tsegment_id: " << segment_id << " ";
+    if (type == MujocoItemTypes::ball) ss << "ball: ";
+    if (type == MujocoItemTypes::hit_point) ss << "hit_point: ";
+    if (type == MujocoItemTypes::goal) ss << "goal: ";
+    ss << "segment_id: " << segment_id << " ";
     if (contact_type == ContactTypes::table)
     {
         ss << "(interrupted on contact with table) ";
@@ -101,7 +101,7 @@ std::string MujocoItemControl::to_string() const
     }
     if (active_only)
     {
-        ss << "active control only ";
+        ss << "(active control only) ";
     }
     return ss.str();
 }
@@ -133,10 +133,10 @@ void MujocoConfig::set_model_path(std::string path)
 std::string MujocoConfig::to_string() const
 {
     std::stringstream ss;
-    ss << "--- configuration for mujoco: " << mujoco_id << "\n"
-       << "\t burst mode: " << burst_mode << "\n"
-       << "\t model path: " << model_path << "\n"
-       << "\t accelerated time: " << accelerated_time << "\n";
+    ss << "configuration for: " << mujoco_id << "\n"
+       << "\tburst mode: " << burst_mode << "\n"
+       << "\tmodel path: " << model_path << "\n"
+       << "\taccelerated time: " << accelerated_time << "\n";
     for (const MujocoItemControl& mic : item_controls)
     {
         ss << mic.to_string() << "\n";
@@ -199,11 +199,9 @@ bool get_mujoco_config(const std::string& mujoco_id, MujocoConfig& get)
 }
 
 void wait_for_mujoco_config(const std::string& mujoco_id,
-                            MujocoConfig& get,
-                            bool verbose)
+                            MujocoConfig& get)
 {
     bool received = false;
-    bool printed = false;
     while (true)
     {
         received = get_mujoco_config(mujoco_id, get);
@@ -213,12 +211,6 @@ void wait_for_mujoco_config(const std::string& mujoco_id,
         }
         else
         {
-            if (verbose && !printed)
-            {
-                std::cout << "waiting for configuration (" << mujoco_id
-                          << ") ..." << std::endl;
-                printed = true;
-            }
             usleep(50000);
         }
     }

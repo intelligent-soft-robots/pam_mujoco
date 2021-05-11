@@ -27,10 +27,10 @@ namespace pam_mujoco
 			 mjData* d)=0;
     bool must_update(mjData* d);
     const o80::TimePoint& get_time_stamp();
+    void reset_time();
   private:
     o80::Milliseconds mujoco_time_step_;
     o80::TimePoint previous_stamp_;
-    bool first_iteration_;
   private:
     static const int MUJOCO_TIME_STEP_MS = 2;
   };
@@ -41,6 +41,7 @@ namespace pam_mujoco
     static void add(std::shared_ptr<ControllerBase> controller);
     static void add(ControllerBase& controller);
     static void add_bias(std::shared_ptr<ActuatorBiasBase> bias);
+    static void reset_time();
     static void apply(const mjModel* m,
 		      mjData* d);
     static mjtNum get_bias(const mjModel* m,

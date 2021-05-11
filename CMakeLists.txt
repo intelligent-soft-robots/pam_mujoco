@@ -99,25 +99,25 @@ ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
 
-add_executable( mujoco_original
-  include/pam_mujoco/simulate.cpp )
+add_executable( launch_pam_mujoco
+  src/pam_mujoco.cpp )
 target_include_directories(
-  mujoco_original PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  launch_pam_mujoco PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
-target_compile_definitions(mujoco_original PRIVATE
+target_compile_definitions(launch_pam_mujoco PRIVATE
   PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
-target_link_libraries(mujoco_original shared_memory::shared_memory)
-target_link_libraries(mujoco_original mujoco_interface::mujoco_interface)
-target_link_libraries(mujoco_original o80::o80)
-target_link_libraries(mujoco_original context::context)
-target_link_libraries(mujoco_original ${PROJECT_NAME})
+target_link_libraries(launch_pam_mujoco shared_memory::shared_memory)
+target_link_libraries(launch_pam_mujoco mujoco_interface::mujoco_interface)
+target_link_libraries(launch_pam_mujoco o80::o80)
+target_link_libraries(launch_pam_mujoco context::context)
+target_link_libraries(launch_pam_mujoco ${PROJECT_NAME})
 foreach(mujoco_lib ${mujoco_libs})
-  target_link_libraries(mujoco_original ${mujoco_lib_dir}/${mujoco_lib})
+  target_link_libraries(launch_pam_mujoco ${mujoco_lib_dir}/${mujoco_lib})
 endforeach(mujoco_lib)
-target_link_libraries(mujoco_original stdc++fs)
-target_link_libraries(mujoco_original EGL GL GLU glut)
-list(APPEND all_targets mujoco_original)
+target_link_libraries(launch_pam_mujoco stdc++fs)
+target_link_libraries(launch_pam_mujoco EGL GL GLU glut)
+list(APPEND all_targets launch_pam_mujoco)
 
 
 ###################

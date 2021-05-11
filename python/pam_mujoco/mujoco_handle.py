@@ -4,6 +4,7 @@ from .mujoco_robot import MujocoRobot
 from .mujoco_item import MujocoItem
 from . import models
 import shared_memory
+import o80
 import pam_mujoco_wrp
 import o80_pam
         
@@ -181,10 +182,16 @@ class MujocoHandle:
             if robot:
                 if robot.control==MujocoRobot.JOINT_CONTROL:
                     logging.info("creating o80 frontend for joint control of {} /  {}".format(mujoco_id,robot.segment_id))
-                    self.frontends[robot.segment_id]=o80_pam.JointFrontEnd(robot.segment_id)
+                    frontend=o80_pam.JointFrontEnd(robot.segment_id)
+                    interface=o80_pam.o80RobotMirroring(robot.segment_id,frontend)
+                    self.frontends[robot.segment_id]=frontend
+                    self.interfaces[robot.segment_id]=interface
                 if robot.control==MujocoRobot.PRESSURE_CONTROL:
                     logging.info("creating o80 frontend for pressure control of {} /  {}".format(mujoco_id,robot.segment_id))
-                    self.frontends[robot.segment_id]=o80_pam.FrontEnd(robot.segment_id)
+                    frontend=o80_pam.FrontEnd(robot.segment_id)
+                    interface=o80_pam.o80Pressures(robot.segment_id,frontend)
+                    self.frontends[robot.segment_id]=frontend
+                    self.interfaces[robot.segment_id]=interface
 
 
         # for tracking contact
@@ -197,7 +204,13 @@ class MujocoHandle:
             if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
                 self.contacts[item.segment_id]=item.segment_id+"_racket2"
 
+        # if bursting mode, creating a burster client
+        if burst_mode:
+            self._burster_client = o80.BursterClient(mujoco_id)
+                
     def reset(self):
+        for _,interface in self.interfaces.items():
+            interface.reset()
         shared_memory.set_bool(self._mujoco_id,"reset",True)
 
     def pause(self,value):
@@ -208,3 +221,11 @@ class MujocoHandle:
         return pam_mujoco_wrp.get_contact(self.contacts[segment_id])
         
     
+    def burst(self,nb_iterations=1):
+        self._burster_client.burst(nb_iterations)
+
+
+    def mujoco_exit(self):
+        shared_memory.set_bool(self._mujoco_id,"exit",True)
+        if self._burster_client:
+            self._burster_client.final_burst()

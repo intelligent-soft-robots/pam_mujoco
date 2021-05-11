@@ -167,8 +167,7 @@ public:
 void set_mujoco_config(const MujocoConfig& config);
 bool get_mujoco_config(const std::string& mujoco_id, MujocoConfig& get);
 void wait_for_mujoco_config(const std::string& mujoco_id,
-                            MujocoConfig& get,
-                            bool verbose = true);
+                            MujocoConfig& get);
 
   // if I call this function "wait_for_mujoco" instead of "_wait_for_mujoco",
   // then pybind11 (in ../srcpy/wrappers) considers it as an override of another
