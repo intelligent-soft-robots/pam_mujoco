@@ -1891,7 +1891,7 @@ void simulate(std::string mujoco_id,
     pam_mujoco::Listener pause_listener(mujoco_id, "pause");
     pam_mujoco::Listener exit_listener(mujoco_id,"exit");
     
-    bool first_iteration = true;
+    int nb_iterations = 0;
 
     // run until asked to exit
     while (!settings.exitrequest)
@@ -1920,17 +1920,18 @@ void simulate(std::string mujoco_id,
         // sleep for 1 ms or yield, to let main thread run
         //  yield results in busy wait - which has better timing but kills
         //  battery life
-        if (settings.run && settings.busywait)
-            std::this_thread::yield();
-        else
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
+        if (settings.run && settings.busywait)
+	  std::this_thread::yield();
+	else if (!accelerated_time)
+	  std::this_thread::sleep_for(std::chrono::milliseconds(1));
+      
         // start exclusive access
         mtx.lock();
 
-        if (burster && !first_iteration)
+        if (burster && nb_iterations>0)
         {
-            burster->pulse();
+	  burster->pulse();
         }
 
 	// resetting if requested to
@@ -1954,7 +1955,13 @@ void simulate(std::string mujoco_id,
 
         do_simulate(accelerated_time, cpusync, simsync);
 
-        first_iteration = false;
+	nb_iterations++;
+	if(nb_iterations==1)
+	  {
+	    // indicating potiential client that things are now up and running
+	    shared_memory::set<bool>(mujoco_id,"running",true);
+	    std::cout << "\nrunning ...\n" <<std::endl;
+	  }
 
         // end exclusive access
         mtx.unlock();
@@ -2155,10 +2162,6 @@ int main(int argc, const char** argv)
     std::thread simthread(
         simulate, mujoco_id, burster, config.accelerated_time);
 
-    // indicating potiential client that things are now up and running
-    shared_memory::set<bool>(mujoco_id,"running",true);
-
-    std::cout << "\nrunning ...\n" <<std::endl;
     
     // event loop
     while (true)
@@ -2198,6 +2201,11 @@ int main(int argc, const char** argv)
     settings.exitrequest = 1;
     simthread.join();
 
+    if (burster)
+    {
+        delete burster;
+    }
+    
     // delete everything we allocated
     if (settings.graphics)
       uiClearCallback(window);
@@ -2213,11 +2221,6 @@ int main(int argc, const char** argv)
 #if defined(__APPLE__) || defined(_WIN32)
     glfwTerminate();
 #endif
-
-    if (burster)
-    {
-        delete burster;
-    }
 
     return 0;
 }
