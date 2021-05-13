@@ -106,7 +106,7 @@ std::string MujocoItemControl::to_string() const
     return ss.str();
 }
 
-MujocoConfig::MujocoConfig() : burst_mode{false}, accelerated_time{false}
+  MujocoConfig::MujocoConfig() : burst_mode{false}, accelerated_time{false}, use_graphics{true}
 {
 }
 
@@ -125,6 +125,12 @@ void MujocoConfig::set_accelerated_time(bool use_accelerated)
     accelerated_time = use_accelerated;
 }
 
+void MujocoConfig::set_graphics(bool graphics)
+{
+    use_graphics = graphics;
+}
+
+  
 void MujocoConfig::set_model_path(std::string path)
 {
     strcpy(model_path, path.c_str());
@@ -136,7 +142,9 @@ std::string MujocoConfig::to_string() const
     ss << "configuration for: " << mujoco_id << "\n"
        << "\tburst mode: " << burst_mode << "\n"
        << "\tmodel path: " << model_path << "\n"
-       << "\taccelerated time: " << accelerated_time << "\n";
+       << "\taccelerated time: " << accelerated_time << "\n"
+       << "\tgraphics: " << use_graphics << "\n";
+    
     for (const MujocoItemControl& mic : item_controls)
     {
         ss << mic.to_string() << "\n";

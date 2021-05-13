@@ -4,13 +4,11 @@
 #include <string>
 #include <tuple>
 #include "pam_interface/configuration.hpp"
-#include "pam_mujoco/burst_controller.hpp"
 #include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/mirror_free_joint.hpp"
 #include "pam_mujoco/mirror_robot.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/pressure_controller.hpp"
-#include "pam_mujoco/run_management.hpp"
 #include "real_time_tools/thread.hpp"
 #include "shared_memory/shared_memory.hpp"
 

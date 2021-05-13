@@ -33,15 +33,20 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     
     pybind11::class_<pam_mujoco::MujocoRobotJointControl>(m, "MujocoRobotJointControl")
       .def(pybind11::init<std::string,std::string,bool>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoRobotJointControl::segment_id)
       .def("__str__",&pam_mujoco::MujocoRobotJointControl::to_string);
 
     pybind11::class_<pam_mujoco::MujocoRobotPressureControl>(m, "MujocoRobotPressureControl")
       .def(pybind11::init<std::string,std::string,
 	   bool,std::string,std::string,std::string>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoRobotPressureControl::segment_id)
       .def("__str__",&pam_mujoco::MujocoRobotPressureControl::to_string);
 
     pybind11::class_<pam_mujoco::MujocoItemControl>(m, "MujocoItemControl")
       .def(pybind11::init<pam_mujoco::MujocoItemTypes,std::string,std::string,int,int,std::string,bool,pam_mujoco::ContactTypes>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoItemControl::segment_id)
+      .def_readonly("type",&pam_mujoco::MujocoItemControl::type)
+      .def_readonly("active_only",&pam_mujoco::MujocoItemControl::active_only)
       .def("__str__",&pam_mujoco::MujocoItemControl::to_string);
     
     pybind11::class_<pam_mujoco::MujocoConfig>(m, "MujocoConfig")
@@ -50,16 +55,27 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def("set_model_path", &pam_mujoco::MujocoConfig::set_model_path)
         .def("set_accelerated_time",
              &pam_mujoco::MujocoConfig::set_accelerated_time)
+      .def("set_graphics",
+	   &pam_mujoco::MujocoConfig::set_graphics)
       .def("set_racket_robot1",&pam_mujoco::MujocoConfig::set_racket_robot1)
       .def("set_racket_robot2",&pam_mujoco::MujocoConfig::set_racket_robot2)
       .def("set_table",&pam_mujoco::MujocoConfig::set_table)
       .def("add_control", pybind11::overload_cast<pam_mujoco::MujocoItemControl>(&pam_mujoco::MujocoConfig::add_control))
       .def("add_control", pybind11::overload_cast<pam_mujoco::MujocoRobotJointControl>(&pam_mujoco::MujocoConfig::add_control))
       .def("add_control", pybind11::overload_cast<pam_mujoco::MujocoRobotPressureControl>(&pam_mujoco::MujocoConfig::add_control))
-        .def("__str__", &pam_mujoco::MujocoConfig::to_string);
+      .def_readonly("item_controls",&pam_mujoco::MujocoConfig::item_controls)
+      .def_readonly("joint_controls",&pam_mujoco::MujocoConfig::joint_controls)
+      .def_readonly("pressure_controls",&pam_mujoco::MujocoConfig::pressure_controls)
+      .def("__str__", &pam_mujoco::MujocoConfig::to_string);
 
     m.def("set_mujoco_config", &pam_mujoco::set_mujoco_config);
     m.def("wait_for_mujoco", &pam_mujoco::_wait_for_mujoco);
+
+    m.def("get_mujoco_config",[](std::string mujoco_id) {
+	pam_mujoco::MujocoConfig config;
+	pam_mujoco::get_mujoco_config(mujoco_id,config);
+	return config;
+      });
     
     m.def("get_contact", [](std::string segment_id) {
         context::ContactInformation ci;

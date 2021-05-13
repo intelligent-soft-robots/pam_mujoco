@@ -95,6 +95,10 @@ struct
 
     // rendering: need sync
     int camera = 0;
+
+    // graphics display (or not)
+    bool graphics = true;
+  
 } settings;
 
 // section ids
@@ -1078,39 +1082,42 @@ void loadmodel(void)
     d = mj_makeData(m);
     mj_forward(m, d);
 
-    // re-create scene and context
-    mjv_makeScene(m, &scn, maxgeom);
-    mjr_makeContext(m, &con, 50 * (settings.font + 1));
+    if(settings.graphics)
+      {
+	// re-create scene and context
+	mjv_makeScene(m, &scn, maxgeom);
+	mjr_makeContext(m, &con, 50 * (settings.font + 1));
 
-    // clear perturbation state
-    pert.active = 0;
-    pert.select = 0;
-    pert.skinselect = -1;
+	// clear perturbation state
+	pert.active = 0;
+	pert.select = 0;
+	pert.skinselect = -1;
 
-    // align and scale view, update scene
-    alignscale();
-    mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
+	// align and scale view, update scene
+	alignscale();
+	mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
 
-    // set window title to model name
-    if (window && m->names)
-    {
-        char title[200] = "Simulate : ";
-        strcat(title, m->names);
-        glfwSetWindowTitle(window, title);
-    }
+	// set window title to model name
+	if (window && m->names)
+	  {
+	    char title[200] = "Simulate : ";
+	    strcat(title, m->names);
+	    glfwSetWindowTitle(window, title);
+	  }
 
-    // set keyframe range and divisions
-    ui0.sect[SECT_SIMULATION].item[6].slider.range[0] = 0;
-    ui0.sect[SECT_SIMULATION].item[6].slider.range[1] = mjMAX(0, m->nkey - 1);
-    ui0.sect[SECT_SIMULATION].item[6].slider.divisions = mjMAX(1, m->nkey - 1);
+	// set keyframe range and divisions
+	ui0.sect[SECT_SIMULATION].item[6].slider.range[0] = 0;
+	ui0.sect[SECT_SIMULATION].item[6].slider.range[1] = mjMAX(0, m->nkey - 1);
+	ui0.sect[SECT_SIMULATION].item[6].slider.divisions = mjMAX(1, m->nkey - 1);
 
-    // rebuild UI sections
-    makesections();
+	// rebuild UI sections
+	makesections();
 
-    // full ui update
-    uiModify(window, &ui0, &uistate, &con);
-    uiModify(window, &ui1, &uistate, &con);
-    updatesettings();
+	// full ui update
+	uiModify(window, &ui0, &uistate, &con);
+	uiModify(window, &ui1, &uistate, &con);
+	updatesettings();
+      }
 }
 
 //--------------------------------- UI hooks (for uitools.c)
@@ -1998,79 +2005,83 @@ void init()
     set_mujoco_key();
     mj_activate("mjkey.txt");
 
-    // init GLFW, set timer callback (milliseconds)
-    if (!glfwInit()) mju_error("could not initialize GLFW");
-    mjcb_time = timer;
+    if(settings.graphics)
+      {
+    
+	// init GLFW, set timer callback (milliseconds)
+	if (!glfwInit()) mju_error("could not initialize GLFW");
+	mjcb_time = timer;
 
-    // multisampling
-    glfwWindowHint(GLFW_SAMPLES, 4);
-    glfwWindowHint(GLFW_VISIBLE, 1);
+	// multisampling
+	glfwWindowHint(GLFW_SAMPLES, 4);
+	glfwWindowHint(GLFW_VISIBLE, 1);
 
-    // get videomode and save
-    vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
+	// get videomode and save
+	vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-    // create window
-    window = glfwCreateWindow(
-        (2 * vmode.width) / 3, (2 * vmode.height) / 3, "Simulate", NULL, NULL);
-    if (!window)
-    {
-        glfwTerminate();
-        mju_error("could not create window");
-    }
+	// create window
+	window = glfwCreateWindow(
+				  (2 * vmode.width) / 3, (2 * vmode.height) / 3, "Simulate", NULL, NULL);
+	if (!window)
+	  {
+	    glfwTerminate();
+	    mju_error("could not create window");
+	  }
 
-    // save window position and size
-    glfwGetWindowPos(window, windowpos, windowpos + 1);
-    glfwGetWindowSize(window, windowsize, windowsize + 1);
+	// save window position and size
+	glfwGetWindowPos(window, windowpos, windowpos + 1);
+	glfwGetWindowSize(window, windowsize, windowsize + 1);
 
-    // make context current, set v-sync
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(settings.vsync);
+	// make context current, set v-sync
+	glfwMakeContextCurrent(window);
+	glfwSwapInterval(settings.vsync);
 
-    // init abstract visualization
-    mjv_defaultCamera(&cam);
-    mjv_defaultOption(&vopt);
-    profilerinit();
-    sensorinit();
+	// init abstract visualization
+	mjv_defaultCamera(&cam);
+	mjv_defaultOption(&vopt);
+	profilerinit();
+	sensorinit();
 
-    // make empty scene
-    mjv_defaultScene(&scn);
-    mjv_makeScene(NULL, &scn, maxgeom);
+	// make empty scene
+	mjv_defaultScene(&scn);
+	mjv_makeScene(NULL, &scn, maxgeom);
 
-    // select default font
-    int fontscale = uiFontScale(window);
-    settings.font = fontscale / 50 - 1;
+	// select default font
+	int fontscale = uiFontScale(window);
+	settings.font = fontscale / 50 - 1;
 
-    // make empty context
-    mjr_defaultContext(&con);
-    mjr_makeContext(NULL, &con, fontscale);
+	// make empty context
+	mjr_defaultContext(&con);
+	mjr_makeContext(NULL, &con, fontscale);
 
-    // set GLFW callbacks
-    uiSetCallback(window, &uistate, uiEvent, uiLayout);
-    glfwSetWindowRefreshCallback(window, render);
-    glfwSetDropCallback(window, drop);
+	// set GLFW callbacks
+	uiSetCallback(window, &uistate, uiEvent, uiLayout);
+	glfwSetWindowRefreshCallback(window, render);
+	glfwSetDropCallback(window, drop);
 
-    // init state and uis
-    memset(&uistate, 0, sizeof(mjuiState));
-    memset(&ui0, 0, sizeof(mjUI));
-    memset(&ui1, 0, sizeof(mjUI));
-    ui0.spacing = mjui_themeSpacing(settings.spacing);
-    ui0.color = mjui_themeColor(settings.color);
-    ui0.predicate = uiPredicate;
-    ui0.rectid = 1;
-    ui0.auxid = 0;
-    ui1.spacing = mjui_themeSpacing(settings.spacing);
-    ui1.color = mjui_themeColor(settings.color);
-    ui1.predicate = uiPredicate;
-    ui1.rectid = 2;
-    ui1.auxid = 1;
+	// init state and uis
+	memset(&uistate, 0, sizeof(mjuiState));
+	memset(&ui0, 0, sizeof(mjUI));
+	memset(&ui1, 0, sizeof(mjUI));
+	ui0.spacing = mjui_themeSpacing(settings.spacing);
+	ui0.color = mjui_themeColor(settings.color);
+	ui0.predicate = uiPredicate;
+	ui0.rectid = 1;
+	ui0.auxid = 0;
+	ui1.spacing = mjui_themeSpacing(settings.spacing);
+	ui1.color = mjui_themeColor(settings.color);
+	ui1.predicate = uiPredicate;
+	ui1.rectid = 2;
+	ui1.auxid = 1;
 
-    // populate uis with standard sections
-    mjui_add(&ui0, defFile);
-    mjui_add(&ui0, defOption);
-    mjui_add(&ui0, defSimulation);
-    mjui_add(&ui0, defWatch);
-    uiModify(window, &ui0, &uistate, &con);
-    uiModify(window, &ui1, &uistate, &con);
+	// populate uis with standard sections
+	mjui_add(&ui0, defFile);
+	mjui_add(&ui0, defOption);
+	mjui_add(&ui0, defSimulation);
+	mjui_add(&ui0, defWatch);
+	uiModify(window, &ui0, &uistate, &con);
+	uiModify(window, &ui1, &uistate, &con);
+      }
 }
 
 // run event loop
@@ -2098,9 +2109,26 @@ int main(int argc, const char** argv)
     pam_mujoco::wait_for_mujoco_config(mujoco_id, config);
     std::cout << config.to_string() << std::endl;
 
+    if(config.use_graphics)
+      {
+	settings.graphics=true;
+      }
+    else
+      {
+	settings.graphics=false;
+      }
+	
     // initialize everything
     init();
 
+    // setting up a burster, if requested to
+    o80::Burster* burster = nullptr;
+    if (config.burst_mode)
+    {
+      std::cout << "\nsetting up burster:" << mujoco_id << std::endl;
+      burster = new o80::Burster(mujoco_id);
+    }
+    
     // loading the model
     mju_strncpy(filename, config.model_path, 1000);
     std::cout << "\nloading model: " << filename << std::endl;
@@ -2123,14 +2151,6 @@ int main(int argc, const char** argv)
     mjcb_control = pam_mujoco::Controllers::apply;
     mjcb_act_bias = pam_mujoco::Controllers::get_bias;
 
-    // setting up a burster, if requested to
-    o80::Burster* burster = nullptr;
-    if (config.burst_mode)
-    {
-      std::cout << "\nsetting up burster\n" << std::endl;
-      burster = new o80::Burster(mujoco_id);
-    }
-
     // start simulation thread
     std::thread simthread(
         simulate, mujoco_id, burster, config.accelerated_time);
@@ -2141,7 +2161,7 @@ int main(int argc, const char** argv)
     std::cout << "\nrunning ...\n" <<std::endl;
     
     // event loop
-    while (!glfwWindowShouldClose(window) && !settings.exitrequest)
+    while (true)
     {
         // start exclusive access (block simulation thread)
         mtx.lock();
@@ -2153,7 +2173,8 @@ int main(int argc, const char** argv)
             settings.loadrequest = 1;
 
         // handle events (calls all callbacks)
-        glfwPollEvents();
+	if(settings.graphics)
+	  glfwPollEvents();
 
         // prepare to render
         prepare();
@@ -2162,7 +2183,15 @@ int main(int argc, const char** argv)
         mtx.unlock();
 
         // render while simulation is running
-        render(window);
+        if (settings.graphics)
+	  render(window);
+
+	if(settings.graphics && glfwWindowShouldClose(window))
+	  break;
+
+	if(settings.exitrequest)
+	  break;
+	
     }
 
     // stop simulation thread
@@ -2170,7 +2199,8 @@ int main(int argc, const char** argv)
     simthread.join();
 
     // delete everything we allocated
-    uiClearCallback(window);
+    if (settings.graphics)
+      uiClearCallback(window);
     mj_deleteData(d);
     mj_deleteModel(m);
     mjv_freeScene(&scn);

@@ -155,22 +155,12 @@ ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
 # Executables #
 ###############
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/o80_mujoco
-  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mirroring COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_visualization
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_visualization COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_mirroring COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_start_mirrored_robots
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_start_mirrored_robots COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_start_mirrored_robots_accelerated
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_start_mirrored_robots_accelerated COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_demo_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_demo_mirroring COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_visualization
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_visualization COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/process_pam_visualization
+  ${CMAKE_INSTALL_PREFIX}/bin/process_pam_visualization COPYONLY)
 
 
 #######################

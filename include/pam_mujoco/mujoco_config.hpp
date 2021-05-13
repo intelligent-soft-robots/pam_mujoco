@@ -111,7 +111,6 @@ public:
     MujocoItemTypes type;
     char segment_id[200];
     char joint[200];
-    bool active;
     int index_qpos;
     int index_qvel;
     char geometry[100];
@@ -127,6 +126,7 @@ public:
     void set_burst_mode(bool use_burst);
     void set_accelerated_time(bool use_accelerated);
     void set_model_path(std::string path);
+  void set_graphics(bool use_graphics);
     std::string to_string() const;
   void set_racket_robot1(std::string _racket1_geometry);
   void set_racket_robot2(std::string _racket2_geometry);
@@ -143,6 +143,7 @@ public:
                 model_path,
                 burst_mode,
                 accelerated_time,
+		use_graphics,
                 item_controls,
 		joint_controls,
 		pressure_controls,
@@ -155,6 +156,7 @@ public:
     char model_path[200];
     bool burst_mode;
     bool accelerated_time;
+  bool use_graphics;
     char mujoco_id[200];
     std::vector<MujocoItemControl> item_controls;
     std::vector<MujocoRobotJointControl> joint_controls;
