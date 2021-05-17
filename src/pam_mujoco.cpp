@@ -1890,7 +1890,8 @@ void simulate(std::string mujoco_id,
     pam_mujoco::Listener reset_listener(mujoco_id, "reset");
     pam_mujoco::Listener pause_listener(mujoco_id, "pause");
     pam_mujoco::Listener exit_listener(mujoco_id,"exit");
-    
+
+    int nb_init_iterations=1000;
     int nb_iterations = 0;
 
     // run until asked to exit
@@ -1929,10 +1930,14 @@ void simulate(std::string mujoco_id,
         // start exclusive access
         mtx.lock();
 
-        if (burster && nb_iterations>0)
+        if (burster && nb_iterations>nb_init_iterations)
         {
 	  burster->pulse();
         }
+	if(nb_iterations<=nb_init_iterations)
+	  {
+	    std::cout << "init iteration: " << nb_iterations << std::endl;
+	  }
 
 	// resetting if requested to
         if (reset_listener.do_once())
@@ -1955,13 +1960,13 @@ void simulate(std::string mujoco_id,
 
         do_simulate(accelerated_time, cpusync, simsync);
 
-	nb_iterations++;
-	if(nb_iterations==1)
+	if(nb_iterations==nb_init_iterations)
 	  {
 	    // indicating potiential client that things are now up and running
 	    shared_memory::set<bool>(mujoco_id,"running",true);
 	    std::cout << "\nrunning ...\n" <<std::endl;
 	  }
+	nb_iterations++;
 
         // end exclusive access
         mtx.unlock();
@@ -2140,25 +2145,34 @@ int main(int argc, const char** argv)
     mju_strncpy(filename, config.model_path, 1000);
     std::cout << "\nloading model: " << filename << std::endl;
     settings.loadrequest = 2;
-
+    std::cout << "model loaded" << std::endl;
+    
     // populating the controllers
     for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
     {
+      std::cout << "\nadding controller:"<< std::endl;
+      std::cout << mic.to_string() << std::endl;
       pam_mujoco::add_item_control(config,mic);
     }
     for (const pam_mujoco::MujocoRobotJointControl& mrc : config.joint_controls)
     {
+      std::cout << "\nadding controller:"<< std::endl;
+      std::cout << mrc.to_string() << std::endl;
       pam_mujoco::add_joints_control(mrc);
     }
     for (const pam_mujoco::MujocoRobotPressureControl& mpc : config.pressure_controls)
     {
+      std::cout << "\nadding controller:"<< std::endl;
+      std::cout << mpc.to_string() << std::endl;
       pam_mujoco::add_pressures_control(mpc);
     }
 
     mjcb_control = pam_mujoco::Controllers::apply;
     mjcb_act_bias = pam_mujoco::Controllers::get_bias;
 
+        
     // start simulation thread
+    std::cout << "\nstarting simulation thread" << std::endl;
     std::thread simthread(
         simulate, mujoco_id, burster, config.accelerated_time);
 

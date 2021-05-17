@@ -1,4 +1,4 @@
-import logging
+import time,logging
 from functools import partial
 from .mujoco_robot import MujocoRobot
 from .mujoco_item import MujocoItem
@@ -151,9 +151,8 @@ class MujocoHandle:
         # waiting for mujoco to report it is ready
 
         logging.info("waiting for mujoco executable {}".format(mujoco_id))
-        
         pam_mujoco_wrp.wait_for_mujoco(mujoco_id)
-
+        
         # if read only, we did not create the mujoco configuration,
         # (which has been written by another process)
         # so we read it from the shared memory
