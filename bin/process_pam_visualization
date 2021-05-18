@@ -56,24 +56,37 @@ def _execute_visualization(config):
     hit_point_get = handle_from.interfaces[config.segment_id_hit_point]
     hit_point_set = handle_to.interfaces[config.mujoco_id_to+config.segment_id_hit_point]
 
-    # running at 400 hz
-    frequency_manager = o80.FrequencyManager(400)
+    frequency = 100.0
+    frequency_manager = o80.FrequencyManager(frequency)
+    duration_ms = int(1.0e3/frequency)
 
+    class UpdateIfChange:
+        def __init__(self,
+                     interface_get,
+                     interface_set,
+                     duration_ms):
+            self._interface_get = interface_get
+            self._interface_set = interface_set
+            self._duration_ms = duration_ms
+            self._previous1,self._previous2 = None,None
+        def __call__(self):
+            v1,v2=self._interface_get.get()
+            if v1!=self._previous1 or v2!=self._previous2:
+                self._interface_set.set(v1,
+                                        v2,
+                                        duration_ms=self._duration_ms)
+                self._previous1,self._previous2=v1,v2
+
+    update_if_changes = [UpdateIfChange(get_,set_,duration_ms)
+                         for get_,set_ in ((ball_get,ball_set),
+                                           (goal_get,goal_set),
+                                           (hit_point_get,hit_point_set),
+                                           (robot_get,robot_set))]
+                
     signal_handler.init()
     while not signal_handler.has_received_sigint():
-        
-        ball_position,ball_velocity = ball_get.get()
-        ball_set.set(ball_position,ball_velocity,duration_ms=50)
-
-        goal_position,goal_velocity = goal_get.get()
-        goal_set.set(goal_position,goal_velocity,duration_ms=50)
-
-        hit_point_position,hit_point_velocity = hit_point_get.get()
-        hit_point_set.set(hit_point_position,hit_point_velocity,duration_ms=50)
-
-        joint_positions,joint_velocities = robot_get.get()
-        robot_set.set(joint_positions,joint_velocities,duration_ms=50)
-
+        for uic in update_if_changes:
+            uic()
         frequency_manager.wait()
             
     handle_to.mujoco_exit()
