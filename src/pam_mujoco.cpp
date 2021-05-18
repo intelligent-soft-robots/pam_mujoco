@@ -98,6 +98,12 @@ struct
 
     // graphics display (or not)
     bool graphics = true;
+
+    // to decide when to inform
+    // client(s) all is ready
+    bool graphics_first_iteration = true;
+    bool graphics_ready=false;
+    bool client_notified=false;
   
 } settings;
 
@@ -1783,6 +1789,12 @@ void render(GLFWwindow* window)
 
     // finalize
     glfwSwapBuffers(window);
+
+    if(!settings.graphics_ready)
+      {
+	std::cout << "\ngraphics ready" << std::endl;
+	settings.graphics_ready=true;
+      }
 }
 
 void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
@@ -1891,9 +1903,14 @@ void simulate(std::string mujoco_id,
     pam_mujoco::Listener pause_listener(mujoco_id, "pause");
     pam_mujoco::Listener exit_listener(mujoco_id,"exit");
 
-    int nb_init_iterations=1000;
-    int nb_iterations = 0;
+    // waiting for the graphics
+    while ( (!settings.graphics_ready) && (!settings.exitrequest) )
+      {
+	usleep(1000);
+      }
 
+    bool first_iteration=true;
+    
     // run until asked to exit
     while (!settings.exitrequest)
     {
@@ -1930,14 +1947,11 @@ void simulate(std::string mujoco_id,
         // start exclusive access
         mtx.lock();
 
-        if (burster && nb_iterations>nb_init_iterations)
+        if (burster && !first_iteration)
         {
 	  burster->pulse();
         }
-	if(nb_iterations<=nb_init_iterations)
-	  {
-	    std::cout << "init iteration: " << nb_iterations << std::endl;
-	  }
+	first_iteration=false;
 
 	// resetting if requested to
         if (reset_listener.do_once())
@@ -1960,13 +1974,12 @@ void simulate(std::string mujoco_id,
 
         do_simulate(accelerated_time, cpusync, simsync);
 
-	if(nb_iterations==nb_init_iterations)
+	if( !settings.client_notified )
 	  {
-	    // indicating potiential client that things are now up and running
 	    shared_memory::set<bool>(mujoco_id,"running",true);
 	    std::cout << "\nrunning ...\n" <<std::endl;
+	    settings.client_notified=true;
 	  }
-	nb_iterations++;
 
         // end exclusive access
         mtx.unlock();
@@ -2128,6 +2141,7 @@ int main(int argc, const char** argv)
     else
       {
 	settings.graphics=false;
+	settings.graphics_ready=true;
       }
 	
     // initialize everything
@@ -2137,7 +2151,7 @@ int main(int argc, const char** argv)
     o80::Burster* burster = nullptr;
     if (config.burst_mode)
     {
-      std::cout << "\nsetting up burster:" << mujoco_id << std::endl;
+      std::cout << "\nsetting up burster: " << mujoco_id << std::endl;
       burster = new o80::Burster(mujoco_id);
     }
     
@@ -2176,7 +2190,6 @@ int main(int argc, const char** argv)
     std::thread simthread(
         simulate, mujoco_id, burster, config.accelerated_time);
 
-    
     // event loop
     while (true)
     {
@@ -2208,7 +2221,7 @@ int main(int argc, const char** argv)
 
 	if(settings.exitrequest)
 	  break;
-	
+
     }
 
     // stop simulation thread
