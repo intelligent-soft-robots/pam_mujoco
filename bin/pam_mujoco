@@ -1,10 +1,10 @@
 #!/bin/bash
 
-for segment_id in "$@"
+for mujoco_id in "$@"
 do
 
-    xterm -e launch_pam_mujoco "$segment_id" &
+    xterm -T "$mujoco_id" -n "$mujoco_id" -e launch_pam_mujoco "$mujoco_id" &
     pid=$!
-    echo "launch_pam_mujoco ${segment_id} pid: ${pid}"
+    echo "launch_pam_mujoco ${mujoco_id} pid: ${pid}"
 done
  

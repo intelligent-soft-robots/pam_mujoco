@@ -104,6 +104,7 @@ struct
     bool graphics_first_iteration = true;
     bool graphics_ready=false;
     bool client_notified=false;
+    char mujoco_id[200];
   
 } settings;
 
@@ -1106,9 +1107,7 @@ void loadmodel(void)
 	// set window title to model name
 	if (window && m->names)
 	  {
-	    char title[200] = "Simulate : ";
-	    strcat(title, m->names);
-	    glfwSetWindowTitle(window, title);
+	    glfwSetWindowTitle(window, settings.mujoco_id);
 	  }
 
 	// set keyframe range and divisions
@@ -2119,7 +2118,8 @@ int main(int argc, const char** argv)
     }
   
     std::string mujoco_id{argv[1]};
-
+    strcat(settings.mujoco_id,mujoco_id.c_str());
+	   
     std::cout << "\n**** PAM MUJOCO: " << mujoco_id 
 	      << " ****\n" << std::endl;
     
@@ -2131,7 +2131,12 @@ int main(int argc, const char** argv)
     
     pam_mujoco::MujocoConfig config;
     std::cout << "waiting for configuration ... \n" << std::endl;
-    pam_mujoco::wait_for_mujoco_config(mujoco_id, config);
+    bool exit_requested = pam_mujoco::wait_for_mujoco_config(mujoco_id, config);
+    if(exit_requested)
+      {
+	std::cout << "\npam_mujoco " << mujoco_id << " exiting\n";
+	return 0;
+      }
     std::cout << config.to_string() << std::endl;
 
     if(config.use_graphics)
@@ -2243,6 +2248,8 @@ int main(int argc, const char** argv)
 
     // deactive MuJoCo
     mj_deactivate();
+
+    std::cout << "\npam_mujoco " << mujoco_id << " exiting\n";
 
 // terminate GLFW (crashes with Linux NVidia drivers)
 #if defined(__APPLE__) || defined(_WIN32)

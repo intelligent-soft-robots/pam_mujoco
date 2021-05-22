@@ -206,21 +206,27 @@ bool get_mujoco_config(const std::string& mujoco_id, MujocoConfig& get)
     return true;
 }
 
-void wait_for_mujoco_config(const std::string& mujoco_id,
+
+bool wait_for_mujoco_config(const std::string& mujoco_id,
                             MujocoConfig& get)
 {
+  shared_memory::set<bool>(mujoco_id,"exit",false);
     bool received = false;
     while (true)
     {
         received = get_mujoco_config(mujoco_id, get);
         if (received)
         {
-            return;
+            return false;
         }
         else
         {
             usleep(50000);
         }
+	bool stop_requested;
+	shared_memory::get<bool>(mujoco_id,"exit",stop_requested);
+	if(stop_requested)
+	  return true;
     }
 }
 

@@ -61,11 +61,13 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     // take hand), checking if such contact occured.
     // (note: see Contacts.hpp to see what serialize ContactInformation
     // instances into the shared memory)
+    bool contact_disabled;
     if (contact_interrupt_)
     {
         context::ContactInformation ci;
         shared_memory::deserialize(
             segment_id_contact_, segment_id_contact_, ci);
+	contact_disabled = ci.disabled;
         if (ci.contact_occured && !interrupted_)
         {
             interrupted_ = true;
@@ -88,13 +90,15 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     }
 
     // here mujoco's is overwritten by o80 desired state if:
-    // 1. we are not post contact (if interrupt_segment_id has been provided)
+    // 1a. we are not post contact (if interrupt_segment_id has been provided)
+    // or
+    // 1b. contact are disabled
     // and
     // 2. the backend is active (i.e. no o80 command is active)
 
-    static int foo=0;
-    
-    if ((!interrupted_) && active)
+    bool overwrite = ( ( (!interrupted_) || contact_disabled ) && active );
+
+    if (overwrite)
     {
         // x,y,z positions
         d->qpos[index_qpos_] = set_states_.get(0).value;

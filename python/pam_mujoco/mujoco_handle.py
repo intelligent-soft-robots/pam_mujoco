@@ -282,7 +282,7 @@ class MujocoHandle:
 
     def deactivate_contact(self,
                          segment_id):
-        return pam_mujoco_wrp.activate_contact(self.contacts[segment_id])
+        return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id])
     
     def burst(self,nb_iterations=1):
         self._burster_client.burst(nb_iterations)

@@ -168,7 +168,7 @@ public:
 
 void set_mujoco_config(const MujocoConfig& config);
 bool get_mujoco_config(const std::string& mujoco_id, MujocoConfig& get);
-void wait_for_mujoco_config(const std::string& mujoco_id,
+bool wait_for_mujoco_config(const std::string& mujoco_id,
                             MujocoConfig& get);
 
   // if I call this function "wait_for_mujoco" instead of "_wait_for_mujoco",
