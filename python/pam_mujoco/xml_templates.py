@@ -154,7 +154,7 @@ def get_contacts_xml(robots,balls,tables,
         gap = None
         if geom1 in solrefs :
             if geom2 in solrefs[geom1]:
-                damping = _str(dampings[geom1][geom2])
+                damping = _str(solrefs[geom1][geom2])
         if geom1 in gaps:
             if geom2 in gaps[geom1]:
                 gap = str(gaps[geom1][geom2])

@@ -155,7 +155,7 @@ def defaults_solrefs():
                       "racket_handle":(0.003,0.35),
                       "table":(-0.1,-0.1),
                       "net":(0.003,10.0) },
-             "floor":{ "racket":(0.003,0.9) } },
+             "floor":{ "racket":(0.003,0.9) } }
 
 
 def defaults_gaps():
