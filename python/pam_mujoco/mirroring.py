@@ -63,11 +63,13 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
         for _ in range(nb_bursts):
             o80_pressures.burst(1)
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
-            o80_mirroring.set(positions,velocities,nb_iterations=1,burst=1)
+            o80_mirroring.set(positions,velocities)
+            o80_mirroring.burst(1)
         while not _reached_target():
             o80_pressures.burst(1)
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
-            o80_mirroring.set(positions,velocities,nb_iterations=1,burst=1)
+            o80_mirroring.set(positions,velocities)
+            o80_mirroring.burst(1)
         return
 
     o80_pressures.set(action,duration_ms=int(duration_s*1000+0.5),

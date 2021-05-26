@@ -1,7 +1,8 @@
 import os
 import itertools
 import numpy as np
-
+from .mujoco_robot import MujocoRobot
+from .mujoco_item import MujocoItem
 from . import xml_templates
 from . import paths
 
@@ -124,11 +125,14 @@ class Robot:
     def __init__(self,
                  model_name,
                  name,
-                 position,xy_axes):
+                 position,
+                 xy_axes,
+                 muscles):
         self.model_name = model_name
         self.name = name
         self.position = position
         self.xy_axes = xy_axes
+        self.muscles=muscles
         # will be filled by the "generate_model"
         # function (in this file)
         self.geom_racket = None
@@ -137,14 +141,14 @@ class Robot:
         self.index_qpos = -1
         self.index_qvel = -1
         
-    def get_xml(self,muscles):
+    def get_xml(self):
         (xml,joint,geom_racket,
          geom_racket_handle,
          nb_bodies)= xml_templates.get_robot_xml(self.model_name,
                                                  self.name,
                                                  self.position,
                                                  self.xy_axes,
-                                                 muscles)
+                                                 self.muscles)
         return (xml,joint,geom_racket,geom_racket_handle,nb_bodies)
 
     
@@ -170,9 +174,9 @@ def generate_model(model_name,
                    tables=[],
                    goals=[],
                    hit_points=[],
-                   muscles=True,
                    solrefs = defaults_solrefs(),
-                   gaps = defaults_gaps()):
+                   gaps = defaults_gaps(),
+                   muscles=False):
 
     template = paths.get_main_template_xml()
     template = template.replace("$timestep$",str(time_step))
@@ -228,7 +232,7 @@ def generate_model(model_name,
     # ...
     for robot in robots:
         (xml,joint,geom_racket,
-         geom_racket_handle,nb_bodies) = robot.get_xml(muscles)
+         geom_racket_handle,nb_bodies) = robot.get_xml()
         bodies.append(xml)
         robot.geom_racket = geom_racket
         robot.geom_racket_handle = geom_racket_handle
@@ -240,7 +244,7 @@ def generate_model(model_name,
         
     template = template.replace("<!-- bodies -->","\n".join(bodies))
 
-    if muscles:
+    if any([r.muscles for r in robots]):
         actuations = ["<tendon>"]
         for robot in robots:
             xml_tendon = paths.get_robot_tendon_xml(robot.name)
@@ -256,7 +260,7 @@ def generate_model(model_name,
     contacts = xml_templates.get_contacts_xml(robots,balls,tables,solrefs,gaps)
 
     template = template.replace("<!-- contacts -->",contacts)
-    
+
     path = paths.write_model_xml(model_name,template)
 
     print("created mujoco xml model file:",path)
@@ -265,15 +269,14 @@ def generate_model(model_name,
         
         
 
-def model_factory(model_name,
-                  time_step = 0.002,
-                  table=False,nb_balls=1,
-                  robot1=False,robot1_position=[0.1,0.0,-0.44],
-                  robot2=False,robot2_position=[1.6,3.4,-0.44],
-                  robot2_orientation = [-1,0,0,0,-1,0],
-                  goal=False,hit_point=False,
-                  ball_colors=None,
-                  muscles=True):
+def model_factory(model_name: str,
+                  time_step: float = 0.002,
+                  table: bool =False,
+                  balls: list=[],
+                  goals: list=[],
+                  hit_points: list=[],
+                  robot1: MujocoRobot=None,
+                  robot2: MujocoRobot=None):
 
     r = {}
     
@@ -282,54 +285,50 @@ def model_factory(model_name,
         table = Table(model_name,"table")
         tables.append(table)
         r["table"]=table
+    else:
+        r["table"]=None
+        
+    xml_balls = [Ball(model_name,
+                      ball.segment_id,
+                      color=ball.color)
+                 for ball in balls]
 
-    balls = [Ball(model_name,"ball_"+str(index))
-             for index,ball in enumerate(range(nb_balls))]
-    if balls:
-        if nb_balls==1:
-            r["ball"]=balls[0]
-        else:
-            r["balls"]=balls
-
-    if ball_colors is not None:
-        for ball,color in zip(balls,ball_colors):
-            ball.color = color
-    
     robots = []
-    if robot1:
-        robots.append(Robot(model_name,
-                            "robot1",robot1_position,None))
-    if robot2:
-        robots.append(Robot(model_name,
-                            "robot2",robot2_position,robot2_orientation))
-    if len(robots)==1:
-        r["robot"]=robots[0]
-    else:
-        r["robots"]=robots
-        
-    if goal:
-        goal = Goal(model_name,"goal")
-        goals = [goal]
-        r["goal"]=goal
-    else:
-        goals = []
-        
-    if hit_point:
-        hit_point = HitPoint(model_name,"hit_point")
-        hit_points = [hit_point]
-        r["hit_point"]=hit_point
-    else:
-        hit_points = []
+    for key,robot in zip(("robot1","robot2"),(robot1,robot2)):
+        if robot:
+            muscles=(robot.control==MujocoRobot.PRESSURE_CONTROL)
+            instance=Robot(model_name,
+                           robot.segment_id,
+                           robot.position,
+                           robot.orientation,
+                           muscles)
+            robots.append(instance)
+            r[key]=instance
+        else:
+            r[key]=None
+            
+    xml_goals = [Goal(model_name,
+                      goal.segment_id,
+                      color=goal.color)
+                 for goal in goals]
+
+    xml_hit_points = [HitPoint(model_name,
+                               hit_point.segment_id,
+                               color=hit_point.color)
+                      for hit_point in hit_points]
+
 
     model_path = generate_model(model_name,
                                 time_step = time_step,
                                 robots=robots,
-                                balls=balls,
+                                balls=xml_balls,
                                 tables=tables,
-                                goals=goals,
-                                hit_points=hit_points,
-                                muscles=muscles)
+                                goals=xml_goals,
+                                hit_points=xml_hit_points)
 
+    r["balls"] = xml_balls
+    r["goals"] = xml_goals
+    r["hit_points"] = xml_hit_points
     r["path"] = model_path
 
     return r
