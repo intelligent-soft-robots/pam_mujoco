@@ -1,0 +1,10 @@
+#!/bin/bash
+
+for segment_id in "$@"
+do
+
+    launch_pam_mujoco "$segment_id" &
+    pid=$!
+    echo "launch_pam_mujoco ${segment_id} pid: ${pid}"
+done
+ 

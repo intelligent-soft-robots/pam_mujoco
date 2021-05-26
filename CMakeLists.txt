@@ -72,14 +72,17 @@ add_library( ${PROJECT_NAME} SHARED
   src/contact_states.cpp
   src/contact_logic.cpp
   src/recompute_state_after_contact.cpp
-  src/burst_controller.cpp
-  src/run_management.cpp
-  src/run_mujoco.cpp
-  src/controllers.cpp )
+  src/controllers.cpp
+  src/add_controllers.cpp
+  src/listener.cpp
+  src/mujoco_config.cpp
+  src/listener.cpp)
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
 target_link_libraries(${PROJECT_NAME} context::context)
 target_link_libraries(${PROJECT_NAME} shared_memory::shared_memory)
 target_link_libraries(${PROJECT_NAME} pam_models::pam_models)
@@ -96,12 +99,34 @@ ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
 
+add_executable( launch_pam_mujoco
+  src/pam_mujoco.cpp )
+target_include_directories(
+  launch_pam_mujoco PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  ${mujoco_include_dir}
+  $<INSTALL_INTERFACE:include>)
+target_compile_definitions(launch_pam_mujoco PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
+target_link_libraries(launch_pam_mujoco shared_memory::shared_memory)
+target_link_libraries(launch_pam_mujoco mujoco_interface::mujoco_interface)
+target_link_libraries(launch_pam_mujoco o80::o80)
+target_link_libraries(launch_pam_mujoco context::context)
+target_link_libraries(launch_pam_mujoco ${PROJECT_NAME})
+foreach(mujoco_lib ${mujoco_libs})
+  target_link_libraries(launch_pam_mujoco ${mujoco_lib_dir}/${mujoco_lib})
+endforeach(mujoco_lib)
+target_link_libraries(launch_pam_mujoco stdc++fs)
+target_link_libraries(launch_pam_mujoco EGL GL GLU glut)
+list(APPEND all_targets launch_pam_mujoco)
+
 
 ###################
 # Python wrappers #
 ###################
 
 add_library(${PROJECT_NAME}_py MODULE srcpy/wrappers.cpp)
+target_compile_definitions(${PROJECT_NAME}_py PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
 target_link_libraries(${PROJECT_NAME}_py PRIVATE pybind11::module)
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PROJECT_NAME})
@@ -130,22 +155,18 @@ ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
 # Executables #
 ###############
 
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/o80_mujoco
-  ${CMAKE_INSTALL_PREFIX}/bin/o80_mujoco COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mirroring COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_visualization
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_visualization COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_mirroring COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_start_mirrored_robots
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_start_mirrored_robots COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_start_mirrored_robots_accelerated
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_start_mirrored_robots_accelerated COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_demo_mirroring
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_demo_mirroring COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_no_xterms
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_no_xterms COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_stop
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_stop COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_stop_all
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_stop_all COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_visualization
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_visualization COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/process_pam_visualization
+  ${CMAKE_INSTALL_PREFIX}/bin/process_pam_visualization COPYONLY)
 
 
 #######################

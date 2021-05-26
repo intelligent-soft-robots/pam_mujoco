@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pam_mujoco $2
+(sleep 1 && process_pam_visualization -mujoco_id_from $1 -mujoco_id_to $2)
+
+ 
