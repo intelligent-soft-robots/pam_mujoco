@@ -1902,6 +1902,9 @@ void simulate(std::string mujoco_id,
     pam_mujoco::Listener pause_listener(mujoco_id, "pause");
     pam_mujoco::Listener exit_listener(mujoco_id,"exit");
 
+    long int nb_steps = 0;
+    shared_memory::set<long int>(mujoco_id,"nbsteps",nb_steps);
+    
     // waiting for the graphics
     while ( (!settings.graphics_ready) && (!settings.exitrequest) )
       {
@@ -1979,6 +1982,10 @@ void simulate(std::string mujoco_id,
 	    std::cout << "\nrunning ...\n" <<std::endl;
 	    settings.client_notified=true;
 	  }
+
+	// letting the world know which step number we are in
+	nb_steps++;
+	shared_memory::set<long int>(mujoco_id,"nbsteps",nb_steps);
 
         // end exclusive access
         mtx.unlock();
