@@ -261,10 +261,21 @@ class MujocoHandle:
 
             
     def reset(self):
+        # sharing the reset commands
         for _,interface in self.interfaces.items():
             interface.reset()
         shared_memory.set_bool(self._mujoco_id,"reset",True)
-
+        # waiting one iteration to make sure reset has been active
+        if self._burster_client is not None:
+            self.burst(nb_iterations=1)
+        else:
+            start_mstep = self.get_mujoco_step()
+            while(self.get_mujoco_step()==start_mstep):
+                time.sleep(0.0005)
+        
+    def get_mujoco_step(self):
+        return shared_memory.get_long_int(self._mujoco_id,"nbsteps")
+            
     def pause(self,value):
         shared_memory.set_bool(self._mujoco_id,"pause",value)
 
@@ -286,7 +297,6 @@ class MujocoHandle:
     
     def burst(self,nb_iterations=1):
         self._burster_client.burst(nb_iterations)
-
 
     def mujoco_exit(self):
         shared_memory.set_bool(self._mujoco_id,"exit",True)
