@@ -1,8 +1,0 @@
-Package: mpi-is-pam-mujoco
-Version: 1.00-1
-Section: base
-Priority: optional
-Architecture: amd64
-Depends: libcereal-dev, libboost-all-dev, libeigen3-dev, libedit-dev, libncurses5-dev, freeglut3-dev, libxmu-dev, libopenblas-dev, liblapack-dev, libarmadillo-dev, python3-pip
-Maintainer: Vincent Berenz <vberenz@tuebingen.mpg.de>
-Description: pam_mujoco, see https://intelligent-soft-robots.github.io
