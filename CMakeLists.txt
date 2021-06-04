@@ -169,13 +169,6 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/process_pam_visualization
   ${CMAKE_INSTALL_PREFIX}/bin/process_pam_visualization COPYONLY)
 
 
-#######################
-# Debian control file #
-#######################
-
-install(FILES debian/control DESTINATION debian)
-
-
 ######################
 # Install and export #
 ######################
