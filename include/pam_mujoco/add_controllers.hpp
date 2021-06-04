@@ -1,11 +1,13 @@
 #pragma once
 
+#include <array>
 #include <set>
 #include <string>
 #include <tuple>
 #include "pam_interface/configuration.hpp"
 #include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/mirror_free_joint.hpp"
+#include "pam_mujoco/mirror_free_joints.hpp"
 #include "pam_mujoco/mirror_robot.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/pressure_controller.hpp"
@@ -19,12 +21,28 @@ static constexpr long int QUEUE_SIZE = 500000;
 
 void add_mirror_robot(std::string segment_id, std::string robot_joint_base);
 
+  template <int NB_ITEMS>
+  void add_mirror_free_joints(std::string segment_id,
+			      std::array<std::string,NB_ITEMS> joints,
+			      std::array<int,NB_ITEMS> index_qpos,
+			      std::array<int,NB_ITEMS> index_qvel,
+			      bool active_only);
+
+  
 void add_mirror_free_joint(std::string segment_id,
                            std::string joint,
                            int index_qpos,
                            int index_qvel,
                            bool active_only);
 
+  template<int NB_ITEMS>
+void add_mirror_until_contact_free_joints(std::string segment_id,
+					  std::array<std::string,NB_ITEMS> joints,
+					  std::array<int,NB_ITEMS> index_qpos,
+					  std::array<int,NB_ITEMS> index_qvel,
+					  std::array<std::string,NB_ITEMS> contact_segment_ids,
+                                         bool active_only);
+  
 void add_mirror_until_contact_free_joint(std::string segment_id,
                                          std::string joint,
                                          int index_qpos,
@@ -82,6 +100,13 @@ void add_4dofs_pressure_controller(std::string segment_id,
                                    std::array<double, 8> l_MTC_change_init);
 
   void add_item_control(const MujocoConfig& config, MujocoItemControl mic);
+
+  void add_3_items_control(const MujocoConfig& config, MujocoItemsControl<3> mic);
+  void add_10_items_control(const MujocoConfig& config, MujocoItemsControl<10> mic);
+  void add_20_items_control(const MujocoConfig& config, MujocoItemsControl<20> mic);
+  void add_50_items_control(const MujocoConfig& config, MujocoItemsControl<50> mic);
+  void add_100_items_control(const MujocoConfig& config, MujocoItemsControl<100> mic);
+  
   void add_joints_control(MujocoRobotJointControl mrc);
   void add_pressures_control(MujocoRobotPressureControl mpc);
 

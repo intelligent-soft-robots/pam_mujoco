@@ -1,4 +1,39 @@
 
+  template <int NB_ITEMS>
+  void add_mirror_free_joints(std::string segment_id,
+			      std::array<std::string,NB_ITEMS> joints,
+			      std::array<int,NB_ITEMS> index_qpos,
+			      std::array<int,NB_ITEMS> index_qvel,
+			      bool active_only)
+  {
+    pam_mujoco::MirrorFreeJoints<QUEUE_SIZE,NB_ITEMS>::clear(segment_id);
+    typedef pam_mujoco::MirrorFreeJoints<QUEUE_SIZE,NB_ITEMS> mfj;
+    std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(
+        segment_id, joints, index_qpos, index_qvel, active_only);
+    pam_mujoco::Controllers::add(mirroring);
+  }
+
+
+template <int NB_ITEMS>
+void add_mirror_until_contact_free_joints(std::string segment_id,
+					 std::array<std::string,NB_ITEMS> joints,
+					 std::array<int,NB_ITEMS> index_qpos,
+					 std::array<int,NB_ITEMS> index_qvel,
+					 std::array<std::string,NB_ITEMS> contact_segment_ids,
+                                         bool active_only)
+{
+  pam_mujoco::MirrorFreeJoints<QUEUE_SIZE,NB_ITEMS>::clear(segment_id);
+  typedef pam_mujoco::MirrorFreeJoints<QUEUE_SIZE,NB_ITEMS> mfj;
+  std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(segment_id,
+							 joints,
+							 index_qpos,
+							 index_qvel,
+							 contact_segment_ids,
+							 active_only);
+  pam_mujoco::Controllers::add(mirroring);
+}
+
+
 
 template <int NB_DOFS>
 void add_pressure_controller(

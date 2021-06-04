@@ -188,6 +188,34 @@ void MujocoConfig::add_control(MujocoRobotPressureControl mpc)
     pressure_controls.push_back(mpc);
 }
 
+  void MujocoConfig::add_3_control(MujocoItemsControl<3> misc)
+  {
+    item_3_controls.push_back(misc);
+  }
+
+  void MujocoConfig::add_10_control(MujocoItemsControl<10> misc)
+  {
+    item_10_controls.push_back(misc);
+  }
+
+    void MujocoConfig::add_20_control(MujocoItemsControl<20> misc)
+  {
+    item_20_controls.push_back(misc);
+  }
+
+  void MujocoConfig::add_50_control(MujocoItemsControl<50> misc)
+  {
+    item_50_controls.push_back(misc);
+  }
+
+  void MujocoConfig::add_100_control(MujocoItemsControl<100> misc)
+  {
+    item_100_controls.push_back(misc);
+  }
+
+
+  
+
 void set_mujoco_config(const MujocoConfig& config)
 {
     shared_memory::serialize(std::string(config.mujoco_id), "config", config);

@@ -51,7 +51,7 @@ class ParallelBurst:
 # this moves the mirrored robot to the same position as the
 # (pseudo) real robot, using incremental steps to avoid
 # simulation unstabilities
-def align_robots(o80_pressures,o80_mirroring,step=0.01):
+def align_robots(o80_pressures,o80_mirroring,step=0.01,bursts_per_step=10):
 
     if not isinstance(o80_mirroring,Iterable):
         mirrorings = [o80_mirroring]
@@ -73,7 +73,7 @@ def align_robots(o80_pressures,o80_mirroring,step=0.01):
                 current-=step
             return False,current
 
-    def _align(target_positions, target_velocities, mirroring):
+    def _align(target_positions, target_velocities, mirroring, bursts_per_step):
     
         positions,velocities = mirroring.get()
 
@@ -89,13 +89,13 @@ def align_robots(o80_pressures,o80_mirroring,step=0.01):
 
             over = [p_[0] for p_ in p]
 
-            mirroring.set(positions,velocities,nb_iterations=1,burst=1)
+            mirroring.set(positions,velocities,nb_iterations=1,burst=bursts_per_step)
 
     if len(mirrorings)==1:
-        _align(target_positions,target_velocities,mirrorings[0])
+        _align(target_positions,target_velocities,mirrorings[0],bursts_per_step)
 
     else:
-        threads = [threading.Thread(target=_align,args=(target_positions,target_velocities,mirroring))
+        threads = [threading.Thread(target=_align,args=(target_positions,target_velocities,mirroring,bursts_per_step))
                    for mirroring in mirrorings]
         for thread in threads:
             thread.start()
@@ -113,7 +113,8 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
                            accelerated_time:bool,
                            mujoco_time_step=0.002,
                            o80_time_step=0.002,
-                           parallel_burst=None):
+                           parallel_burst=None,
+                           bursts_per_iter=10):
 
     if not isinstance(o80_mirroring,Iterable):
         mirrorings = [o80_mirroring]
@@ -131,27 +132,33 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
 
     if accelerated_time:
         o80_pressures.add_command(action,int(duration_s*1000))
-        nb_bursts = int((duration_s / o80_time_step) + 0.5)+10 
-        for _ in range(nb_bursts):
-            o80_pressures.burst(1)
+        nb_bursts = int((duration_s / o80_time_step) + 0.5)+10
+
+        o80_pressures.add_command(action,int(duration_s*1000))
+        nb_bursts = duration_s / o80_time_step
+        dimmed_bursts = int ((nb_bursts/bursts_per_iter)+0.5)
+
+        
+        for _ in range(dimmed_bursts):
+            o80_pressures.burst(bursts_per_iter)
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
             for mirroring in mirrorings:
                 mirroring.set(positions,velocities)
             if parallel_burst is not None:
-                parallel_burst.burst(1)
+                parallel_burst.burst(bursts_per_iter)
             else:
                 for mirroring in mirrorings:
-                    mirroring.burst(1)
+                    mirroring.burst(bursts_per_iter)
         while not _reached_target():
-            o80_pressures.burst(1)
+            o80_pressures.burst(bursts_per_iter)
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
             for mirroring in mirrorings:
                 mirroring.set(positions,velocities)
             if parallel_burst is not None:
-                parallel_burst.burst(1)
+                parallel_burst.burst(bursts_per_iter)
             else:
                 for mirroring in mirrorings:
-                    mirroring.burst(1)
+                    mirroring.burst(bursts_per_iter)
         return
 
     o80_pressures.set(action,duration_ms=int(duration_s*1000+0.5),
@@ -162,21 +169,21 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
         for mirroring in mirrorings:
             mirroring.set(positions,velocities)
         if parallel_burst is not None:
-            parallel_burst.burst(1)
+            parallel_burst.burst(bursts_per_iter)
         else:
             for mirroring in mirrorings:
-                mirroring.burst(1)
-        time.sleep(mujoco_time_step)
+                mirroring.burst(bursts_per_iter)
+        time.sleep(bursts_per_iter*mujoco_time_step)
     while not _reached_target():
         pressures_ago,pressures_antago,positions,velocities = o80_pressures.read()
         for mirroring in mirrorings:
             mirroring.set(positions,velocities)
         if parallel_burst is not None:
-            parallel_burst.burst(1)
+            parallel_burst.burst(bursts_per_iter)
         else:
             for mirroring in mirrorings:
-                mirroring.burst(1)
-        time.sleep(mujoco_time_step)
+                mirroring.burst(bursts_per_iter)
+        time.sleep(bursts_per_iter*mujoco_time_step)
         
 
 # this has the (pseudo) real robot moving to a position posture

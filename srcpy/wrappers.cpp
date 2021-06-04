@@ -48,6 +48,86 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       .def_readonly("type",&pam_mujoco::MujocoItemControl::type)
       .def_readonly("active_only",&pam_mujoco::MujocoItemControl::active_only)
       .def("__str__",&pam_mujoco::MujocoItemControl::to_string);
+
+    pybind11::class_<pam_mujoco::MujocoItemsControl<3>>(m, "Mujoco3ItemsControl")
+      .def(pybind11::init<
+	   std::array<pam_mujoco::MujocoItemTypes,3>,
+	   std::string,
+	   std::array<std::string,3>,
+	   std::array<int,3>,
+	   std::array<int,3>,
+	   std::array<std::string,3>,
+	   bool,
+	   pam_mujoco::ContactTypes>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoItemsControl<3>::segment_id)
+      .def_readonly("type",&pam_mujoco::MujocoItemsControl<3>::type)
+      .def_readonly("active_only",&pam_mujoco::MujocoItemsControl<3>::active_only)
+      .def("__str__",&pam_mujoco::MujocoItemsControl<3>::to_string);
+
+    pybind11::class_<pam_mujoco::MujocoItemsControl<10>>(m, "Mujoco10ItemsControl")
+      .def(pybind11::init<
+	   std::array<pam_mujoco::MujocoItemTypes,10>,
+	   std::string,
+	   std::array<std::string,10>,
+	   std::array<int,10>,
+	   std::array<int,10>,
+	   std::array<std::string,10>,
+	   bool,
+	   pam_mujoco::ContactTypes>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoItemsControl<10>::segment_id)
+      .def_readonly("type",&pam_mujoco::MujocoItemsControl<10>::type)
+      .def_readonly("active_only",&pam_mujoco::MujocoItemsControl<10>::active_only)
+      .def("__str__",&pam_mujoco::MujocoItemsControl<10>::to_string);
+
+
+    pybind11::class_<pam_mujoco::MujocoItemsControl<20>>(m, "Mujoco20ItemsControl")
+      .def(pybind11::init<
+	   std::array<pam_mujoco::MujocoItemTypes,20>,
+	   std::string,
+	   std::array<std::string,20>,
+	   std::array<int,20>,
+	   std::array<int,20>,
+	   std::array<std::string,20>,
+	   bool,
+	   pam_mujoco::ContactTypes>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoItemsControl<20>::segment_id)
+      .def_readonly("type",&pam_mujoco::MujocoItemsControl<20>::type)
+      .def_readonly("active_only",&pam_mujoco::MujocoItemsControl<20>::active_only)
+      .def("__str__",&pam_mujoco::MujocoItemsControl<20>::to_string);
+
+    pybind11::class_<pam_mujoco::MujocoItemsControl<50>>(m, "Mujoco50ItemsControl")
+      .def(pybind11::init<
+	   std::array<pam_mujoco::MujocoItemTypes,50>,
+	   std::string,
+	   std::array<std::string,50>,
+	   std::array<int,50>,
+	   std::array<int,50>,
+	   std::array<std::string,50>,
+	   bool,
+	   pam_mujoco::ContactTypes>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoItemsControl<50>::segment_id)
+      .def_readonly("type",&pam_mujoco::MujocoItemsControl<50>::type)
+      .def_readonly("active_only",&pam_mujoco::MujocoItemsControl<50>::active_only)
+      .def("__str__",&pam_mujoco::MujocoItemsControl<50>::to_string);
+
+    
+        pybind11::class_<pam_mujoco::MujocoItemsControl<100>>(m, "Mujoco100ItemsControl")
+      .def(pybind11::init<
+	   std::array<pam_mujoco::MujocoItemTypes,100>,
+	   std::string,
+	   std::array<std::string,100>,
+	   std::array<int,100>,
+	   std::array<int,100>,
+	   std::array<std::string,100>,
+	   bool,
+	   pam_mujoco::ContactTypes>())
+      .def_readonly("segment_id",&pam_mujoco::MujocoItemsControl<100>::segment_id)
+      .def_readonly("type",&pam_mujoco::MujocoItemsControl<100>::type)
+      .def_readonly("active_only",&pam_mujoco::MujocoItemsControl<100>::active_only)
+      .def("__str__",&pam_mujoco::MujocoItemsControl<100>::to_string);
+
+
+
     
     pybind11::class_<pam_mujoco::MujocoConfig>(m, "MujocoConfig")
         .def(pybind11::init<std::string>())
@@ -63,7 +143,17 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       .def("add_control", pybind11::overload_cast<pam_mujoco::MujocoItemControl>(&pam_mujoco::MujocoConfig::add_control))
       .def("add_control", pybind11::overload_cast<pam_mujoco::MujocoRobotJointControl>(&pam_mujoco::MujocoConfig::add_control))
       .def("add_control", pybind11::overload_cast<pam_mujoco::MujocoRobotPressureControl>(&pam_mujoco::MujocoConfig::add_control))
+      .def("add_3_items_control",&pam_mujoco::MujocoConfig::add_3_control)
+      .def("add_10_items_control",&pam_mujoco::MujocoConfig::add_10_control)
+      .def("add_20_items_control",&pam_mujoco::MujocoConfig::add_20_control)
+      .def("add_50_items_control",&pam_mujoco::MujocoConfig::add_50_control)
+      .def("add_100_items_control",&pam_mujoco::MujocoConfig::add_100_control)
       .def_readonly("item_controls",&pam_mujoco::MujocoConfig::item_controls)
+      .def_readonly("item_3_controls",&pam_mujoco::MujocoConfig::item_3_controls)
+      .def_readonly("item_10_controls",&pam_mujoco::MujocoConfig::item_10_controls)
+      .def_readonly("item_20_controls",&pam_mujoco::MujocoConfig::item_20_controls)
+      .def_readonly("item_50_controls",&pam_mujoco::MujocoConfig::item_50_controls)
+      .def_readonly("item_100_controls",&pam_mujoco::MujocoConfig::item_100_controls)
       .def_readonly("joint_controls",&pam_mujoco::MujocoConfig::joint_controls)
       .def_readonly("pressure_controls",&pam_mujoco::MujocoConfig::pressure_controls)
       .def("__str__", &pam_mujoco::MujocoConfig::to_string);

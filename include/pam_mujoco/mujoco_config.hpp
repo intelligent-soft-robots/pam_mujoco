@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <unistd.h>
 #include <cstring>
 #include "shared_memory/shared_memory.hpp"
@@ -118,6 +119,54 @@ public:
     ContactTypes contact_type;
 };
 
+
+
+  
+  template <int NB_ITEMS>
+class MujocoItemsControl
+{
+public:
+  MujocoItemsControl();
+  MujocoItemsControl(std::array<MujocoItemTypes,NB_ITEMS> _type,
+		     std::string _segment_id,
+		     std::array<std::string,NB_ITEMS> _joint,
+		     std::array<int,NB_ITEMS> _index_qpos,
+		     std::array<int,NB_ITEMS> _index_qvel,
+		     std::array<std::string,NB_ITEMS> _geometry,
+		     bool _active_only,
+		     ContactTypes _contact_type);
+
+public:
+    std::string to_string() const;
+
+public:
+    template <class Archive>
+    void serialize(Archive& archive)
+    {
+        archive(type,
+                segment_id,
+		joint,
+                index_qpos,
+                index_qvel,
+                geometry,
+                active_only,
+		contact_type);
+    }
+
+public:
+  std::array<MujocoItemTypes,NB_ITEMS> type;
+  char segment_id[200];
+  std::array<char[200],NB_ITEMS> joint;
+  std::array<int,NB_ITEMS> index_qpos;
+  std::array<int,NB_ITEMS> index_qvel;
+  std::array<char[100],NB_ITEMS> geometry;
+    bool active_only;
+    ContactTypes contact_type;
+};
+
+
+#include "mujoco_config.hxx"
+  
 class MujocoConfig
 {
 public:
@@ -131,6 +180,13 @@ public:
   void set_racket_robot1(std::string _racket1_geometry);
   void set_racket_robot2(std::string _racket2_geometry);
   void set_table(std::string _table_geometry);
+
+  void add_3_control(MujocoItemsControl<3> misc);
+  void add_10_control(MujocoItemsControl<10> misc);
+  void add_20_control(MujocoItemsControl<20> misc);
+  void add_50_control(MujocoItemsControl<50> misc);
+  void add_100_control(MujocoItemsControl<100> misc);
+  
   void add_control(MujocoItemControl mic);
   void add_control(MujocoRobotJointControl mrc);
   void add_control(MujocoRobotPressureControl mpc);
@@ -159,6 +215,11 @@ public:
   bool use_graphics;
     char mujoco_id[200];
     std::vector<MujocoItemControl> item_controls;
+  std::vector<MujocoItemsControl<3>> item_3_controls;
+  std::vector<MujocoItemsControl<10>> item_10_controls;
+  std::vector<MujocoItemsControl<20>> item_20_controls;
+  std::vector<MujocoItemsControl<50>> item_50_controls;
+  std::vector<MujocoItemsControl<100>> item_100_controls;
     std::vector<MujocoRobotJointControl> joint_controls;
     std::vector<MujocoRobotPressureControl> pressure_controls;
     char table_geometry[100];
@@ -176,5 +237,9 @@ bool wait_for_mujoco_config(const std::string& mujoco_id,
   // function (and fails to compile). I have no idea why, I could not find another "wait_for_mujoco"
   // function in this package.
   void _wait_for_mujoco(const std::string& mujoco_id);
+
+
+
+
   
 }  // namespace pam_mujoco

@@ -164,7 +164,114 @@ void add_pressures_control(MujocoRobotPressureControl mpc)
 				l_MTC_change_init);
 }
 
-			   
+
+  template<int NB_ITEMS>
+  void add_items_control(const MujocoConfig& config, MujocoItemsControl<NB_ITEMS> mic)
+  {
+
+    std::array<std::string,NB_ITEMS> str_joints;
+    for(int i=0;i<NB_ITEMS;i++)
+      {
+	str_joints[i]=std::string(mic.joint[i]);
+      }
+    
+    if (mic.contact_type!=ContactTypes::no_contact)
+      {
+
+	std::array<std::string,NB_ITEMS> contact_segment_ids;
+	
+	for(int item=0;item<NB_ITEMS;item++)
+	  {
+	    
+	    if (mic.type[item] == MujocoItemTypes::ball || mic.type[item] == MujocoItemTypes::hit_point ||
+		mic.type[item] == MujocoItemTypes::goal)
+	      {
+		std::string contact_segment_id;
+		if (mic.contact_type == ContactTypes::table)
+		  {
+		    contact_segment_id =
+		      std::string(mic.segment_id) + std::string("_table_") + std::to_string(item);
+		    add_table_contact_free_joint(
+						 contact_segment_id,
+						 mic.index_qpos[item],
+						 mic.index_qvel[item],
+						 std::string(mic.geometry[item]),
+						 std::string(config.table_geometry));
+		  }
+		if (mic.contact_type == ContactTypes::racket1)
+		  {
+		    contact_segment_id =
+		      std::string(mic.segment_id) + std::string("_racket1_") + std::to_string(item);
+		    add_robot1_contact_free_joint(
+						  contact_segment_id,
+						  mic.index_qpos[item],
+						  mic.index_qvel[item],
+						  std::string(mic.geometry[item]),
+						  std::string(config.racket1_geometry));
+		  }
+		if (mic.contact_type == ContactTypes::racket2)
+		  {
+		    contact_segment_id =
+		      std::string(mic.segment_id) + std::string("_racket2") + std::to_string(item);
+		    add_robot1_contact_free_joint(
+						  contact_segment_id,
+						  mic.index_qpos[item],
+						  mic.index_qvel[item],
+						  std::string(mic.geometry[item]),
+						  std::string(config.racket2_geometry));
+		  }
+
+		contact_segment_ids[item]=contact_segment_id;
+
+	      }
+
+	  }
+	add_mirror_until_contact_free_joints<NB_ITEMS>(std::string(mic.segment_id),
+						       str_joints,
+						       mic.index_qpos,
+						       mic.index_qvel,
+						       contact_segment_ids,
+						       mic.active_only);
+	  
+      }
+    
+    else
+      {
+	add_mirror_free_joints<NB_ITEMS>(std::string(mic.segment_id),
+					 str_joints,
+					 mic.index_qpos,
+					 mic.index_qvel,
+					 mic.active_only);
+      }
+     
+  }
+
+
+void add_3_items_control(const MujocoConfig& config, MujocoItemsControl<3> mic)
+{
+  add_items_control<3>(config,mic);
+}
+
+void add_10_items_control(const MujocoConfig& config, MujocoItemsControl<10> mic)
+{
+  add_items_control<10>(config,mic);
+}
+
+void add_20_items_control(const MujocoConfig& config, MujocoItemsControl<20> mic)
+{
+  add_items_control<20>(config,mic);
+}
+
+void add_50_items_control(const MujocoConfig& config, MujocoItemsControl<50> mic)
+{
+  add_items_control<50>(config,mic);
+}
+
+void add_100_items_control(const MujocoConfig& config, MujocoItemsControl<100> mic)
+{
+  add_items_control<100>(config,mic);
+}
+  
 void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
 {
     if (mic.type == MujocoItemTypes::ball || mic.type == MujocoItemTypes::hit_point ||
