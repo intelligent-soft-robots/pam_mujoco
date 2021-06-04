@@ -11,12 +11,13 @@ class ParallelBurst:
         self._burst_done = None
         self._nb_bursts = None
         self._wait = wait
-        self._threads = [
-            threading.Thread(target=self._run, args=(index,))
-            for index in range(self._size)
-        ]
-        for thread in self._threads:
-            thread.start()
+        if self._size>1:
+            self._threads = [
+                threading.Thread(target=self._run, args=(index,))
+                for index in range(self._size)
+            ]
+            for thread in self._threads:
+                thread.start()
 
     def _run(self, index):
         while self._running:
@@ -27,17 +28,21 @@ class ParallelBurst:
                 time.sleep(self._wait)
 
     def burst(self, nb_bursts):
-        self._burst_done = [False] * self._size
-        self._nb_bursts = nb_bursts
-        while not all(self._burst_done):
-            time.sleep(self._wait)
-        self._burst_done = [False] * self._size
-        self._nb_bursts = None
+        if self._size==1:
+            self._mirrorings[0].burst(nb_bursts)
+        else:
+            self._burst_done = [False] * self._size
+            self._nb_bursts = nb_bursts
+            while not all(self._burst_done):
+                time.sleep(self._wait)
+            self._burst_done = [False] * self._size
+            self._nb_bursts = None
 
     def stop(self):
-        self._running = False
-        for thread in self._threads:
-            thread.join()
+        if self._size>1:
+            self._running = False
+            for thread in self._threads:
+                thread.join()
 
     def __del__(self):
         self.stop()
@@ -132,13 +137,21 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
             for mirroring in mirrorings:
                 mirroring.set(positions,velocities)
-            parallel_burst.burst(1)
+            if parallel_burst is not None:
+                parallel_burst.burst(1)
+            else:
+                for mirroring in mirrorings:
+                    mirroring.burst(1)
         while not _reached_target():
             o80_pressures.burst(1)
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
             for mirroring in mirrorings:
                 mirroring.set(positions,velocities)
-            parallel_burst.burst(1)
+            if parallel_burst is not None:
+                parallel_burst.burst(1)
+            else:
+                for mirroring in mirrorings:
+                    mirroring.burst(1)
         return
 
     o80_pressures.set(action,duration_ms=int(duration_s*1000+0.5),
