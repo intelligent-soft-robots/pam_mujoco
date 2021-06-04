@@ -1,13 +1,18 @@
 import time
 import o80_pam
+from collections.abc import Iterable
 
 # this moves the mirrored robot to the same position as the
 # (pseudo) real robot, using incremental steps to avoid
 # simulation unstabilities
 def align_robots(o80_pressures,o80_mirroring,step=0.01):
 
+    if not isinstance(o80_mirroring,Iterable):
+        mirrorings = [o80_mirroring]
+    else:
+        mirrorings = o80_mirroring
+        
     _,__,target_positions,target_velocities = o80_pressures.read()
-    positions,velocities = o80_mirroring.get()
 
     def _one_step(arg):
         target,current=arg
@@ -21,20 +26,24 @@ def align_robots(o80_pressures,o80_mirroring,step=0.01):
             else:
                 current-=step
             return False,current
+    
+    for mirroring in mirrorings:
+    
+        positions,velocities = mirroring.get()
 
-    over=[False]*len(target_positions)
+        over=[False]*len(target_positions)
 
-    while not all(over):
+        while not all(over):
 
-        p = list(map(_one_step,zip(target_positions,positions)))
-        v = list(map(_one_step,zip(target_velocities,velocities)))
+            p = list(map(_one_step,zip(target_positions,positions)))
+            v = list(map(_one_step,zip(target_velocities,velocities)))
 
-        positions = [p_[1] for p_ in p]
-        velocities = [v_[1] for v_ in v]
+            positions = [p_[1] for p_ in p]
+            velocities = [v_[1] for v_ in v]
 
-        over = [p_[0] for p_ in p]
+            over = [p_[0] for p_ in p]
 
-        o80_mirroring.set(positions,velocities,nb_iterations=1,burst=1)
+            mirroring.set(positions,velocities,nb_iterations=1,burst=1)
 
 
 # this has the (pseudo) real robot moving to a pressure posture
@@ -48,6 +57,11 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
                            mujoco_time_step=0.002,
                            o80_time_step=0.002):
 
+    if not isinstance(o80_mirroring,Iterable):
+        mirrorings = [o80_mirroring]
+    else:
+        mirrorings = o80_mirroring
+    
     def _reached_target(error=50):
         pressures_ago,pressures_antago,_,__ = o80_pressures.read()
         for dof in range(len(action)):
@@ -63,13 +77,15 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
         for _ in range(nb_bursts):
             o80_pressures.burst(1)
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
-            o80_mirroring.set(positions,velocities)
-            o80_mirroring.burst(1)
+            for mirroring in mirrorings:
+                mirroring.set(positions,velocities)
+                mirroring.burst(1)
         while not _reached_target():
             o80_pressures.burst(1)
             pressures_ago,pressures_antagos,positions,velocities = o80_pressures.read()
-            o80_mirroring.set(positions,velocities)
-            o80_mirroring.burst(1)
+            for mirroring in mirrorings:
+                mirroring.set(positions,velocities)
+                mirroring.burst(1)
         return
 
     o80_pressures.set(action,duration_ms=int(duration_s*1000+0.5),
@@ -77,13 +93,15 @@ def go_to_pressure_posture(o80_pressures:o80_pam.o80Pressures,
     time_start = time.time()
     while time.time()-time_start < duration_s:
         pressures_ago,pressures_antago,positions,velocities = o80_pressures.read()
-        o80_mirroring.set(positions,velocities)
-        o80_mirroring.burst(1)
+        for mirroring in mirrorings:
+            mirroring.set(positions,velocities)
+            mirroring.burst(1)
         time.sleep(mujoco_time_step)
     while not _reached_target():
         pressures_ago,pressures_antago,positions,velocities = o80_pressures.read()
-        o80_mirroring.set(positions,velocities)
-        o80_mirroring.burst(1)
+        for mirroring in mirrorings:
+            mirroring.set(positions,velocities)
+            mirroring.burst(1)
         time.sleep(mujoco_time_step)
         
 
@@ -96,7 +114,12 @@ def go_to_position_posture(o80_pressures:o80_pam.o80Pressures,
                            posture,
                            pam_config,
                            accelerated_time):
-    
+
+    if not isinstance(o80_mirroring,Iterable):
+        mirrorings = [o80_mirroring]
+    else:
+        mirrorings = o80_mirroring
+        
     config = o80_pam.JointPositionControllerConfig(o80_pressures,
                                            pam_config)
     joint_controller = o80_pam.JointPositionController(config,
@@ -104,4 +127,5 @@ def go_to_position_posture(o80_pressures:o80_pam.o80Pressures,
 
     for _,positions,velocities,__ in joint_controller.go_to(posture):
         if positions is not None:
-            o80_mirroring.set(positions,velocities,nb_iterations=1,burst=1)
+            for mirroring in mirrorings:
+                mirroring.set(positions,velocities,nb_iterations=1,burst=1)
