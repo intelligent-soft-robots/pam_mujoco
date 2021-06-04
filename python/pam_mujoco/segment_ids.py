@@ -1,4 +1,3 @@
-
 class segment_ids:
 
     ball = "ball"

@@ -67,7 +67,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
         context::ContactInformation ci;
         shared_memory::deserialize(
             segment_id_contact_, segment_id_contact_, ci);
-	contact_disabled = ci.disabled;
+        contact_disabled = ci.disabled;
         if (ci.contact_occured && !interrupted_)
         {
             interrupted_ = true;
@@ -96,7 +96,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     // and
     // 2. the backend is active (i.e. no o80 command is active)
 
-    bool overwrite = ( ( (!interrupted_) || contact_disabled ) && active );
+    bool overwrite = (((!interrupted_) || contact_disabled) && active);
 
     if (overwrite)
     {

@@ -50,7 +50,6 @@ void PressureController<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
 
     if (this->must_update(d))
     {
-
         // current state, for input to o80 (i.e. observation generation)
         States current_states;
         for (std::size_t dof = 0; dof < NB_DOFS; dof++)

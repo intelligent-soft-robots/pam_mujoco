@@ -87,14 +87,15 @@ void ContactBall::apply(const mjModel* m, mjData* d)
     shared_memory::get<bool>(segment_id_, "activated", activated);
     if (!activated)
     {
-      contact_information_.disabled=true;
-      shared_memory::serialize(segment_id_, segment_id_, contact_information_);
-      return;
+        contact_information_.disabled = true;
+        shared_memory::serialize(
+            segment_id_, segment_id_, contact_information_);
+        return;
     }
     else
-      {
-	contact_information_.disabled=false;
-      }
+    {
+        contact_information_.disabled = false;
+    }
 
     // setup the indexes (e.g. index_qpos, ...)
     // based on the model and the configuration string

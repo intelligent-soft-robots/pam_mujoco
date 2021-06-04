@@ -1,35 +1,35 @@
 
 
-template<int NB_ITEMS>
+template <int NB_ITEMS>
 MujocoItemsControl<NB_ITEMS>::MujocoItemsControl()
 {
 }
 
-template<int NB_ITEMS>
-MujocoItemsControl<NB_ITEMS>::MujocoItemsControl(std::array<MujocoItemTypes,NB_ITEMS> _type,
-						 std::string _segment_id,
-						 std::array<std::string,NB_ITEMS> _joint,
-						 std::array<int,NB_ITEMS> _index_qpos,
-						 std::array<int,NB_ITEMS> _index_qvel,
-						 std::array<std::string,NB_ITEMS> _geometry,
-						 bool _active_only,
-						 ContactTypes _contact_type)
+template <int NB_ITEMS>
+MujocoItemsControl<NB_ITEMS>::MujocoItemsControl(
+    std::array<MujocoItemTypes, NB_ITEMS> _type,
+    std::string _segment_id,
+    std::array<std::string, NB_ITEMS> _joint,
+    std::array<int, NB_ITEMS> _index_qpos,
+    std::array<int, NB_ITEMS> _index_qvel,
+    std::array<std::string, NB_ITEMS> _geometry,
+    bool _active_only,
+    ContactTypes _contact_type)
     : type{_type},
       index_qpos{_index_qpos},
       index_qvel{_index_qvel},
       active_only{_active_only},
       contact_type{_contact_type}
 {
-  strcpy(segment_id, _segment_id.c_str());
-  for(int i=0;i<NB_ITEMS;i++)
+    strcpy(segment_id, _segment_id.c_str());
+    for (int i = 0; i < NB_ITEMS; i++)
     {
-
-      strcpy(joint[i], _joint[i].c_str());
-      strcpy(geometry[i], _geometry[i].c_str());
+        strcpy(joint[i], _joint[i].c_str());
+        strcpy(geometry[i], _geometry[i].c_str());
     }
 }
 
-template<int NB_ITEMS>
+template <int NB_ITEMS>
 std::string MujocoItemsControl<NB_ITEMS>::to_string() const
 {
     std::stringstream ss;
@@ -54,5 +54,3 @@ std::string MujocoItemsControl<NB_ITEMS>::to_string() const
     }
     return ss.str();
 }
-
-
