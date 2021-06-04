@@ -2,6 +2,7 @@ import time,logging
 from functools import partial
 from .mujoco_robot import MujocoRobot
 from .mujoco_item import MujocoItem
+from .mujoco_item import MujocoItems
 from . import models
 import shared_memory
 import o80
@@ -33,7 +34,7 @@ def _get_mujoco_item_control(mujoco_item_type:pam_mujoco_wrp.MujocoItemTypes,
                                             model_item.geom,
                                             active_only,
                                             mujoco_item.contact_type)
-                                        
+
 
 def _get_mujoco_robot_control(mujoco_robot: MujocoRobot,
                               model_item: dict):
@@ -66,25 +67,44 @@ class MujocoHandle:
                  table: bool = False,
                  robot1: MujocoRobot = None,
                  robot2: MujocoRobot = None,
-                 balls: list=[],
-                 goals: list=[],
-                 hit_points: list=[],
+                 balls: list=[], # list of mujoco_item.MujocoItem
+                 goals: list=[], # list of mujoco_item.MujocoItem
+                 hit_points: MujocoItems, 
+                 combined: list=[], # list of mujoco_item.MujocoItems (with 's' at the end)
                  read_only: bool=False):
 
         self._mujoco_id = mujoco_id
 
         if not read_only:
-        
+
+            # combined (instance of mujoco_item.MujocoItems)
+            # supports only a limited set of size (see source of MujocoItems)
+            if combined and combined.size() not in combined.accepted_sizes:
+                raise ValueError("pam_mujoco.mujoco_item.MujocoItems supports "
+                                 "a limited set of size ({}). "
+                                 "{} provived".format(", ".format([str(a) for a in combined.accepted_sizes],
+                                                                  combined.size)))
+
+            
             # creating the mujoco xml model file
 
             logging.info("creating the xml model file for {}".format(mujoco_id))
 
+            if combined:
+                all_balls = balls+combined.items["balls"]
+                all_goals = goals+combined.items["goals"]
+                all_hit_points = hit_points+combined["hit_points"]
+            else:
+                all_balls = balls
+                all_goals = goals
+                all_hit_points = hit_points
+                
             items = models.model_factory(mujoco_id,
                                          time_step=time_step,
                                          table=table,
-                                         balls=balls,
-                                         goals=goals,
-                                         hit_points=hit_points,
+                                         balls=all_balls,
+                                         goals=all_goals,
+                                         hit_points=all_hit_points,
                                          robot1=robot1,
                                          robot2=robot2)
 
@@ -119,21 +139,35 @@ class MujocoHandle:
             if balls:
                 mujoco_item_controls.extend([_get_ball(mujoco_item,model_item)
                                              for mujoco_item,model_item
-                                             in zip(balls,items["balls"])])
+                                             in zip(balls,items["balls"][:len(balls)])])
 
             if hit_points:
                 mujoco_item_controls.extend([_get_hit_point(mujoco_item,model_item)
                                              for mujoco_item,model_item
-                                             in zip(hit_points,items["hit_points"])])
+                                             in zip(hit_points,items["hit_points"][:len(hit_points)])])
 
             if goals:
                 mujoco_item_controls.extend([_get_goal(mujoco_item,model_item)
                                              for mujoco_item,model_item
-                                             in zip(goals,items["goals"])])
+                                             in zip(goals,items["goals"][:len(goals)])])
 
             for mujoco_item_control in mujoco_item_controls:
                 config.add_control(mujoco_item_control)
 
+            if combined:
+
+
+                # code here to instantiate "mujoco_combined_items_control"
+
+                # function name, depending on the number of combined mujoco items.
+                # e.g. add_3_control or add_10_control, see
+                # include/mujoco_config.hpp and/or srcpy/wrappers.cpp
+                add_function_name = "_".join(["add_",str(combined.size),"control"])
+                # pointer to the function
+                add_function = getattr(config,add_function_name)
+                # calling the function
+                add_function(mujoco_combined_items_control)
+                
 
             for key,robot in zip(("robot1","robot2"),(robot1,robot2)):
                 if robot:
