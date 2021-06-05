@@ -8,12 +8,9 @@ void add_mirror_free_joints(std::string segment_id,
 {
     pam_mujoco::MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::clear(segment_id);
     typedef pam_mujoco::MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS> mfj;
-    std::cout << "add controllers hxx 1\n";
     std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(
         segment_id, joints, index_qpos, index_qvel, active_only);
-    std::cout << "add controllers hxx 2\n";
     pam_mujoco::Controllers::add(mirroring);
-    std::cout << "add controllers hxx 3\n";
 }
 
 template <int NB_ITEMS>

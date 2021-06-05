@@ -208,4 +208,50 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     m.def("reset_contact", &pam_mujoco::reset_contact);
     m.def("activate_contact", &pam_mujoco::activate_contact);
     m.def("deactivate_contact", &pam_mujoco::deactivate_contact);
+
+    o80::create_python_bindings<
+      QUEUE_SIZE,
+      3,
+      o80::Item3dState,
+      o80::VoidExtendedState,
+      o80::NO_EXTENDED_STATE,
+      o80::NO_STATE,
+      o80::NO_INTROSPECTOR>(m,std::string("Balls3"));
+
+    o80::create_python_bindings<
+      QUEUE_SIZE,
+      10,
+      o80::Item3dState,
+      o80::VoidExtendedState,
+      o80::NO_EXTENDED_STATE,
+      o80::NO_STATE,
+      o80::NO_INTROSPECTOR>(m,std::string("Balls10"));
+
+    o80::create_python_bindings<
+      QUEUE_SIZE,
+      20,
+      o80::Item3dState,
+      o80::VoidExtendedState,
+      o80::NO_EXTENDED_STATE,
+      o80::NO_STATE,
+      o80::NO_INTROSPECTOR>(m,std::string("Balls20"));
+
+    o80::create_python_bindings<
+      QUEUE_SIZE,
+      50,
+      o80::Item3dState,
+      o80::VoidExtendedState,
+      o80::NO_EXTENDED_STATE,
+      o80::NO_STATE,
+      o80::NO_INTROSPECTOR>(m,std::string("Balls50"));
+
+    o80::create_python_bindings<
+      QUEUE_SIZE,
+      100,
+      o80::Item3dState,
+      o80::VoidExtendedState,
+      o80::NO_EXTENDED_STATE,
+      o80::NO_STATE,
+      o80::NO_INTROSPECTOR>(m,std::string("Balls100"));
+    
 }

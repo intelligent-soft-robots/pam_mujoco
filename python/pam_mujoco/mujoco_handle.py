@@ -1,13 +1,8 @@
-import time, logging
+import time, logging, shared_memory, o80, o80_pam, pam_mujoco_wrp
 from functools import partial
 from .mujoco_robot import MujocoRobot
-from .mujoco_item import MujocoItem
-from .mujoco_item import MujocoItems
+from .mujoco_item import MujocoItem,MujocoItems
 from . import models
-import shared_memory
-import o80
-import pam_mujoco_wrp
-import o80_pam
 
 
 def _get_mujoco_items_control(
@@ -137,6 +132,7 @@ class MujocoHandle:
 
             # combined (instance of mujoco_item.MujocoItems)
             # supports only a limited set of size (see source of MujocoItems)
+            self.combined=combined
             if combined and (combined.size not in combined.accepted_sizes):
                 raise ValueError(
                     "pam_mujoco.mujoco_item.MujocoItems supports "
@@ -252,7 +248,6 @@ class MujocoHandle:
                 # pointer to the function
                 add_function = getattr(config, add_function_name)
                 # calling the function
-                print("mujoco_handle: calling function ",add_function_name)
                 add_function(mujoco_combined_items_control)
 
             for key, robot in zip(("robot1", "robot2"), (robot1, robot2)):
@@ -271,12 +266,13 @@ class MujocoHandle:
         # waiting for mujoco to report it is ready
 
         logging.info("waiting for mujoco executable {}".format(mujoco_id))
+
         pam_mujoco_wrp.wait_for_mujoco(mujoco_id)
 
         # if read only, we did not create the mujoco configuration,
         # (which has been written by another process)
         # so we read it from the shared memory
-
+        
         if read_only:
 
             config = pam_mujoco_wrp.get_mujoco_config(mujoco_id)
@@ -391,8 +387,17 @@ class MujocoHandle:
                     self.frontends[robot.segment_id] = frontend
                     self.interfaces[robot.segment_id] = interface
 
+        if combined:
+
+            # e.g. Balls3Frontend for 3 balls.
+            # see pam_mujoco/srcpy/wrappers.cpp
+            frontend_class_name = "".join(["Balls",str(combined.size),"FrontEnd"])
+            frontend_class = getattr(pam_mujoco_wrp,frontend_class_name)
+            self.frontends[combined.segment_id]=frontend_class(combined.segment_id)
+
         # for tracking contact
         self.contacts = {}
+
         for item in list(balls) + list(goals) + list(hit_points):
             if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
                 self.contacts[item.segment_id] = item.segment_id + "_table"
@@ -400,13 +405,22 @@ class MujocoHandle:
                 self.contacts[item.segment_id] = item.segment_id + "_racket1"
             if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
                 self.contacts[item.segment_id] = item.segment_id + "_racket2"
-            if item.segment_id in self.contacts:
-                self.reset_contact(item.segment_id)
+                
+        if combined:
+            for index,item in enumerate(list(combined.iterate())):
+                # see src/add_controllers.cpp, function add_items_control
+                self.contacts[item.segment_id] = combined.segment_id + "_table_" +str(index)
 
+        for sid in self.contacts.keys():
+            self.reset_contact(sid)
+                
     def reset(self):
         # sharing the reset commands
         for _, interface in self.interfaces.items():
             interface.reset()
+        if self.combined:
+            self.frontends[self.combined.segment_id].add_reinit_command()
+            self.frontends[self.combined.segment_id].pulse()
         shared_memory.set_bool(self._mujoco_id, "reset", True)
         # waiting one iteration to make sure reset has been active
         if self._burster_client is not None:

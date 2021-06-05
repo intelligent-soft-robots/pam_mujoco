@@ -5,7 +5,7 @@
 #include "context/contact_information.hpp"
 #include "o80/back_end.hpp"
 #include "o80/memory_clearing.hpp"
-#include "o80/state1d.hpp"
+#include "o80/item3d_state.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
 
@@ -16,12 +16,11 @@ class MirrorFreeJoints : public ControllerBase
 {
 private:
     typedef o80::BackEnd<QUEUE_SIZE,
-                         NB_ITEMS *
-                             6,  // 6: 3d position and 3d velocity per ball
-                         o80::State1d,
+                         NB_ITEMS,
+                         o80::Item3dState,
                          o80::VoidExtendedState>
         Backend;
-    typedef o80::States<NB_ITEMS * 6, o80::State1d> States;
+    typedef o80::States<NB_ITEMS, o80::Item3dState> States;
 
 public:
     MirrorFreeJoints(std::string segment_id,

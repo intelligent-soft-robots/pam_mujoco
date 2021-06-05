@@ -48,17 +48,16 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
     {
         for (int index = 0; index < NB_ITEMS; index++)
         {
-            int root = index * 6;
             int index_qpos = index_qpos_[index];
             int index_qvel = index_qvel_[index];
 
-            read_states_.values[root + 0].value = d->qpos[index_qpos];
-            read_states_.values[root + 2].value = d->qpos[index_qpos + 1];
-            read_states_.values[root + 4].value = d->qpos[index_qpos + 2];
-
-            read_states_.values[root + 1].value = d->qvel[index_qvel];
-            read_states_.values[root + 3].value = d->qvel[index_qvel + 1];
-            read_states_.values[root + 5].value = d->qvel[index_qvel + 2];
+	    read_states_.values[index].set_position(d->qpos[index_qpos],
+						    d->qpos[index_qpos+1],
+						    d->qpos[index_qpos+2]);
+	    read_states_.values[index].set_velocity(d->qvel[index_qvel],
+						    d->qvel[index_qvel+1],
+						    d->qvel[index_qvel+2]);
+	    
         }
 
         set_states_ =
@@ -79,7 +78,6 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
 
     for (int index = 0; index < NB_ITEMS; index++)
     {
-        int root = index * 6;
         int index_qpos = index_qpos_[index];
         int index_qvel = index_qvel_[index];
 
@@ -116,17 +114,15 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
 
         if (overwrite)
         {
-            // x,y,z positions
-            d->qpos[index_qpos] = set_states_.get(root + 0).value;
-            d->qpos[index_qpos + 1] = set_states_.get(root + 2).value;
-            d->qpos[index_qpos + 2] = set_states_.get(root + 4).value;
-            // x,y,z velocities
-            d->qvel[index_qvel] = set_states_.get(root + 1).value;
-            d->qvel[index_qvel + 1] = set_states_.get(root + 3).value;
-            d->qvel[index_qvel + 2] = set_states_.get(root + 5).value;
+	  for (int dim=0;dim<3;dim++)
+	    {
+	      d->qpos[index_qpos+dim] = set_states_.values[index].get(dim);
+	      d->qvel[index_qvel+dim] = set_states_.values[index].get(3+dim);
+	    }
         }
     }
 }
+
 
 template <int QUEUE_SIZE, int NB_ITEMS>
 void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::clear(std::string segment_id)

@@ -197,7 +197,6 @@ def get_contacts_xml(robots, balls, tables, solrefs, gaps):
     contacts = []
 
     for ball in balls:
-        contacts = []
         contacts.append(get_xml(ball.geom, "floor", "ball", "floor"))
         for robot in robots:
             contacts.append(get_xml(ball.geom, robot.geom_racket, "ball", "racket"))

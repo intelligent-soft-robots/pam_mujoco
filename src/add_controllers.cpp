@@ -168,6 +168,7 @@ template <int NB_ITEMS>
 void add_items_control(const MujocoConfig& config,
                        MujocoItemsControl<NB_ITEMS> mic)
 {
+
     std::array<std::string, NB_ITEMS> str_joints;
     for (int i = 0; i < NB_ITEMS; i++)
     {
@@ -246,8 +247,9 @@ void add_items_control(const MujocoConfig& config,
 
 void add_3_items_control(const MujocoConfig& config, MujocoItemsControl<3> mic)
 {
-    add_items_control<3>(config, mic);
+  add_items_control<3>(config, mic);
 }
+
 
 void add_10_items_control(const MujocoConfig& config,
                           MujocoItemsControl<10> mic)

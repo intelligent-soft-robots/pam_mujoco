@@ -215,7 +215,7 @@ void MujocoConfig::add_100_control(MujocoItemsControl<100> misc)
 
 void set_mujoco_config(const MujocoConfig& config)
 {
-    shared_memory::serialize(std::string(config.mujoco_id), "config", config);
+  shared_memory::serialize(std::string(config.mujoco_id), "config", config);
 }
 
 bool get_mujoco_config(const std::string& mujoco_id, MujocoConfig& get)
