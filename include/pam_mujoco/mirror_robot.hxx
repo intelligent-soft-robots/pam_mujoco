@@ -75,9 +75,12 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
     {
         for (std::size_t dof = 0; dof < NB_DOFS; dof++)
         {
-            o80::State2d state = set_states_.get(dof);
-            d->qpos[index_q_robot_ + dof] = state.get<0>();
-            d->qvel[index_qvel_robot_ + dof] = state.get<1>();
+	  o80::State2d state = set_states_.get(dof);
+	  if( (!std::isnan(state.get<0>())) && (!std::isnan(state.get<1>())) )
+	    {
+	      d->qpos[index_q_robot_ + dof] = state.get<0>();
+	      d->qvel[index_qvel_robot_ + dof] = state.get<1>();
+	    }
         }
     }
 }
