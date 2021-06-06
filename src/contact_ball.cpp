@@ -197,7 +197,7 @@ void ContactBall::reset()
 
 void reset_contact(const std::string& segment_id)
 {
-    shared_memory::set<bool>(segment_id, "reset", true);
+  shared_memory::set<bool>(segment_id, "reset", true);
 }
 
 void activate_contact(const std::string& segment_id)

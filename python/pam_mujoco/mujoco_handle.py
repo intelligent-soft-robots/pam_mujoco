@@ -407,9 +407,14 @@ class MujocoHandle:
                 self.contacts[item.segment_id] = item.segment_id + "_racket2"
                 
         if combined:
+            # see src/add_controllers.cpp, function add_items_control
             for index,item in enumerate(list(combined.iterate())):
-                # see src/add_controllers.cpp, function add_items_control
-                self.contacts[item.segment_id] = combined.segment_id + "_table_" +str(index)
+                if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
+                    self.contacts[item.segment_id] = combined.segment_id + "_table_" +str(index)
+                if item.contact_type == pam_mujoco_wrp.ContactTypes.racket1:
+                    self.contacts[item.segment_id] = combined.segment_id + "_racket1_" +str(index)
+                if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
+                    self.contacts[item.segment_id] = combined.segment_id + "_racket2_" +str(index)
 
         for sid in self.contacts.keys():
             self.reset_contact(sid)

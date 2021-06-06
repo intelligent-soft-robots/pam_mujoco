@@ -84,7 +84,7 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
         // if the item has been set to have the trajectory interrupted
         // in case of contact (i.e. either customed model or mujoco engine
         // take hand), checking if such contact occured.
-        // (note: see Contacts.hpp to see what serialize ContactInformation
+        // (note: see Contacts.hpp to check what serializes ContactInformation
         // instances into the shared memory)
         bool contact_disabled;
         if (contact_interrupt_[index])
