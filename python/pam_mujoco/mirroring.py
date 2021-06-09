@@ -8,22 +8,29 @@ class ParallelBurst:
         self._size = len(mirrorings)
         self._running = True
         self._mirrorings = mirrorings
-        self._burst_done = None
+        self._burst_done = [False]*self._size
         self._nb_bursts = None
         self._wait = wait
         if self._size > 1:
+            self._lock = threading.Lock()
             self._threads = [
                 threading.Thread(target=self._run, args=(index,))
                 for index in range(self._size)
             ]
             for thread in self._threads:
                 thread.start()
+        else:
+            self._lock = None    
 
     def _run(self, index):
         while self._running:
-            if (self._nb_bursts is not None) and not self._burst_done[index]:
-                self._mirrorings[index].burst(self._nb_bursts)
-                self._burst_done[index] = True
+            with self._lock:
+                nb_bursts = self._nb_bursts
+                burst_done = self._burst_done[index]
+            if (nb_bursts is not None and not burst_done):
+                self._mirrorings[index].burst(nb_bursts)
+                with self._lock:
+                    self._burst_done[index] = True
             else:
                 time.sleep(self._wait)
 
@@ -31,12 +38,17 @@ class ParallelBurst:
         if self._size == 1:
             self._mirrorings[0].burst(nb_bursts)
         else:
-            self._burst_done = [False] * self._size
-            self._nb_bursts = nb_bursts
-            while not all(self._burst_done):
+            burst_done = False
+            with self._lock:
+                self._burst_done = [False] * self._size
+                self._nb_bursts = nb_bursts
+            while not burst_done:
                 time.sleep(self._wait)
-            self._burst_done = [False] * self._size
-            self._nb_bursts = None
+                with self._lock:
+                    burst_done = all(self._burst_done)
+            with self._lock:
+                self._burst_done = [False] * self._size
+                self._nb_bursts = None
 
     def stop(self):
         if self._size > 1:
