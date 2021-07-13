@@ -5,7 +5,7 @@
 #include <vector>
 #include "mjmodel.h"
 #include "mjdata.h"
-
+#include "mujoco.h"
 #include "o80/time.hpp"
 
 namespace pam_mujoco
