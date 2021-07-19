@@ -92,13 +92,17 @@ class Ball:
 
 
 class Table:
+
+    default_position=[0.8, 1.7, -0.475]
+    default_size=[0.7625, 1.37, 0.02]
+    
     def __init__(
-        self,
-        model_name,
-        name,
-        position=[0.8, 1.7, -0.475],
-        size=[0.7625, 1.37, 0.02],
-        color=[0.05, 0.3, 0.23, 1.0],
+            self,
+            model_name,
+            name,
+            position=default_position,
+            size=default_size,
+            color=[0.05, 0.3, 0.23, 1.0],
     ):
         self.model_name = model_name
         self.name = name
