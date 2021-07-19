@@ -82,6 +82,15 @@ ContactBall::ContactBall(std::string segment_id,
 
 void ContactBall::apply(const mjModel* m, mjData* d)
 {
+    // checking it is a new mujoco iteration
+    // (if not, exiting)
+    if (! this->must_update(d))
+    {
+      return;
+    }
+
+    std::cout << "going forward !" << std::endl;
+    
     // checking if the contacts are activated
     bool activated;
     shared_memory::get<bool>(segment_id_, "activated", activated);
@@ -128,6 +137,7 @@ void ContactBall::apply(const mjModel* m, mjData* d)
     // and recompute the ball velocity based on our custom model
     if (contact_action.in_contact)
     {
+      std::cout << "\tnew contact !\n";
         // creating a new instance of ContactStates (current)
         // and "filling it" with the current state using
         // mujoco's data (call to save_state)
