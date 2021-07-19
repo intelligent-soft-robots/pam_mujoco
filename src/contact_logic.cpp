@@ -46,64 +46,44 @@ ContactAction ContactLogic::apply(const mjModel* m,
 {
     ContactAction contact_action;
 
-    // a contact has been detected by mujoco during one
-    // of the previous iteration, triggering the contact_mode_
-    // to be true for 4 iterations
-    if (contact_mode_)
-    {
-        contact_count_++;
-        if (contact_count_ >= 4)
-        {
-            // contact_mode_ was active for
-            // 4 iteration, leaving it
-            contact_mode_ = false;
-            // (not returning)
-        }
-        else
-        {
-            // contact_mode_ still active,
-            // returning that we are in contact
-            contact_action.in_contact = true;
-            return contact_action;
-        }
-    }
+    // a contact has been detected by mujoco during
+    // one of the previous iteration and is already
+    // handled. Turning off contact detection for
+    // 100 iterations
+    if(contact_mode_)
+      {
+	contact_action.in_contact = false;
+	// muted means: maybe mujoco
+	// is detecting a contact, but
+	// we ignore this
+	contact_action.muted=true;
+	contact_count_++;
+	if(contact_count_>=100)
+	  {
+	    // being ready for a new
+	    // contact
+	    contact_mode_=false;
+	  }
+	return contact_action;
+      }
 
-    // a contact has been detected, but more
-    // than 4 iterations ago. We are no longer
-    // in contact mode, but maybe we are muted
-    // (i.e. new contacts are ignored for 20
-    // itertions)
-    if (contact_count_ >= 3)
-    {
-        contact_count_++;
-        if (contact_count_ < 20)
-        {
-            // still less than 20 iterations
-            // since the last contact, returning
-            // that new contacts are ignored
-            contact_action.muted = true;
-            return contact_action;
-        }
-        else
-        {
-            // more than 20 iterations, resetting
-            // and getting ready for new contacts
-            contact_count_ = -1;
-            // (not returning)
-        }
-    }
-
+    // did mujoco detect a contact ?
     bool contact_detected =
         is_in_contact(m, d, index_geom, index_geom_contactee);
 
-    if (contact_detected)
-    {
-        // new contact detected
-        // entering contact mode
-        contact_mode_ = true;
-        // returning info that we are in contact
-        contact_action.in_contact = true;
-    }
+    if(!contact_detected)
+      {
+	// no new contact 
+	contact_action.in_contact=false;
+	contact_action.muted=false;
+	return contact_action;
+      }
+
+    // new contact !
+    contact_mode_=true;
+    contact_count_=0;    
+    contact_action.in_contact = true;
+    contact_action.muted = false;
 
     return contact_action;
 }
