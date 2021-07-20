@@ -1,7 +1,10 @@
-#include "pam_mujoco/recompute_state_after_contact.hpp"
+#include "pam_mujoco/internal/recompute_state_after_contact.hpp"
 
 namespace pam_mujoco
 {
+  namespace internal
+  {
+  
 RecomputeStateConfig::RecomputeStateConfig()
 {
 }
@@ -201,4 +204,5 @@ void recompute_state_after_contact(const RecomputeStateConfig& config,
     }
 }
 
+  }
 }  // namespace pam_mujoco

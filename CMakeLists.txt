@@ -70,7 +70,7 @@ add_library( ${PROJECT_NAME} SHARED
   src/read_robot_state.cpp
   src/contact_ball.cpp
   src/contact_states.cpp
-  src/contact_logic.cpp
+  src/is_in_contact.cpp
   src/recompute_state_after_contact.cpp
   src/controllers.cpp
   src/add_controllers.cpp

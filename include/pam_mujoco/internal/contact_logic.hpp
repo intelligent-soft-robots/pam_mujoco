@@ -37,6 +37,26 @@ private:
     bool contact_mode_;
 };
 
+
+class ContactLogic
+{
+public:
+  ContactLogic();
+  void reset();
+  bool is_in_contact(const mjModel* m,
+		     mjData* d,
+		     int index_geo,
+		     int index_geom_contactee) const;
+  bool is_muted() const;
+  void get_position(double get_position[3]) const;
+  void get_velocity(double get_velocity[3]) const;
+private:
+  int nb_iters_since_contact_;
+  bool muted_;
+  double ball_position_[3];
+  double ball_velocity_[3];
+};
+  
 }  // namespace internal
 
 }  // namespace pam_mujoco
