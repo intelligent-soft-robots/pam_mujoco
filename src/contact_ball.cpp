@@ -26,6 +26,21 @@ ContactBall::ContactBall(std::string segment_id,
     shared_memory::serialize(segment_id_, segment_id_, contact_information_);
 }
 
+  template<int DIM, class P, class V>
+  void printxd(P p, V v)
+  {
+    for(int dim=0;dim<DIM;dim++)
+      {
+	std::cout << p[dim] << " , ";
+      }
+    std::cout << " | ";
+    for(int dim=0;dim<DIM;dim++)
+      {
+	std::cout << v[dim] << " , ";
+      }
+  }
+
+  
   bool ContactBall::update(const mjModel* m, mjData* d)
   {
 
@@ -106,6 +121,21 @@ ContactBall::ContactBall(std::string segment_id,
 			 index_geom_contactee_,
 			 current);
 
+    std::cout << "contact:" << std::endl;
+    std::cout << "\tprevious:\n";
+    std::cout << "\t\ttable orientation:" << std::endl;
+    printxd<9>(previous_.contactee_orientation,previous_.contactee_orientation);
+    std::cout << "\n\t\ttable:" << std::endl;
+    printxd<3>(previous_.contactee_position,previous_.contactee_velocity);
+    std::cout << "\n\t\tball:" << std::endl;
+    printxd<3>(previous_.ball_position,previous_.ball_velocity);
+    std::cout << "\n\tcurrent:\n";
+    std::cout << "\t\ttable orientation:" << std::endl;
+    printxd<9>(current.contactee_orientation,current.contactee_orientation);
+    std::cout << "\n\t\ttable:" << std::endl;
+    printxd<3>(current.contactee_position,current.contactee_velocity);
+    std::cout << "\n\t\tball:" << std::endl;
+    printxd<3>(current.ball_position,current.ball_velocity);
     
     // the command below updates overwite_ball_position_
     // and overwrite_ball_velocity_ with the values
@@ -115,6 +145,11 @@ ContactBall::ContactBall(std::string segment_id,
 				  current,
 				  overwrite_ball_position_,
 				  overwrite_ball_velocity_);
+
+    std::cout << "\n\toutput:\n";
+    printxd<3>(overwrite_ball_position_,overwrite_ball_velocity_);
+    std::cout << std::endl;
+    
     // to "shut down" the few next contact detection
     // (which may come from the same contact)
     nb_of_iterations_since_last_contact_=0;
@@ -150,13 +185,6 @@ void ContactBall::apply(const mjModel* m, mjData* d)
       
     }
 
-    std::cout << "in: ";
-    for(int dim=0;dim<3;dim++)
-      {
-	std::cout << (&(d->qpos[index_qpos_]))[dim] << " , ";
-      }
-    std::cout << std::endl;
-    
     // no contact, so nothing to do
     if(! in_contact_)
       {
@@ -172,12 +200,6 @@ void ContactBall::apply(const mjModel* m, mjData* d)
 	(&(d->qvel[index_qvel_]))[dim]=overwrite_ball_velocity_[dim];
       }
 
-    std::cout << "out: ";
-    for(int dim=0;dim<3;dim++)
-      {
-	std::cout << (&(d->qpos[index_qpos_]))[dim] << " , ";
-      }
-    std::cout << std::endl;
 }
 
 void ContactBall::init(const mjModel* m)
