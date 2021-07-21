@@ -44,8 +44,7 @@ public:
 private:
     void init(const mjModel* m);
     void reset();
-  void update(const mjModel* m, mjData* d);
-      
+  bool update(const mjModel* m, mjData* d);
 private:
     std::string segment_id_;
     internal::RecomputeStateConfig config_;
@@ -57,7 +56,7 @@ private:
     std::string geom_contactee_;
     int index_geom_;
     int index_geom_contactee_;  // contactee : racket or table
-  bool in_contact_;
+    bool in_contact_;
     int nb_of_iterations_since_last_contact_;
   double overwrite_ball_position_[3];
   double overwrite_ball_velocity_[3];

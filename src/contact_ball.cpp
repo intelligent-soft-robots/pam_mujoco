@@ -17,6 +17,7 @@ ContactBall::ContactBall(std::string segment_id,
     geom_contactee_{geom_contactee},
     index_geom_{-1},
     index_geom_contactee_{-1},
+    in_contact_{false},
     nb_of_iterations_since_last_contact_{-1}
 {
     shared_memory::clear_shared_memory(segment_id_);
@@ -25,8 +26,32 @@ ContactBall::ContactBall(std::string segment_id,
     shared_memory::serialize(segment_id_, segment_id_, contact_information_);
 }
 
-  void ContactBall::update(const mjModel* m, mjData* d)
+  bool ContactBall::update(const mjModel* m, mjData* d)
   {
+
+    // check if receiving from outside a request for reset
+    // (e.g. a new episode starts)
+    bool must_reset;
+    shared_memory::get<bool>(segment_id_, "reset", must_reset);
+    if (must_reset)
+      {
+	reset();
+	shared_memory::set<bool>(segment_id_, "reset", false);
+      }
+
+    // checking if the contacts are activated
+    bool activated;
+    shared_memory::get<bool>(segment_id_, "activated", activated);
+    if (!activated)
+      {
+	contact_information_.disabled = true;
+	return false;
+      }
+    else
+      {
+	contact_information_.disabled = false;
+      }
+    
     // if there have been a recent contact,
     // contacts are ignored for a while (to avoid
     // the "same" contact to be applied twice)
@@ -34,21 +59,21 @@ ContactBall::ContactBall(std::string segment_id,
       {
 	if(nb_of_iterations_since_last_contact_<NB_ITERATIONS_CONTACT_MUTED)
 	  {
-	    in_contact_=false;
 	    nb_of_iterations_since_last_contact_++;
-	    return;
+	    return false;
 	  }
 	else
 	  {
+	    // reactivating contact detection
 	    nb_of_iterations_since_last_contact_=-1;
 	  }
       }
     // contact are not being ignored
     // does mujoco reports a contact ?
-    in_contact_ = internal::is_in_contact(m,d,
-					  index_geom_, index_geom_contactee_);
+    bool in_contact = internal::is_in_contact(m,d,
+					      index_geom_, index_geom_contactee_);
     // no, so exiting
-    if(! in_contact_)
+    if(! in_contact)
       {
 	// before exiting, saving the state of the ball.
 	// it will be used if at the next iteration there
@@ -68,9 +93,9 @@ ContactBall::ContactBall(std::string segment_id,
         // will check wether or not this is the smallest distance ever observed,
         // and if so, save it as minimal distance
         contact_information_.register_distance(d_ball_contactee);
-	shared_memory::serialize(segment_id_, segment_id_, contact_information_);
-	return;
+	return false;
       }
+    
     // there is a contact: applying the custom contact model
     // first, converting data encapsulated by "d"
     // into an instance of ContactStates 
@@ -97,73 +122,62 @@ ContactBall::ContactBall(std::string segment_id,
     // (via shared memory)
     contact_information_.register_contact(current.ball_position, d->time);
     shared_memory::serialize(segment_id_, segment_id_, contact_information_);
-    return;
+    return true;
   }
-  
+
+
 void ContactBall::apply(const mjModel* m, mjData* d)
 {
 
     // checking if it is a new mujoco iteration
     if (this->must_update(d))
     {
-
+      
       // setup the indexes (e.g. index_qpos, ...)
       // based on the model and the configuration string
       // (has effect only at first call)
       init(m);
 
-      // check if receiving from outside a request for reset
-      // (e.g. a new episode starts)
-      bool must_reset;
-      shared_memory::get<bool>(segment_id_, "reset", must_reset);
-      if (must_reset)
-	{
-	  reset();
-	  shared_memory::set<bool>(segment_id_, "reset", false);
-	}
-      
-      // checking if the contacts are activated
-      bool activated;
-      shared_memory::get<bool>(segment_id_, "activated", activated);
-      if (!activated)
-	{
-	  contact_information_.disabled = true;
-	  shared_memory::serialize(
-				   segment_id_, segment_id_, contact_information_);
-	}
-      else
-	{
-	  contact_information_.disabled = false;
-	}
-
       // updating the variables:
-      // - in_contact_ : is a contact occuring ?
-      //                 i.e. should mujoco data be overwriten
-      //                 by custom model ?
-      // - overwrite_ball_position_ // position as computed by custom model
-      // - overwrite_ball_velocity_ // velocity as computed by custom model
-      update(m,d);
+      // - contact_information_ // information about contacts, for the external
+      //                           world (written in shared memory)
+      // - overwrite_ball_position_ // position as computed by custom contact model
+      // - overwrite_ball_velocity_ // velocity as computed by custom contact model
+      in_contact_ = update(m,d);
 
-      // before exit, sharing contact information with the world
+      // sharing contact information with the world
       shared_memory::serialize(segment_id_, segment_id_, contact_information_);
       
     }
 
+    std::cout << "in: ";
+    for(int dim=0;dim<3;dim++)
+      {
+	std::cout << (&(d->qpos[index_qpos_]))[dim] << " , ";
+      }
+    std::cout << std::endl;
+    
     // no contact, so nothing to do
     if(! in_contact_)
       {
 	return;
       }
-    
+
     // we reach here only if in contact,
     // so overwritting mujoco data
     // with custom contact model data
-    for(int i=0;i<3;i++)
+    for(int dim=0;dim<3;dim++)
       {
-	(&(d->qpos[index_qpos_]))[i]=overwrite_ball_position_[i];
-	(&(d->qvel[index_qvel_]))[i]=overwrite_ball_velocity_[i];
+	(&(d->qpos[index_qpos_]))[dim]=overwrite_ball_position_[dim];
+	(&(d->qvel[index_qvel_]))[dim]=overwrite_ball_velocity_[dim];
       }
-    
+
+    std::cout << "out: ";
+    for(int dim=0;dim<3;dim++)
+      {
+	std::cout << (&(d->qpos[index_qpos_]))[dim] << " , ";
+      }
+    std::cout << std::endl;
 }
 
 void ContactBall::init(const mjModel* m)
@@ -181,7 +195,6 @@ void ContactBall::reset()
 {
     contact_information_ = context::ContactInformation{};
     previous_ = internal::ContactStates{};
-    in_contact_ = false;
     nb_of_iterations_since_last_contact_ = -1;
 }
 
