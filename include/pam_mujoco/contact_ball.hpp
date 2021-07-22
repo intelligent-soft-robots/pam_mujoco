@@ -9,7 +9,7 @@
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/contact_items.hpp"
 
-#define NB_ITERATIONS_CONTACT_MUTED 100
+#define NB_ITERATIONS_CONTACT_MUTED 1000
 
 namespace pam_mujoco
 {
@@ -56,10 +56,12 @@ private:
     std::string geom_contactee_;
     int index_geom_;
     int index_geom_contactee_;  // contactee : racket or table
+    bool mujoco_detected_contact_;
+    double mujoco_detected_dist_;
     bool in_contact_;
     int nb_of_iterations_since_last_contact_;
-  double overwrite_ball_position_[3];
-  double overwrite_ball_velocity_[3];
+    double overwrite_ball_position_[3];
+    double overwrite_ball_velocity_[3];
 };
 
 void activate_contact(const std::string& segment_id);

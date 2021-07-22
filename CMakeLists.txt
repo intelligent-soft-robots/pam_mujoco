@@ -191,8 +191,9 @@ ament_package()
 # Unit tests #
 ##############
 
-if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
-  ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
-  target_link_libraries(test_${PROJECT_NAME}_cpp ${PROJECT_NAME})
-endif()
+# disabled for now
+#if(BUILD_TESTING)
+#  find_package(ament_cmake_gtest REQUIRED)
+#  ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
+#  target_link_libraries(test_${PROJECT_NAME}_cpp ${PROJECT_NAME})
+#endif()

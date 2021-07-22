@@ -17,6 +17,7 @@ ContactBall::ContactBall(std::string segment_id,
     geom_contactee_{geom_contactee},
     index_geom_{-1},
     index_geom_contactee_{-1},
+    mujoco_detected_contact_{false},
     in_contact_{false},
     nb_of_iterations_since_last_contact_{-1}
 {
@@ -87,6 +88,7 @@ ContactBall::ContactBall(std::string segment_id,
     // does mujoco reports a contact ?
     bool in_contact = internal::is_in_contact(m,d,
 					      index_geom_, index_geom_contactee_);
+
     // no, so exiting
     if(! in_contact)
       {
@@ -121,35 +123,27 @@ ContactBall::ContactBall(std::string segment_id,
 			 index_geom_contactee_,
 			 current);
 
-    std::cout << "contact:" << std::endl;
-    std::cout << "\tprevious:\n";
-    std::cout << "\t\ttable orientation:" << std::endl;
-    printxd<9>(previous_.contactee_orientation,previous_.contactee_orientation);
-    std::cout << "\n\t\ttable:" << std::endl;
-    printxd<3>(previous_.contactee_position,previous_.contactee_velocity);
-    std::cout << "\n\t\tball:" << std::endl;
-    printxd<3>(previous_.ball_position,previous_.ball_velocity);
-    std::cout << "\n\tcurrent:\n";
-    std::cout << "\t\ttable orientation:" << std::endl;
-    printxd<9>(current.contactee_orientation,current.contactee_orientation);
-    std::cout << "\n\t\ttable:" << std::endl;
-    printxd<3>(current.contactee_position,current.contactee_velocity);
-    std::cout << "\n\t\tball:" << std::endl;
-    printxd<3>(current.ball_position,current.ball_velocity);
-    
     // the command below updates overwite_ball_position_
     // and overwrite_ball_velocity_ with the values
     // commanded by the contact_model
-    recompute_state_after_contact(config_,
-				  previous_,
-				  current,
-				  overwrite_ball_position_,
-				  overwrite_ball_velocity_);
+    bool success = recompute_state_after_contact(config_,
+						 previous_,
+						 current,
+						 overwrite_ball_position_,
+						 overwrite_ball_velocity_);
+    if(!success)
+      {
+	// failed to applie the custom model because
+	// the ball and the contactee were too close.
+	// we postpone to next iteration ...
+	internal::save_state(d,
+			     index_qpos_,
+			     index_qvel_,
+			     index_geom_contactee_,
+			     previous_);
+	return false;
+      }
 
-    std::cout << "\n\toutput:\n";
-    printxd<3>(overwrite_ball_position_,overwrite_ball_velocity_);
-    std::cout << std::endl;
-    
     // to "shut down" the few next contact detection
     // (which may come from the same contact)
     nb_of_iterations_since_last_contact_=0;
@@ -164,7 +158,7 @@ ContactBall::ContactBall(std::string segment_id,
 void ContactBall::apply(const mjModel* m, mjData* d)
 {
 
-    // checking if it is a new mujoco iteration
+  // checking if it is a new mujoco iteration
     if (this->must_update(d))
     {
       

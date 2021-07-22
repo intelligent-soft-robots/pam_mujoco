@@ -137,7 +137,7 @@ static internal::ContactStates in_absolute_frame(
 }
 
 // generic version
-void recompute_state_after_contact(const RecomputeStateConfig& config,
+bool recompute_state_after_contact(const RecomputeStateConfig& config,
                                    const internal::ContactStates& pre_contact,
                                    const internal::ContactStates& current,
                                    double get_ball_position[3],
@@ -167,6 +167,13 @@ void recompute_state_after_contact(const RecomputeStateConfig& config,
     double delta_t_step = current.time_stamp - pre_contact.time_stamp;
     double delta_t_after_impact = delta_t_step - time_until_impact;
 
+    // the contact is not occuring during this time step,
+    // exiting
+    if(delta_t_after_impact<0)
+      {
+	return false;
+      }
+   
     // post-contact in relative frame
     internal::ContactStates post_contact_relative;
 
@@ -202,7 +209,10 @@ void recompute_state_after_contact(const RecomputeStateConfig& config,
         get_ball_position[i] = absolute.ball_position[i];
         get_ball_velocity[i] = absolute.ball_velocity[i] + config.vel_plus[i];
     }
+
+    return true;
 }
 
-  }
+}
+
 }  // namespace pam_mujoco

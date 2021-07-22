@@ -45,8 +45,9 @@ namespace pam_mujoco
      *                          with the resulting position of the ball
      * @param get_ball_velocity values of this array will be updated
      *                          with the resulting velocity of the ball
+     * @return false if the two objects were not close enough (no output)
      */
-    void recompute_state_after_contact(const RecomputeStateConfig& config,
+    bool recompute_state_after_contact(const RecomputeStateConfig& config,
 				       const internal::ContactStates& pre_contact,
 				       const internal::ContactStates& current,
 				       double get_ball_position[3],

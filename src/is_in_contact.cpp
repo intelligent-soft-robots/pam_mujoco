@@ -1,4 +1,5 @@
 #include "pam_mujoco/internal/is_in_contact.hpp"
+#include <iostream>
 
 namespace pam_mujoco
 {

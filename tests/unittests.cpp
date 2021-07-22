@@ -75,12 +75,19 @@ void set_values(std::array<double,3>& a, double v1, double v2, double v3)
   a[2]=v3;
 }
 
+void set_time_stamps(ContactCase& ccase, double t1, double t2)
+{
+  ccase.previous.time_stamp=t1;
+  ccase.current.time_stamp=t2;
+}
+
 // note: these contact cases reproduce the values
 //       of pam_demos/contacts/table_contacts.py
 
 ContactCase get_contact_case1()
 {
   ContactCase ccase;
+  set_time_stamps(ccase,1.82,1.822);
   set_horizontal_immobile_contactee(ccase);
   set_values(ccase.previous.ball_position,1.06232,0.876756,-0.434885);
   set_values(ccase.previous.ball_velocity,0.0621983,-0.621835,-0.952241);
@@ -92,6 +99,7 @@ ContactCase get_contact_case1()
 ContactCase get_contact_case2()
 {
   ContactCase ccase;
+  set_time_stamps(ccase,1.82,1.822);
   set_horizontal_immobile_contactee(ccase);
   set_values(ccase.previous.ball_position,1.25095,0.877378,-0.433933);
   set_values(ccase.previous.ball_velocity,-0.248782,-0.621907,-0.942636);
@@ -103,6 +111,7 @@ ContactCase get_contact_case2()
 ContactCase get_contact_case3()
 {
   ContactCase ccase;
+  set_time_stamps(ccase,1.82,1.822);
   set_horizontal_immobile_contactee(ccase);
   set_values(ccase.previous.ball_position,0.873573,0.877378,-0.433933);
   set_values(ccase.previous.ball_velocity,0.373131,-0.621939,-0.942591);
@@ -114,6 +123,7 @@ ContactCase get_contact_case3()
 ContactCase get_contact_case4()
 {
   ContactCase ccase;
+  set_time_stamps(ccase,1.82,1.822);
   set_horizontal_immobile_contactee(ccase);
   set_values(ccase.previous.ball_position,1.1,0.5,-0.433933);
   set_values(ccase.previous.ball_velocity,-1.25239e-05,3.60857e-05,-0.942676);
@@ -125,6 +135,7 @@ ContactCase get_contact_case4()
 ContactCase get_contact_case5()
 {
   ContactCase ccase;
+  set_time_stamps(ccase,1.82,1.822);
   set_horizontal_immobile_contactee(ccase);
   set_values(ccase.previous.ball_position,0.684884,0.424524,-0.433933);
   set_values(ccase.previous.ball_velocity,0.684014,0.124406,-0.942633);
