@@ -186,6 +186,7 @@ def get_contacts_xml(robots, balls, tables, solrefs, gaps):
             r += ' solref="' + damping + '" '
         if gap:
             r += ' gap="' + gap + '"'
+
         return r
 
     def get_xml(geom1, geom2, type1, type2):

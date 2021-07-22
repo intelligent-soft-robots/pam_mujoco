@@ -165,7 +165,7 @@ def defaults_solrefs():
 
 def defaults_gaps():
 
-    return {"ball": {"floor": 0.0, "table": 0.02}}
+    return {"ball": {"floor": 0.0, "table": 0.0}}
 
 
 def generate_model(
