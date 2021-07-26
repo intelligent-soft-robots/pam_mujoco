@@ -3,11 +3,11 @@
 
 #include "context/contact_information.hpp"
 #include "o80/pybind11_helper.hpp"
+#include "shared_memory/serializer.hpp"
 #include "pam_mujoco/add_controllers.hpp"
 #include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/read_robot_state.hpp"
-#include "shared_memory/serializer.hpp"
 
 #define NB_DOFS 4
 #define QUEUE_SIZE 500000
