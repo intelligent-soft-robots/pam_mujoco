@@ -1,11 +1,11 @@
 
-
 template <int QUEUE_SIZE, int NB_DOFS>
 MirrorRobot<QUEUE_SIZE, NB_DOFS>::MirrorRobot(std::string segment_id,
                                               std::string robot_joint_base)
     : ControllerBase{},
       backend_{segment_id},
       robot_joint_base_(robot_joint_base),
+      index_geom_(-1),
       index_q_robot_(-1),
       index_qvel_robot_(-1)
 {
@@ -32,6 +32,23 @@ bool MirrorRobot<QUEUE_SIZE, NB_DOFS>::same(const States& s1,
 }
 
 template <int QUEUE_SIZE, int NB_DOFS>
+void MirrorRobot<QUEUE_SIZE, NB_DOFS>::update_robot_fk(const mjData* d,
+						       int index_geom)
+{
+  for(int dim=0;dim<3;dim++)
+    {
+      robot_fk_.set_position(dim,d->geom_xpos[index_geom*3+dim]);
+      robot_fk_.set_velocity(dim,d->geom_xvel[index_geom*3+dim]);
+    }
+  for(int dim=0;dim<9;dim++)
+    {
+      robot_fk_.set_orientation(dim,d->geom_xmat[index_geom*9+dim];
+    }
+}
+
+
+
+template <int QUEUE_SIZE, int NB_DOFS>
 void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
 {
     if (index_q_robot_ < 0)
@@ -40,13 +57,16 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
             m, mjOBJ_JOINT, robot_joint_base_.c_str())];
         index_qvel_robot_ = m->jnt_dofadr[mj_name2id(
             m, mjOBJ_JOINT, robot_joint_base_.c_str())];
+	index_geom_ = mj_name2id(m, mjOBJ_GEOM, geom_.c_str());
     }
     bool set_to_mujoco = false;
     if (this->must_update(d))
     {
-        // must update means mujoco time stamp (d->time)
+        // must_update means mujoco time stamp (d->time)
         // has been updated to a new iteration (i.e. increased of
         // 0.002s).
+      
+        // reading robot state
         o80::State2d joint_state;
         for (std::size_t dof = 0; dof < NB_DOFS; dof++)
         {
@@ -54,6 +74,10 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
             joint_state.set<1>(d->qvel[index_qvel_robot_ + dof]);
             read_states_.set(dof, joint_state);
         }
+
+	// getting robot fk as extended state
+	
+	
         set_states_ = backend_.pulse(
             this->get_time_stamp(), read_states_, o80::VoidExtendedState());
         if (!same(set_states_, previous_set_states_))
