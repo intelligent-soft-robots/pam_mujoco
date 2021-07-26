@@ -76,6 +76,7 @@ add_library( ${PROJECT_NAME} SHARED
   src/listener.cpp
   src/mujoco_config.cpp
   src/is_in_contact.cpp
+  src/robot_fk_extended_state.cpp
   src/listener.cpp)
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
