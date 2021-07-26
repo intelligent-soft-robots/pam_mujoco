@@ -141,12 +141,11 @@ class Robot:
             xml,
             joint,
             geom_racket,
-            geom_racket_handle,
             nb_bodies,
         ) = xml_templates.get_robot_xml(
             self.model_name, self.name, self.position, self.xy_axes, self.muscles
         )
-        return (xml, joint, geom_racket, geom_racket_handle, nb_bodies)
+        return (xml, joint, geom_racket, nb_bodies)
 
 
 def defaults_solrefs():
@@ -155,7 +154,6 @@ def defaults_solrefs():
         "ball": {
             "racket": (-0.1, -0.1),
             "floor": (0.003, 0.25),
-            "racket_handle": (0.003, 0.35),
             "table": (-0.1, -0.1),
             "net": (0.003, 10.0),
         },
@@ -233,10 +231,9 @@ def generate_model(
 
     # ...
     for robot in robots:
-        (xml, joint, geom_racket, geom_racket_handle, nb_bodies) = robot.get_xml()
+        (xml, joint, geom_racket, nb_bodies) = robot.get_xml()
         bodies.append(xml)
         robot.geom_racket = geom_racket
-        robot.geom_racket_handle = geom_racket_handle
         robot.index_qpos = index_qpos
         robot.index_qvel = index_qvel
         robot.joint = joint

@@ -163,9 +163,8 @@ def get_robot_xml(model_name, name, position, xy_axes, muscles):
     # in pam_mujoco/models/robot_templates/
     joint = name + "_joint_base_rotation"
     geom_racket = name + "_racket"
-    geom_racket_handle = name + "_racket_handle"
 
-    return xml, joint, geom_racket, geom_racket_handle, nb_bodies
+    return xml, joint, geom_racket, nb_bodies
 
 
 def get_contacts_xml(robots, balls, tables, solrefs, gaps):
@@ -201,9 +200,6 @@ def get_contacts_xml(robots, balls, tables, solrefs, gaps):
         contacts.append(get_xml(ball.geom, "floor", "ball", "floor"))
         for robot in robots:
             contacts.append(get_xml(ball.geom, robot.geom_racket, "ball", "racket"))
-            contacts.append(
-                get_xml(ball.geom, robot.geom_racket_handle, "ball", "racket_handle")
-            )
         for table in tables:
             contacts.append(get_xml(ball.geom, table.geom_plate, "ball", "table"))
             contacts.append(get_xml(ball.geom, table.geom_net, "ball", "net"))
