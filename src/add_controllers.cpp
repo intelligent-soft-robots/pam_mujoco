@@ -122,55 +122,166 @@ void add_robot2_contact_free_joint(std::string segment_id,
 
 void add_joints_control(MujocoRobotJointControl mrc)
 {
-  add_mirror_robot(std::string(mrc.segment_id), std::string(mrc.joint));
-  return;
+    add_mirror_robot(std::string(mrc.segment_id), std::string(mrc.joint));
+    return;
 }
 
 void add_pressures_control(MujocoRobotPressureControl mpc)
 {
-  std::string config_path(mpc.json_controller_path);
-  pam_interface::JsonConfiguration<4> pam_interface_config(config_path);
-  std::string robot_joint_base;
-  std::array<double, 8> scale_min_pressure;
-  std::array<double, 8> scale_max_pressure;
-  std::array<double, 8> scale_min_activation;
-  std::array<double, 8> scale_max_activation;
-  std::array<double, 8> a_init;
-  std::array<double, 8> l_MTC_change_init;
-  a_init.fill(0.5);
-  l_MTC_change_init.fill(0.0);
-  scale_min_activation.fill(0.001);
-  scale_max_activation.fill(1.0);
-  for (int dof = 0; dof < 4; dof++)
+    std::string config_path(mpc.json_controller_path);
+    pam_interface::JsonConfiguration<4> pam_interface_config(config_path);
+    std::string robot_joint_base;
+    std::array<double, 8> scale_min_pressure;
+    std::array<double, 8> scale_max_pressure;
+    std::array<double, 8> scale_min_activation;
+    std::array<double, 8> scale_max_activation;
+    std::array<double, 8> a_init;
+    std::array<double, 8> l_MTC_change_init;
+    a_init.fill(0.5);
+    l_MTC_change_init.fill(0.0);
+    scale_min_activation.fill(0.001);
+    scale_max_activation.fill(1.0);
+    for (int dof = 0; dof < 4; dof++)
     {
-      scale_min_pressure[2 * dof] =
-	pam_interface_config.min_pressures_ago[dof];
-      scale_min_pressure[2 * dof + 1] =
-	pam_interface_config.min_pressures_antago[dof];
-      scale_max_pressure[2 * dof] =
-	pam_interface_config.max_pressures_ago[dof];
-      scale_max_pressure[2 * dof + 1] =
-	pam_interface_config.max_pressures_antago[dof];
+        scale_min_pressure[2 * dof] =
+            pam_interface_config.min_pressures_ago[dof];
+        scale_min_pressure[2 * dof + 1] =
+            pam_interface_config.min_pressures_antago[dof];
+        scale_max_pressure[2 * dof] =
+            pam_interface_config.max_pressures_ago[dof];
+        scale_max_pressure[2 * dof + 1] =
+            pam_interface_config.max_pressures_antago[dof];
     }
-  add_4dofs_pressure_controller(std::string(mpc.segment_id),
-				std::string(mpc.joint),
-				scale_min_pressure,
-				scale_max_pressure,
-				scale_min_activation,
-				scale_max_activation,
-				std::string(mpc.json_ago_hill_path),
-				std::string(mpc.json_antago_hill_path),
-				a_init,
-				l_MTC_change_init);
+    add_4dofs_pressure_controller(std::string(mpc.segment_id),
+                                  std::string(mpc.joint),
+                                  scale_min_pressure,
+                                  scale_max_pressure,
+                                  scale_min_activation,
+                                  scale_max_activation,
+                                  std::string(mpc.json_ago_hill_path),
+                                  std::string(mpc.json_antago_hill_path),
+                                  a_init,
+                                  l_MTC_change_init);
 }
 
-			   
+template <int NB_ITEMS>
+void add_items_control(const MujocoConfig& config,
+                       MujocoItemsControl<NB_ITEMS> mic)
+{
+
+    std::array<std::string, NB_ITEMS> str_joints;
+    for (int i = 0; i < NB_ITEMS; i++)
+    {
+        str_joints[i] = std::string(mic.joint[i]);
+    }
+
+    if (mic.contact_type != ContactTypes::no_contact)
+    {
+        std::array<std::string, NB_ITEMS> contact_segment_ids;
+
+        for (int item = 0; item < NB_ITEMS; item++)
+        {
+            if (mic.type[item] == MujocoItemTypes::ball ||
+                mic.type[item] == MujocoItemTypes::hit_point ||
+                mic.type[item] == MujocoItemTypes::goal)
+            {
+                std::string contact_segment_id;
+                if (mic.contact_type == ContactTypes::table)
+                {
+                    contact_segment_id = std::string(mic.segment_id) +
+                                         std::string("_table_") +
+                                         std::to_string(item);
+                    add_table_contact_free_joint(
+                        contact_segment_id,
+                        mic.index_qpos[item],
+                        mic.index_qvel[item],
+                        std::string(mic.geometry[item]),
+                        std::string(config.table_geometry));
+                }
+                if (mic.contact_type == ContactTypes::racket1)
+                {
+                    contact_segment_id = std::string(mic.segment_id) +
+                                         std::string("_racket1_") +
+                                         std::to_string(item);
+                    add_robot1_contact_free_joint(
+                        contact_segment_id,
+                        mic.index_qpos[item],
+                        mic.index_qvel[item],
+                        std::string(mic.geometry[item]),
+                        std::string(config.racket1_geometry));
+                }
+                if (mic.contact_type == ContactTypes::racket2)
+                {
+                    contact_segment_id = std::string(mic.segment_id) +
+                                         std::string("_racket2") +
+                                         std::to_string(item);
+                    add_robot1_contact_free_joint(
+                        contact_segment_id,
+                        mic.index_qpos[item],
+                        mic.index_qvel[item],
+                        std::string(mic.geometry[item]),
+                        std::string(config.racket2_geometry));
+                }
+
+                contact_segment_ids[item] = contact_segment_id;
+            }
+        }
+        add_mirror_until_contact_free_joints<NB_ITEMS>(
+            std::string(mic.segment_id),
+            str_joints,
+            mic.index_qpos,
+            mic.index_qvel,
+            contact_segment_ids,
+            mic.active_only);
+    }
+
+    else
+    {
+        add_mirror_free_joints<NB_ITEMS>(std::string(mic.segment_id),
+                                         str_joints,
+                                         mic.index_qpos,
+                                         mic.index_qvel,
+                                         mic.active_only);
+    }
+}
+
+void add_3_items_control(const MujocoConfig& config, MujocoItemsControl<3> mic)
+{
+  add_items_control<3>(config, mic);
+}
+
+
+void add_10_items_control(const MujocoConfig& config,
+                          MujocoItemsControl<10> mic)
+{
+    add_items_control<10>(config, mic);
+}
+
+void add_20_items_control(const MujocoConfig& config,
+                          MujocoItemsControl<20> mic)
+{
+    add_items_control<20>(config, mic);
+}
+
+void add_50_items_control(const MujocoConfig& config,
+                          MujocoItemsControl<50> mic)
+{
+    add_items_control<50>(config, mic);
+}
+
+void add_100_items_control(const MujocoConfig& config,
+                           MujocoItemsControl<100> mic)
+{
+    add_items_control<100>(config, mic);
+}
+
 void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
 {
-    if (mic.type == MujocoItemTypes::ball || mic.type == MujocoItemTypes::hit_point ||
+    if (mic.type == MujocoItemTypes::ball ||
+        mic.type == MujocoItemTypes::hit_point ||
         mic.type == MujocoItemTypes::goal)
     {
-      if (mic.contact_type!=ContactTypes::no_contact)
+        if (mic.contact_type != ContactTypes::no_contact)
         {
             std::string contact_segment_id;
             if (mic.contact_type == ContactTypes::table)
@@ -207,11 +318,11 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
                     std::string(config.racket2_geometry));
             }
             add_mirror_until_contact_free_joint(std::string(mic.segment_id),
-						std::string(mic.joint),
-						mic.index_qpos,
-						mic.index_qvel,
-						contact_segment_id,
-						mic.active_only);
+                                                std::string(mic.joint),
+                                                mic.index_qpos,
+                                                mic.index_qvel,
+                                                contact_segment_id,
+                                                mic.active_only);
         }
         else
         {

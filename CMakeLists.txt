@@ -70,12 +70,12 @@ add_library( ${PROJECT_NAME} SHARED
   src/read_robot_state.cpp
   src/contact_ball.cpp
   src/contact_states.cpp
-  src/contact_logic.cpp
   src/recompute_state_after_contact.cpp
   src/controllers.cpp
   src/add_controllers.cpp
   src/listener.cpp
   src/mujoco_config.cpp
+  src/is_in_contact.cpp
   src/listener.cpp)
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -165,15 +165,10 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_stop_all
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_stop_all COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_visualization
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_visualization COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_visualization_no_xterms
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_visualization_no_xterms COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/process_pam_visualization
   ${CMAKE_INSTALL_PREFIX}/bin/process_pam_visualization COPYONLY)
-
-
-#######################
-# Debian control file #
-#######################
-
-install(FILES debian/control DESTINATION debian)
 
 
 ######################
@@ -190,3 +185,14 @@ install(
   INCLUDES
   DESTINATION include)
 ament_package()
+
+##############
+# Unit tests #
+##############
+
+# ignored for now
+#if(BUILD_TESTING)
+#  find_package(ament_cmake_gtest REQUIRED)
+#  ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
+#  target_link_libraries(test_${PROJECT_NAME}_cpp ${PROJECT_NAME})
+#endif()

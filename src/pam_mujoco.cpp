@@ -2180,6 +2180,46 @@ int main(int argc, const char** argv)
       std::cout << mic.to_string() << std::endl;
       pam_mujoco::add_item_control(config,mic);
     }
+
+    for (const pam_mujoco::MujocoItemsControl<3>& mic : config.item_3_controls)
+    {
+      std::cout << "\nadding controller:"<< std::endl;
+      std::cout << mic.to_string() << std::endl;
+      pam_mujoco::add_3_items_control(config,mic);
+    }
+
+    for (const pam_mujoco::MujocoItemsControl<10>& mic : config.item_10_controls)
+      {
+	std::cout << "\nadding controller:"<< std::endl;
+	std::cout << mic.to_string() << std::endl;
+	pam_mujoco::add_10_items_control(config,mic);
+      }
+
+
+    for (const pam_mujoco::MujocoItemsControl<20>& mic : config.item_20_controls)
+      {
+	std::cout << "\nadding controller:"<< std::endl;
+	std::cout << mic.to_string() << std::endl;
+	pam_mujoco::add_20_items_control(config,mic);
+      }
+
+
+    for (const pam_mujoco::MujocoItemsControl<50>& mic : config.item_50_controls)
+      {
+	std::cout << "\nadding controller:"<< std::endl;
+	std::cout << mic.to_string() << std::endl;
+	pam_mujoco::add_50_items_control(config,mic);
+      }
+
+
+    for (const pam_mujoco::MujocoItemsControl<100>& mic : config.item_100_controls)
+      {
+	std::cout << "\nadding controller:"<< std::endl;
+	std::cout << mic.to_string() << std::endl;
+	pam_mujoco::add_100_items_control(config,mic);
+      }
+
+    
     for (const pam_mujoco::MujocoRobotJointControl& mrc : config.joint_controls)
     {
       std::cout << "\nadding controller:"<< std::endl;
@@ -2193,6 +2233,7 @@ int main(int argc, const char** argv)
       pam_mujoco::add_pressures_control(mpc);
     }
 
+    
     mjcb_control = pam_mujoco::Controllers::apply;
     mjcb_act_bias = pam_mujoco::Controllers::get_bias;
 

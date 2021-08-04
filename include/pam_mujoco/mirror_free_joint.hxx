@@ -67,7 +67,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
         context::ContactInformation ci;
         shared_memory::deserialize(
             segment_id_contact_, segment_id_contact_, ci);
-	contact_disabled = ci.disabled;
+        contact_disabled = ci.disabled;
         if (ci.contact_occured && !interrupted_)
         {
             interrupted_ = true;
@@ -96,20 +96,33 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     // and
     // 2. the backend is active (i.e. no o80 command is active)
 
-    bool overwrite = ( ( (!interrupted_) || contact_disabled ) && active );
+    bool overwrite = (((!interrupted_) || contact_disabled) && active);
 
     if (overwrite)
     {
-        // x,y,z positions
-        d->qpos[index_qpos_] = set_states_.get(0).value;
-        d->qpos[index_qpos_ + 1] = set_states_.get(2).value;
-        d->qpos[index_qpos_ + 2] = set_states_.get(4).value;
-        // x,y,z velocities
-        d->qvel[index_qvel_] = set_states_.get(1).value;
-        d->qvel[index_qvel_ + 1] = set_states_.get(3).value;
-        d->qvel[index_qvel_ + 2] = set_states_.get(5).value;
+      bool anynan = false;
+      for(int i=0;i<6;i++)
+	{
+	  if ( std::isnan(set_states_.get(i).value) )
+	    {
+	      anynan=true;
+	      break;
+	    }
+	}
+      if(!anynan)
+	{
+	  // x,y,z positions
+	  d->qpos[index_qpos_] = set_states_.get(0).value;
+	  d->qpos[index_qpos_ + 1] = set_states_.get(2).value;
+	  d->qpos[index_qpos_ + 2] = set_states_.get(4).value;
+	  // x,y,z velocities
+	  d->qvel[index_qvel_] = set_states_.get(1).value;
+	  d->qvel[index_qvel_ + 1] = set_states_.get(3).value;
+	  d->qvel[index_qvel_ + 2] = set_states_.get(5).value;
+	}
     }
 }
+
 
 template <int QUEUE_SIZE>
 void MirrorFreeJoint<QUEUE_SIZE>::clear(std::string segment_id)
