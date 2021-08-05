@@ -23,7 +23,7 @@ public:
   template <class Archive>
     void serialize(Archive& archive)
     { 
-      archive(contacts,robot,episode)
+      archive(contacts,robot_position,episode);
     }
 public:
   std::array<bool,NB_BALLS> contacts;

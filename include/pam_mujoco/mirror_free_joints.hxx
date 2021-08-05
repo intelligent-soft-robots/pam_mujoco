@@ -2,13 +2,15 @@
 
 template <int QUEUE_SIZE, int NB_ITEMS>
 MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
-    std::string segment_id,
+							 std::string mujoco_id,
+							 std::string segment_id,
     std::array<std::string, NB_ITEMS> joint,
     std::array<int, NB_ITEMS> index_qpos,
     std::array<int, NB_ITEMS> index_qvel,
     std::string robot_joint_base,
     bool active_only)
-    : segment_id_{segment_id},
+  : mujoco_id_{mujoco_id},
+    segment_id_{segment_id},
       backend_{segment_id},
       joint_(joint),
       index_qpos_(index_qpos),
@@ -23,6 +25,7 @@ MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
 
 template <int QUEUE_SIZE, int NB_ITEMS>
 MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
+							 std::string mujoco_id,
     std::string segment_id,
     std::array<std::string, NB_ITEMS> joint,
     std::array<int, NB_ITEMS> index_qpos,
@@ -30,7 +33,7 @@ MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
     std::string robot_joint_base,
     std::array<std::string, NB_ITEMS> interrupt_segment_id,
     bool active_only)
-    : MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints{
+  : MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints{mujoco_id,
   segment_id, joint, index_qpos, index_qvel, robot_joint_base,active_only } 
 {
     for (int i = 0; i < NB_ITEMS; i++)
@@ -48,11 +51,25 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::set_contact_interrupt(
 template <int QUEUE_SIZE, int NB_ITEMS>
 void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
 {
+  // init, first iteration only
   if(index_robot_geom_<0)
     {
       index_robot_geom_ = mj_name2id(m, mjOBJ_GEOM, robot_joint_base_.c_str());
     }
-  
+
+  // reading contacts
+  std::array<context::ContactInformation,NB_ITEMS> contact_information;
+  std::array<bool,NB_ITEMS> contact_occured;
+  for(int index=0;index<NB_ITEMS;index++)
+    {
+      shared_memory::deserialize(segment_id_contact_[index],
+				 segment_id_contact_[index],
+				 contact_information[index]);
+      contact_occured[index]=contact_information[index].contact_occured;
+    }
+
+  // things to do only if new time step
+  // (o80 call)
     if (this->must_update(d))
     {
 
@@ -77,11 +94,18 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
 	  {
 	    robot_position[dim]=d->geom_xpos[index_robot_geom_*3+dim];
 	  }
-	
+
+	// reading current episode
+	long int episode;
+	shared_memory::get<long int>(mujoco_id_,"episode",episode);
+
+	// o80 information share
         set_states_ =
             backend_.pulse(o80::TimePoint(static_cast<long int>(d->time * 1e9)),
                            read_states_,
-                           o80::VoidExtendedState());
+                           ExtraBallsExtendedState<NB_ITEMS>(contact_occured,
+							     episode,
+							     robot_position));
     }
 
     bool active;
@@ -107,15 +131,12 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
         bool contact_disabled;
         if (contact_interrupt_[index])
         {
-            context::ContactInformation ci;
-            shared_memory::deserialize(
-                segment_id_contact_[index], segment_id_contact_[index], ci);
-            contact_disabled = ci.disabled;
-            if (ci.contact_occured && !interrupted_[index])
+            contact_disabled = contact_information[index].disabled;
+            if (contact_occured[index] && !interrupted_[index])
             {
                 interrupted_[index] = true;
             }
-            if (interrupted_[index] && !ci.contact_occured)
+            if (interrupted_[index] && !contact_occured[index])
             {
                 // contact has been reset
                 interrupted_[index] = false;

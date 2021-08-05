@@ -8,7 +8,7 @@ class ParallelBurst:
         self._size = len(mirrorings)
         self._running = True
         self._mirrorings = mirrorings
-        self._burst_done = [False]*self._size
+        self._burst_done = [False] * self._size
         self._nb_bursts = None
         self._wait = wait
         if self._size > 1:
@@ -20,14 +20,14 @@ class ParallelBurst:
             for thread in self._threads:
                 thread.start()
         else:
-            self._lock = None    
+            self._lock = None
 
     def _run(self, index):
         while self._running:
             with self._lock:
                 nb_bursts = self._nb_bursts
                 burst_done = self._burst_done[index]
-            if (nb_bursts is not None and not burst_done):
+            if nb_bursts is not None and not burst_done:
                 self._mirrorings[index].burst(nb_bursts)
                 with self._lock:
                     self._burst_done[index] = True

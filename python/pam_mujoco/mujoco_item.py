@@ -19,7 +19,7 @@ class MujocoItems:
     # (and other files)
     accepted_sizes = (3, 10, 20, 50, 100)
 
-    def __init__(self,segment_id):
+    def __init__(self, segment_id):
 
         self.items = {"balls": [], "goals": [], "hit_points": []}
         self.segment_id = segment_id

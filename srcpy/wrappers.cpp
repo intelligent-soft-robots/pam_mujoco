@@ -91,6 +91,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 3>,
                             std::array<int, 3>,
                             std::array<std::string, 3>,
+	                    std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -108,6 +109,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 10>,
                             std::array<int, 10>,
                             std::array<std::string, 10>,
+    	                    std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -125,6 +127,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 20>,
                             std::array<int, 20>,
                             std::array<std::string, 20>,
+     	                    std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -142,6 +145,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 50>,
                             std::array<int, 50>,
                             std::array<std::string, 50>,
+     	                    std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -159,6 +163,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 100>,
                             std::array<int, 100>,
                             std::array<std::string, 100>,
+                            std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",

@@ -1,7 +1,7 @@
 import time, logging, shared_memory, o80, o80_pam, pam_mujoco_wrp
 from functools import partial
 from .mujoco_robot import MujocoRobot
-from .mujoco_item import MujocoItem,MujocoItems
+from .mujoco_item import MujocoItem, MujocoItems
 from . import models
 
 
@@ -132,7 +132,7 @@ class MujocoHandle:
 
             # combined (instance of mujoco_item.MujocoItems)
             # supports only a limited set of size (see source of MujocoItems)
-            self.combined=combined
+            self.combined = combined
             if combined and (combined.size not in combined.accepted_sizes):
                 raise ValueError(
                     "pam_mujoco.mujoco_item.MujocoItems supports "
@@ -272,7 +272,7 @@ class MujocoHandle:
         # if read only, we did not create the mujoco configuration,
         # (which has been written by another process)
         # so we read it from the shared memory
-        
+
         if read_only:
 
             config = pam_mujoco_wrp.get_mujoco_config(mujoco_id)
@@ -391,9 +391,9 @@ class MujocoHandle:
 
             # e.g. Balls3Frontend for 3 balls.
             # see pam_mujoco/srcpy/wrappers.cpp
-            frontend_class_name = "".join(["Balls",str(combined.size),"FrontEnd"])
-            frontend_class = getattr(pam_mujoco_wrp,frontend_class_name)
-            self.frontends[combined.segment_id]=frontend_class(combined.segment_id)
+            frontend_class_name = "".join(["Balls", str(combined.size), "FrontEnd"])
+            frontend_class = getattr(pam_mujoco_wrp, frontend_class_name)
+            self.frontends[combined.segment_id] = frontend_class(combined.segment_id)
 
         # for tracking contact
         self.contacts = {}
@@ -405,20 +405,26 @@ class MujocoHandle:
                 self.contacts[item.segment_id] = item.segment_id + "_racket1"
             if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
                 self.contacts[item.segment_id] = item.segment_id + "_racket2"
-                
+
         if combined:
             # see src/add_controllers.cpp, function add_items_control
-            for index,item in enumerate(list(combined.iterate())):
+            for index, item in enumerate(list(combined.iterate())):
                 if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
-                    self.contacts[item.segment_id] = combined.segment_id + "_table_" +str(index)
+                    self.contacts[item.segment_id] = (
+                        combined.segment_id + "_table_" + str(index)
+                    )
                 if item.contact_type == pam_mujoco_wrp.ContactTypes.racket1:
-                    self.contacts[item.segment_id] = combined.segment_id + "_racket1_" +str(index)
+                    self.contacts[item.segment_id] = (
+                        combined.segment_id + "_racket1_" + str(index)
+                    )
                 if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
-                    self.contacts[item.segment_id] = combined.segment_id + "_racket2_" +str(index)
+                    self.contacts[item.segment_id] = (
+                        combined.segment_id + "_racket2_" + str(index)
+                    )
 
         for sid in self.contacts.keys():
             self.reset_contact(sid)
-                
+
     def reset(self):
         # sharing the reset commands
         for _, interface in self.interfaces.items():

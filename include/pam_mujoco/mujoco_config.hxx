@@ -13,6 +13,7 @@ MujocoItemsControl<NB_ITEMS>::MujocoItemsControl(
     std::array<int, NB_ITEMS> _index_qpos,
     std::array<int, NB_ITEMS> _index_qvel,
     std::array<std::string, NB_ITEMS> _geometry,
+    std::string _robot_geom,
     bool _active_only,
     ContactTypes _contact_type)
     : type{_type},
@@ -22,6 +23,7 @@ MujocoItemsControl<NB_ITEMS>::MujocoItemsControl(
       contact_type{_contact_type}
 {
     strcpy(segment_id, _segment_id.c_str());
+    strcpy(robot_geom, _robot_geom.c_str());
     for (int i = 0; i < NB_ITEMS; i++)
     {
         strcpy(joint[i], _joint[i].c_str());

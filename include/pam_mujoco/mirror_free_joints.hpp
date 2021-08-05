@@ -19,18 +19,20 @@ private:
     typedef o80::BackEnd<QUEUE_SIZE,
                          NB_ITEMS,
                          o80::Item3dState,
-                         o80::ExtraBallsExtendedState>
+                         ExtraBallsExtendedState<NB_ITEMS>>
         Backend;
     typedef o80::States<NB_ITEMS, o80::Item3dState> States;
 
 public:
-    MirrorFreeJoints(std::string segment_id,
+  MirrorFreeJoints(std::string mujoco_id,
+		   std::string segment_id,
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
 		     std::string robot_joint_base,
                      bool active_only);
-    MirrorFreeJoints(std::string segment_id,
+    MirrorFreeJoints(std::string mujoco_id,
+		     std::string segment_id,
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
@@ -44,6 +46,7 @@ public:
     static void clear(std::string segment_id);
 
 private:
+    std::string mujoco_id_;
     std::string segment_id_;
     std::array<std::string, NB_ITEMS> joint_;
     std::array<int, NB_ITEMS> index_qpos_;
@@ -53,9 +56,12 @@ private:
     Backend backend_;
     States read_states_;
     States set_states_;
+
+
     std::array<bool, NB_ITEMS> contact_interrupt_;
     std::array<bool, NB_ITEMS> interrupted_;
     std::array<std::string, NB_ITEMS> segment_id_contact_;
+
     bool active_only_;
 };
 
