@@ -8,12 +8,31 @@
 #include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/read_robot_state.hpp"
+#include "pam_mujoco/extra_balls_extended_state.hpp"
 
 #define NB_DOFS 4
 #define QUEUE_SIZE 500000
 
+template<int NB_BALLS>
+void add_extra_balls_extended_state(pybind11::module& m)
+
+{
+  pybind11::class_<pam_mujoco::ExtraBallsExtendedState<NB_BALLS>>(m, ("ExtraBallsExtendedstate"+std::to_string(NB_BALLS)).c_str())
+    .def(pybind11::init<std::string>())
+    .def_readonly("contacts", &pam_mujoco::ExtraBallsExtendedState<NB_BALLS>::contacts)
+    .def_readonly("episode", &pam_mujoco::ExtraBallsExtendedState<NB_BALLS>::episode)
+    .def_readonly("robot_position", &pam_mujoco::ExtraBallsExtendedState<NB_BALLS>::robot_position);
+}
+
 PYBIND11_MODULE(pam_mujoco_wrp, m)
 {
+
+    add_extra_balls_extended_state<3>(m);
+    add_extra_balls_extended_state<10>(m);
+    add_extra_balls_extended_state<20>(m);
+    add_extra_balls_extended_state<50>(m);
+    add_extra_balls_extended_state<100>(m);
+
     pybind11::class_<pam_mujoco::ReadRobotState>(m, "ReadRobotState")
         .def(pybind11::init<std::string>())
         .def("get_positions", &pam_mujoco::ReadRobotState::get_positions)
@@ -213,7 +232,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       QUEUE_SIZE,
       3,
       o80::Item3dState,
-      o80::VoidExtendedState,
+      pam_mujoco::ExtraBallsExtendedState<3>,
       o80::NO_EXTENDED_STATE,
       o80::NO_STATE,
       o80::NO_INTROSPECTOR>(m,std::string("Balls3"));
@@ -222,7 +241,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       QUEUE_SIZE,
       10,
       o80::Item3dState,
-      o80::VoidExtendedState,
+      pam_mujoco::ExtraBallsExtendedState<10>,
       o80::NO_EXTENDED_STATE,
       o80::NO_STATE,
       o80::NO_INTROSPECTOR>(m,std::string("Balls10"));
@@ -231,7 +250,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       QUEUE_SIZE,
       20,
       o80::Item3dState,
-      o80::VoidExtendedState,
+      pam_mujoco::ExtraBallsExtendedState<20>,
       o80::NO_EXTENDED_STATE,
       o80::NO_STATE,
       o80::NO_INTROSPECTOR>(m,std::string("Balls20"));
@@ -240,7 +259,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       QUEUE_SIZE,
       50,
       o80::Item3dState,
-      o80::VoidExtendedState,
+      pam_mujoco::ExtraBallsExtendedState<50>,
       o80::NO_EXTENDED_STATE,
       o80::NO_STATE,
       o80::NO_INTROSPECTOR>(m,std::string("Balls50"));
@@ -249,7 +268,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
       QUEUE_SIZE,
       100,
       o80::Item3dState,
-      o80::VoidExtendedState,
+      pam_mujoco::ExtraBallsExtendedState<100>,
       o80::NO_EXTENDED_STATE,
       o80::NO_STATE,
       o80::NO_INTROSPECTOR>(m,std::string("Balls100"));

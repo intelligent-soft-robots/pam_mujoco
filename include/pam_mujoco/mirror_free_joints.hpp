@@ -8,6 +8,7 @@
 #include "o80/item3d_state.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
+#include "pam_mujoco/extra_balls_extended_state.hpp"
 
 namespace pam_mujoco
 {
@@ -18,7 +19,7 @@ private:
     typedef o80::BackEnd<QUEUE_SIZE,
                          NB_ITEMS,
                          o80::Item3dState,
-                         o80::VoidExtendedState>
+                         o80::ExtraBallsExtendedState>
         Backend;
     typedef o80::States<NB_ITEMS, o80::Item3dState> States;
 
@@ -27,11 +28,13 @@ public:
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
+		     std::string robot_joint_base,
                      bool active_only);
     MirrorFreeJoints(std::string segment_id,
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
+		     std::string robot_joint_base,
                      std::array<std::string, NB_ITEMS> interrupt_segment_id,
                      bool active_only);
     void set_contact_interrupt(int item_index, std::string segment_id);
@@ -45,6 +48,8 @@ private:
     std::array<std::string, NB_ITEMS> joint_;
     std::array<int, NB_ITEMS> index_qpos_;
     std::array<int, NB_ITEMS> index_qvel_;
+    std::string robot_joint_base_;
+    int index_robot_geom_;
     Backend backend_;
     States read_states_;
     States set_states_;

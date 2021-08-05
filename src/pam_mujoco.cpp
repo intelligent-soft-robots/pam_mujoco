@@ -2133,6 +2133,10 @@ int main(int argc, const char** argv)
     std::cout << "clearing memory for mujoco_id: " << mujoco_id << "\n" << std::endl;
     shared_memory::clear_shared_memory(mujoco_id);
 
+    // optionally, a client can share with the controllers the current
+    // episode id (if it turns out the client deals with episodes)
+    shared_memory::set<long int>(mujoco_id,"episode",-1);
+    
     // indicating potiential clients that it is not running yet
     shared_memory::set<bool>(mujoco_id,"running",false);
     

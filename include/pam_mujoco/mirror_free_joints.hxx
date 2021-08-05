@@ -6,12 +6,15 @@ MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
     std::array<std::string, NB_ITEMS> joint,
     std::array<int, NB_ITEMS> index_qpos,
     std::array<int, NB_ITEMS> index_qvel,
+    std::string robot_joint_base,
     bool active_only)
     : segment_id_{segment_id},
       backend_{segment_id},
       joint_(joint),
       index_qpos_(index_qpos),
       index_qvel_(index_qvel),
+      robot_joint_base_(robot_joint_base_),
+      index_robot_geom_{-1},
       active_only_(active_only)
 {
     contact_interrupt_.fill(false);
@@ -24,10 +27,11 @@ MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
     std::array<std::string, NB_ITEMS> joint,
     std::array<int, NB_ITEMS> index_qpos,
     std::array<int, NB_ITEMS> index_qvel,
+    std::string robot_joint_base,
     std::array<std::string, NB_ITEMS> interrupt_segment_id,
     bool active_only)
     : MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints{
-          segment_id, joint, index_qpos, index_qvel, active_only}
+  segment_id, joint, index_qpos, index_qvel, robot_joint_base,active_only } 
 {
     for (int i = 0; i < NB_ITEMS; i++)
         set_contact_interrupt(i, interrupt_segment_id[i]);
@@ -44,8 +48,15 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::set_contact_interrupt(
 template <int QUEUE_SIZE, int NB_ITEMS>
 void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
 {
+  if(index_robot_geom_<0)
+    {
+      index_robot_geom_ = mj_name2id(m, mjOBJ_GEOM, robot_joint_base_.c_str());
+    }
+  
     if (this->must_update(d))
     {
+
+        // reading the position and velocity of the items
         for (int index = 0; index < NB_ITEMS; index++)
         {
             int index_qpos = index_qpos_[index];
@@ -60,6 +71,13 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
 	    
         }
 
+	// reading the robot cartesian position
+	std::array<double,3> robot_position;
+	for(int dim=0;dim<3;dim++)
+	  {
+	    robot_position[dim]=d->geom_xpos[index_robot_geom_*3+dim];
+	  }
+	
         set_states_ =
             backend_.pulse(o80::TimePoint(static_cast<long int>(d->time * 1e9)),
                            read_states_,
