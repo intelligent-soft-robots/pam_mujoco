@@ -22,10 +22,12 @@ static constexpr long int QUEUE_SIZE = 500000;
 void add_mirror_robot(std::string segment_id, std::string robot_joint_base);
 
 template <int NB_ITEMS>
-void add_mirror_free_joints(std::string segment_id,
+void add_mirror_free_joints(std::string mujoco_id,
+			    std::string segment_id,
                             std::array<std::string, NB_ITEMS> joints,
                             std::array<int, NB_ITEMS> index_qpos,
                             std::array<int, NB_ITEMS> index_qvel,
+			    std::string robot_joint_base,
                             bool active_only);
 
 void add_mirror_free_joint(std::string segment_id,
@@ -36,10 +38,12 @@ void add_mirror_free_joint(std::string segment_id,
 
 template <int NB_ITEMS>
 void add_mirror_until_contact_free_joints(
+					  std::string mujoco_id,
     std::string segment_id,
     std::array<std::string, NB_ITEMS> joints,
     std::array<int, NB_ITEMS> index_qpos,
     std::array<int, NB_ITEMS> index_qvel,
+					  std::string robot_joint_base,
     std::array<std::string, NB_ITEMS> contact_segment_ids,
     bool active_only);
 

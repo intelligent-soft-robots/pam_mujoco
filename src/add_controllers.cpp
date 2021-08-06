@@ -227,21 +227,25 @@ void add_items_control(const MujocoConfig& config,
             }
         }
         add_mirror_until_contact_free_joints<NB_ITEMS>(
+						       std::string(config.mujoco_id),
             std::string(mic.segment_id),
             str_joints,
             mic.index_qpos,
             mic.index_qvel,
+            mic.robot_geom,
             contact_segment_ids,
             mic.active_only);
     }
 
     else
     {
-        add_mirror_free_joints<NB_ITEMS>(std::string(mic.segment_id),
-                                         str_joints,
-                                         mic.index_qpos,
-                                         mic.index_qvel,
-                                         mic.active_only);
+      add_mirror_free_joints<NB_ITEMS>(std::string(config.mujoco_id),
+				       std::string(mic.segment_id),
+				       str_joints,
+				       mic.index_qpos,
+				       mic.index_qvel,
+				       mic.robot_geom,
+				       mic.active_only);
     }
 }
 

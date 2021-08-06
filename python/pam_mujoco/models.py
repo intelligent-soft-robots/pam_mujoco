@@ -93,16 +93,16 @@ class Ball:
 
 class Table:
 
-    default_position=[0.8, 1.7, -0.475]
-    default_size=[0.7625, 1.37, 0.02]
-    
+    default_position = [0.8, 1.7, -0.475]
+    default_size = [0.7625, 1.37, 0.02]
+
     def __init__(
-            self,
-            model_name,
-            name,
-            position=default_position,
-            size=default_size,
-            color=[0.05, 0.3, 0.23, 1.0],
+        self,
+        model_name,
+        name,
+        position=default_position,
+        size=default_size,
+        color=[0.05, 0.3, 0.23, 1.0],
     ):
         self.model_name = model_name
         self.name = name
@@ -137,12 +137,7 @@ class Robot:
         self.index_qvel = -1
 
     def get_xml(self):
-        (
-            xml,
-            joint,
-            geom_racket,
-            nb_bodies,
-        ) = xml_templates.get_robot_xml(
+        (xml, joint, geom_racket, nb_bodies,) = xml_templates.get_robot_xml(
             self.model_name, self.name, self.position, self.xy_axes, self.muscles
         )
         return (xml, joint, geom_racket, nb_bodies)
