@@ -17,11 +17,12 @@ template<int NB_BALLS>
 void add_extra_balls_extended_state(pybind11::module& m)
 
 {
-  pybind11::class_<pam_mujoco::ExtraBallsExtendedState<NB_BALLS>>(m, ("ExtraBallsExtendedstate"+std::to_string(NB_BALLS)).c_str())
-    .def(pybind11::init<std::string>())
-    .def_readonly("contacts", &pam_mujoco::ExtraBallsExtendedState<NB_BALLS>::contacts)
-    .def_readonly("episode", &pam_mujoco::ExtraBallsExtendedState<NB_BALLS>::episode)
-    .def_readonly("robot_position", &pam_mujoco::ExtraBallsExtendedState<NB_BALLS>::robot_position);
+  typedef pam_mujoco::ExtraBallsExtendedState<NB_BALLS> EES;
+  pybind11::class_<EES>(m, ("ExtraBallsExtendedState"+std::to_string(NB_BALLS)).c_str())
+    .def(pybind11::init<>())
+    .def_readonly("contacts", &EES::contacts)
+    .def_readonly("episode", &EES::episode)
+    .def_readonly("robot_position", &EES::robot_position);
 }
 
 PYBIND11_MODULE(pam_mujoco_wrp, m)
