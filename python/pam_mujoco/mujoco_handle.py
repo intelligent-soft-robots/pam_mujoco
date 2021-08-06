@@ -6,7 +6,7 @@ from . import models
 
 
 def _get_mujoco_items_control(
-    mujoco_items: MujocoItems, balls: list, goals: list, hit_points: list
+        mujoco_items: MujocoItems, balls: list, goals: list, hit_points: list, robot_model_item: dict
 ):
 
     class_name = "".join(["Mujoco", str(mujoco_items.size), "ItemsControl"])
@@ -53,6 +53,7 @@ def _get_mujoco_items_control(
         qpos,
         qvel,
         geometries,
+        robot_model_item.joint,
         active_only,
         mujoco_items.contact_type,
     )
@@ -199,6 +200,7 @@ class MujocoHandle:
 
             mujoco_item_controls = []
             if balls:
+                logging.info("creating item controls for {} balls".format(len(balls)))
                 mujoco_item_controls.extend(
                     [
                         _get_ball(mujoco_item, model_item)
@@ -209,6 +211,7 @@ class MujocoHandle:
                 )
 
             if hit_points:
+                logging.info("creating item controls for {} hit points".format(len(hit_points)))
                 mujoco_item_controls.extend(
                     [
                         _get_hit_point(mujoco_item, model_item)
@@ -219,6 +222,7 @@ class MujocoHandle:
                 )
 
             if goals:
+                logging.info("creating item controls for {} goals".format(len(goals)))
                 mujoco_item_controls.extend(
                     [
                         _get_goal(mujoco_item, model_item)
@@ -233,11 +237,14 @@ class MujocoHandle:
 
             if combined:
 
+                logging.info("creating item controls for combined items")
+                
                 mujoco_combined_items_control = _get_mujoco_items_control(
                     combined,
                     items["balls"][len(balls) :],
                     items["goals"][len(goals) :],
                     items["hit_points"][len(hit_points) :],
+                    items["robot1"]
                 )
 
                 # function name, depending on the number of combined mujoco items.
@@ -252,6 +259,7 @@ class MujocoHandle:
 
             for key, robot in zip(("robot1", "robot2"), (robot1, robot2)):
                 if robot:
+                    logging.info("creating item controls for {}".format(key))
                     r = _get_mujoco_robot_control(robot, items[key])
                     if r:
                         config.add_control(r)
@@ -388,12 +396,8 @@ class MujocoHandle:
                     self.interfaces[robot.segment_id] = interface
 
         if combined:
-
-            # e.g. Balls3Frontend for 3 balls.
-            # see pam_mujoco/srcpy/wrappers.cpp
-            frontend_class_name = "".join(["Balls", str(combined.size), "FrontEnd"])
-            frontend_class = getattr(pam_mujoco_wrp, frontend_class_name)
-            self.frontends[combined.segment_id] = frontend_class(combined.segment_id)
+            self.frontends[combined.segment_id]=self.get_extra_balls_frontend(combined.segment_id,
+                                                                              combined.size)
 
         # for tracking contact
         self.contacts = {}
@@ -425,6 +429,14 @@ class MujocoHandle:
         for sid in self.contacts.keys():
             self.reset_contact(sid)
 
+        logging.info("handle for mujoco {} created".format(mujoco_id))
+
+    @classmethod
+    def get_extra_balls_frontend(cls,segment_id,nb_balls,setid=0):
+        frontend_class_name = "".join(["Balls", str(nb_balls), "FrontEnd"])
+        frontend_class = getattr(pam_mujoco_wrp, frontend_class_name)
+        return frontend_class(segment_id)
+        
     def reset(self):
         # sharing the reset commands
         for _, interface in self.interfaces.items():
@@ -441,6 +453,9 @@ class MujocoHandle:
             while self.get_mujoco_step() == start_mstep:
                 time.sleep(0.0005)
 
+    def get_mujoco_id(self):
+        return self._mujoco_id
+                
     def get_mujoco_step(self):
         return shared_memory.get_long_int(self._mujoco_id, "nbsteps")
 

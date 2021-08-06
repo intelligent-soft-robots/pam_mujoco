@@ -256,8 +256,6 @@ def generate_model(
 
     path = paths.write_model_xml(model_name, template)
 
-    print("created mujoco xml model file:", path)
-
     return path
 
 
