@@ -76,14 +76,12 @@ def run():
 
     logging.info("starting")
     
-    mirroring.align_robots(pressures, joints)
-
     signal_handler.init() # for detecting ctrl+c
     try :
         while not signal_handler.has_received_sigint():
             try:
                 _,__,joint_positions,joint_velocities = pressures.read()
-                print(joint_positions,joint_velocities)
+                print("{:.2f} {:.2f} {:.2f} | {:.2f} {:.2f} {:.2f}".format(*joint_positions,*joint_velocities))
                 joints.set(joint_positions,joint_velocities,
                            duration_ms=None,wait=False)
             except Exception as e:
