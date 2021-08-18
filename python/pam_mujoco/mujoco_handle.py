@@ -150,9 +150,9 @@ class MujocoHandle:
             logging.info("creating the xml model file for {}".format(mujoco_id))
 
             if combined:
-                all_balls = balls + combined.items["balls"]
-                all_goals = goals + combined.items["goals"]
-                all_hit_points = hit_points + combined.items["hit_points"]
+                all_balls = list(balls) + combined.items["balls"]
+                all_goals = list(goals) + combined.items["goals"]
+                all_hit_points = list(hit_points) + combined.items["hit_points"]
             else:
                 all_balls = balls
                 all_goals = goals
@@ -317,6 +317,22 @@ class MujocoHandle:
             except:
                 robot2 = None
 
+            class _Combined:
+                size = 0
+                segment_id = None
+
+            combined=None
+            item_controls_attrs = [(nb_balls,"item_{}_controls".format(nb_balls))
+                                   for nb_balls in (3,10,20,50,100)]
+            for (nb_balls,attr) in item_controls_attrs:
+                mujoco_items_control_instance = getattr(config,attr)
+                if mujoco_items_control_instance:
+                    combined = _Combined
+                    combined.size = nb_balls
+                    combined.segment_id = mujoco_items_control_instance[0].segment_id
+                    break
+
+                
         # if bursting mode, creating a burster client
         if burst_mode:
             self._burster_client = o80.BursterClient(mujoco_id)
@@ -410,7 +426,7 @@ class MujocoHandle:
             if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
                 self.contacts[item.segment_id] = item.segment_id + "_racket2"
 
-        if combined:
+        if combined and not read_only:
             # see src/add_controllers.cpp, function add_items_control
             for index, item in enumerate(list(combined.iterate())):
                 if item.contact_type == pam_mujoco_wrp.ContactTypes.table:

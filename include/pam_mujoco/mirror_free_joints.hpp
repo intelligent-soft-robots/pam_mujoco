@@ -24,8 +24,8 @@ private:
     typedef o80::States<NB_ITEMS, o80::Item3dState> States;
 
 public:
-  MirrorFreeJoints(std::string mujoco_id,
-		   std::string segment_id,
+    MirrorFreeJoints(std::string mujoco_id,
+		     std::string segment_id,
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
