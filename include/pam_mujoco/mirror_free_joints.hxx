@@ -60,12 +60,20 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
   // reading contacts
   std::array<context::ContactInformation,NB_ITEMS> contact_information;
   std::array<bool,NB_ITEMS> contact_occured;
-  for(int index=0;index<NB_ITEMS;index++)
+  if(std::any_of(contact_interrupt_.begin(),
+		 contact_interrupt_.end(),
+		 [](bool v) { return v; }))
     {
-      shared_memory::deserialize(segment_id_contact_[index],
-				 segment_id_contact_[index],
-				 contact_information[index]);
-      contact_occured[index]=contact_information[index].contact_occured;
+      for(int index=0;index<NB_ITEMS;index++)
+	{
+	  if (contact_interrupt_[index])
+	    {
+	      shared_memory::deserialize(segment_id_contact_[index],
+					 segment_id_contact_[index],
+					 contact_information[index]);
+	      contact_occured[index]=contact_information[index].contact_occured;
+	    }
+	}
     }
 
   // things to do only if new time step
