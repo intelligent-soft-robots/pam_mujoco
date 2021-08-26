@@ -4,11 +4,11 @@ template <int QUEUE_SIZE, int NB_ITEMS>
 MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
 							 std::string mujoco_id,
 							 std::string segment_id,
-    std::array<std::string, NB_ITEMS> joint,
-    std::array<int, NB_ITEMS> index_qpos,
-    std::array<int, NB_ITEMS> index_qvel,
-    std::string robot_joint_base,
-    bool active_only)
+							 std::array<std::string, NB_ITEMS> joint,
+							 std::array<int, NB_ITEMS> index_qpos,
+							 std::array<int, NB_ITEMS> index_qvel,
+							 std::string robot_joint_base,
+							 bool active_only)
   : mujoco_id_{mujoco_id},
     segment_id_{segment_id},
       backend_{segment_id},
@@ -26,13 +26,13 @@ MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
 template <int QUEUE_SIZE, int NB_ITEMS>
 MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
 							 std::string mujoco_id,
-    std::string segment_id,
-    std::array<std::string, NB_ITEMS> joint,
-    std::array<int, NB_ITEMS> index_qpos,
-    std::array<int, NB_ITEMS> index_qvel,
-    std::string robot_joint_base,
-    std::array<std::string, NB_ITEMS> interrupt_segment_id,
-    bool active_only)
+							 std::string segment_id,
+							 std::array<std::string, NB_ITEMS> joint,
+							 std::array<int, NB_ITEMS> index_qpos,
+							 std::array<int, NB_ITEMS> index_qvel,
+							 std::string robot_joint_base,
+							 std::array<std::string, NB_ITEMS> interrupt_segment_id,
+							 bool active_only)
   : MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints{mujoco_id,
   segment_id, joint, index_qpos, index_qvel, robot_joint_base,active_only } 
 {
@@ -60,12 +60,20 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
   // reading contacts
   std::array<context::ContactInformation,NB_ITEMS> contact_information;
   std::array<bool,NB_ITEMS> contact_occured;
-  for(int index=0;index<NB_ITEMS;index++)
+  if(std::any_of(contact_interrupt_.begin(),
+		 contact_interrupt_.end(),
+		 [](bool v) { return v; }))
     {
-      shared_memory::deserialize(segment_id_contact_[index],
-				 segment_id_contact_[index],
-				 contact_information[index]);
-      contact_occured[index]=contact_information[index].contact_occured;
+      for(int index=0;index<NB_ITEMS;index++)
+	{
+	  if (contact_interrupt_[index])
+	    {
+	      shared_memory::deserialize(segment_id_contact_[index],
+					 segment_id_contact_[index],
+					 contact_information[index]);
+	      contact_occured[index]=contact_information[index].contact_occured;
+	    }
+	}
     }
 
   // things to do only if new time step

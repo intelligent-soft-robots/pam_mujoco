@@ -169,6 +169,8 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_visualization_no_xterms
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_visualization_no_xterms COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/process_pam_visualization
   ${CMAKE_INSTALL_PREFIX}/bin/process_pam_visualization COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring_real_robot
+  ${CMAKE_INSTALL_PREFIX}/bin/pam_mirroring_real_robot COPYONLY)
 
 
 ######################

@@ -1,0 +1,101 @@
+#!/usr/bin/env python3
+
+import sys, time, logging
+import signal_handler, o80, o80_pam, pam_mujoco
+from pam_mujoco import mirroring
+from lightargs import BrightArgs,Set,Range,Positive,FileExists
+
+
+SEGMENT_ID_ROBOT_MIRROR = "simulated_robot"
+MUJOCO_ID_MIRRORING = "mirroring"
+
+
+def configure():
+    config = BrightArgs("pam mirroring: having an instance of pam_mujoco mirroring another robot")
+    config.add_option("segment_id_real_robot",
+                      o80_pam.segment_ids.robot,
+                      "segment_id of the robot that should be mirrored",
+                      str)
+    config.add_option("mujoco_id_mirroring",
+                      MUJOCO_ID_MIRRORING,
+                      "mujoco_id of the pam_mujoco instance that will mirror the other robot",
+                      str)
+    config.add_option("frequency",
+                      300,
+                      "mirroring frequency",
+                      float,
+                      [Positive()])
+    change_all = False
+    config.dialog(change_all)
+    print()
+    return config
+
+
+def configure_simulation(mujoco_id=MUJOCO_ID_MIRRORING,
+                         segment_id=SEGMENT_ID_ROBOT_MIRROR,
+                         graphics=True):
+
+    accelerated_time = False
+    burst_mode = False
+
+    robot = pam_mujoco.MujocoRobot(
+        segment_id, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
+    )
+    handle = pam_mujoco.MujocoHandle(
+        mujoco_id,
+        graphics=graphics,
+        accelerated_time=accelerated_time,
+        burst_mode=burst_mode,
+        robot1=robot
+    )
+
+    return handle
+
+
+def run():
+
+    config = configure()
+
+    log_handler = logging.StreamHandler(sys.stdout)
+    logging.basicConfig(
+        format="[pam mirroring {} {}] %(message)s".format(config.segment_id_real_robot,
+                                                          config.mujoco_id_mirroring),
+        level=logging.DEBUG,
+        handlers=[log_handler]
+    )
+
+    logging.info("creating o80 frontend to the robot to mirror: {}".format(config.segment_id_real_robot))
+    pressures = o80_pam.o80Pressures(config.segment_id_real_robot)
+    
+    logging.info("creating o80 frontend to the mirroring robot: {}".format(config.mujoco_id_mirroring))
+    mirroring_handle = configure_simulation(mujoco_id=config.mujoco_id_mirroring)
+    joints = mirroring_handle.interfaces[SEGMENT_ID_ROBOT_MIRROR]
+
+    logging.info("creating frequency manager")
+    frequency_manager = o80.FrequencyManager(config.frequency)
+
+    logging.info("starting")
+    
+    signal_handler.init() # for detecting ctrl+c
+    try :
+        while not signal_handler.has_received_sigint():
+            try:
+                _,__,joint_positions,joint_velocities = pressures.read()
+                print("{:.2f} {:.2f} {:.2f} | {:.2f} {:.2f} {:.2f}".format(*joint_positions,*joint_velocities))
+                joints.set(joint_positions,joint_velocities,
+                           duration_ms=None,wait=False)
+            except Exception as e:
+                logging.info("exception: {}. keyboard interrupt ? ".format(e))
+                break
+            frequency_manager.wait()
+    except KeyboardInterrupt:
+        logging.info("keyboard interrupt, exiting")
+
+    logging.info("exit")
+    print()
+
+
+if __name__ == "__main__":
+
+    run()
+            
