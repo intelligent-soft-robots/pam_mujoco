@@ -29,14 +29,14 @@ public:
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
-		     std::string robot_joint_base,
+		     std::string geom_robot,
                      bool active_only);
     MirrorFreeJoints(std::string mujoco_id,
 		     std::string segment_id,
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
-		     std::string robot_joint_base,
+		     std::string geom_robot,
                      std::array<std::string, NB_ITEMS> interrupt_segment_id,
                      bool active_only);
     void set_contact_interrupt(int item_index, std::string segment_id);
@@ -51,7 +51,7 @@ private:
     std::array<std::string, NB_ITEMS> joint_;
     std::array<int, NB_ITEMS> index_qpos_;
     std::array<int, NB_ITEMS> index_qvel_;
-    std::string robot_joint_base_;
+    std::string geom_robot_;
     int index_robot_geom_;
     Backend backend_;
     States read_states_;

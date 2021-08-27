@@ -6,7 +6,7 @@ from . import models
 
 
 def _get_mujoco_items_control(
-        mujoco_items: MujocoItems, balls: list, goals: list, hit_points: list, robot_model_item: dict
+        mujoco_items: MujocoItems, balls: list, goals: list, hit_points: list, robot_geom: str
 ):
 
     class_name = "".join(["Mujoco", str(mujoco_items.size), "ItemsControl"])
@@ -53,7 +53,7 @@ def _get_mujoco_items_control(
         qpos,
         qvel,
         geometries,
-        robot_model_item.joint,
+        robot_geom,
         active_only,
         mujoco_items.contact_type,
     )
@@ -238,13 +238,13 @@ class MujocoHandle:
             if combined:
 
                 logging.info("creating item controls for combined items")
-                
+
                 mujoco_combined_items_control = _get_mujoco_items_control(
                     combined,
                     items["balls"][len(balls) :],
                     items["goals"][len(goals) :],
                     items["hit_points"][len(hit_points) :],
-                    items["robot1"]
+                    items["robot1"].geom_racket
                 )
 
                 # function name, depending on the number of combined mujoco items.
