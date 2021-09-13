@@ -1,6 +1,7 @@
 import time, logging, shared_memory, o80, o80_pam, pam_mujoco_wrp
 from functools import partial
 from .mujoco_robot import MujocoRobot
+from .mujoco_table import MujocoTable
 from .mujoco_item import MujocoItem,MujocoItems
 from . import models
 
@@ -116,7 +117,7 @@ class MujocoHandle:
         accelerated_time: bool = False,
         graphics: bool = True,
         time_step: float = 0.002,
-        table: bool = False,
+        table: MujocoTable = None,
         robot1: MujocoRobot = None,
         robot2: MujocoRobot = None,
         balls: list = [],  # list of mujoco_item.MujocoItem

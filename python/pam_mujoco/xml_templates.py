@@ -71,9 +71,9 @@ def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, 
     return xml, name_geom, name_joint, nb_bodies
 
 
-def get_table_xml(model_name, name, position, size, color):
+def get_table_xml(model_name, name, position, size, color, xy_axes):
 
-    template_body = '<body pos = "$position$" name = "$name$" xyaxes="-0.40737017 -0.91325153  0.00460274  0.91326245 -0.40735857  0.00326916">'
+    template_body = '<body pos = "$position$" name = "$name$" xyaxes="$xy_axes$">'
     template_geom_plate = str(
         '<geom name="$name_plate_geom$" type="box"'
         + ' size="$size$" rgba="$color$" />'
