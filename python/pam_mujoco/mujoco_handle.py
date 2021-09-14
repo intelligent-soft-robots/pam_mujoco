@@ -4,6 +4,29 @@ from .mujoco_robot import MujocoRobot
 from .mujoco_item import MujocoItem, MujocoItems
 from . import models
 
+class NoSuchFrontend(Exception):
+
+    '''
+    Exception to be thrown when user code attempts to use a frontend
+    that does not exists (via an instance of MujocoHandle)
+    :param str segment_id: segment id of the frontend
+    :param MujocoHandle mujoco_handle: instance of MujocoHandle that
+                                       hosts the frontends
+    '''
+    
+    def __init__(self,segment_id,mujoco_handle=None):
+        self._segment_id = segment_id
+        self._mujoco_handle = mujoco_handle
+
+    def __str__(self):
+        if not self._mujoco_handle:
+            valid_ids=""
+        else:
+            valid_ids= ", valid ids: {}".format(self._mujoco_handle.frontends.keys())
+        return "no frontend corresponding to segment id {}{}".format(self._segment_id,
+                                                                     valid_ids)
+        
+
 
 def _get_mujoco_items_control(
         mujoco_items: MujocoItems, balls: list, goals: list, hit_points: list, robot_geom: str
@@ -493,6 +516,33 @@ class MujocoHandle:
     def burst(self, nb_iterations=1):
         self._burster_client.burst(nb_iterations)
 
+    def sleep(self,
+              duration:float,
+              segment_id:str,
+              time_step:float=0.002):
+        '''
+        Similar to time.sleep, except that it 
+        will also work in accelerated time. 
+        This method converts duration into a number of iterations,
+        and wait for this number of iteration to pass (according
+        to the o80 frontend corresponding to the segment_id)
+        :param float duration: sleep duration in seconds
+        :param str segment_id: segment_id of the frontend to use
+        :param float time_step: duration of a mujoco iteration
+        :raise NoSuchBackend: if no backend of the corresponding
+                              segment_id exists
+        :raise ValueError: if duration < time_step
+        '''
+        if segment_id not in self.frontends:
+            raise NoSuchFrontend(segment_id,self)
+        if time_step>duration:
+            raise ValueError(str("Can not sleep shorted than"
+                                 "a mujoco time step"))
+        nb_iterations=int( (duration/time_step) + 0.5 )
+        front = self.frontends[segment_id]
+        target_iteration = front.latest().get_iteration()+nb_iterations
+        front.read(target_iteration)
+        
     def mujoco_exit(self):
         shared_memory.set_bool(self._mujoco_id, "exit", True)
         if self._burster_client:
