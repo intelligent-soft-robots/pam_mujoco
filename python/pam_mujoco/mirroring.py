@@ -141,7 +141,7 @@ def go_to_pressure_posture(
         mirrorings = o80_mirroring
 
     def _reached_target(error=50):
-        pressures_ago, pressures_antago, _, __ = o80_pressures.read()
+        pressures_ago, pressures_antago, _, __ = o80_pressures.read(desired=True)
         for dof in range(len(action)):
             if abs(pressures_ago[dof] - action[dof][0]) > error:
                 return False
