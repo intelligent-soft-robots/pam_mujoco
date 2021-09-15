@@ -1,6 +1,6 @@
 <robot>
-    <geom pos="0.5 0.0 -0.5" name="?id?_frame" type="box" size="0.1 0.25 0.51" rgba=".35 .4 .4 1" solref="0.03 0.06"/>
-    <body pos="0.5 0 0.011" name="?id?_arm">
+    <geom pos="0.015 0.0075 -0.51" name="?id?_frame" type="box" size="0.1 0.2 0.51" rgba=".35 .4 .4 1" solref="0.03 0.06"/>
+    <body  name="?id?_arm">
       <body>
         <joint type="hinge" name="?id?_joint_base_rotation" axis="0 0 1"  frictionloss="114.0189"  solreffriction="0.5" solimpfriction="0.75294" limited="true" range="-89.8 89.8" solreflimit="0.003" solimplimit="1"/>
         <geom type = "mesh" mesh="RL-50_Rotaryeinheit_abkupfer" rgba = "0.20 0.20 0.20 1" zaxis="-1 0 0" pos = "0.037 -0.037 0" mass="0.03"/>

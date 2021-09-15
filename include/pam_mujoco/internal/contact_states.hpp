@@ -1,6 +1,7 @@
 #pragma once
 
 #include "shared_memory/serializer.hpp"
+#include "mujoco.h"
 
 namespace pam_mujoco
 {
@@ -37,6 +38,22 @@ public:
     double time_stamp;
 };
 
+/**
+ * extract information from d to update the instance
+ * of get_states. position of the ball, velocity of the ball,
+ * position of the contactee and orientation of the contactee
+ * are directly read from d.
+ * the velocity of the contactee is computed via finite difference
+ * using the position of the contactee as provided by get_states.
+ * (i.e. get_states is also expected to encapsulte the previous
+ * state).
+ */
+void save_state(const mjData* d,
+                int index_qpos,
+                int index_qvel,
+                int index_geom_contactee,
+                internal::ContactStates& get_states);
+  
 }  // namespace internal
 
 }  // namespace pam_mujoco

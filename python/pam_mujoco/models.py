@@ -93,13 +93,18 @@ class Ball:
 
 
 class Table:
+
+    default_position = [-1.0516994761921965,-0.9872490528968945,-0.9757189781717682],#[0.8, 1.7, -0.475],
+    default_xy_axes = [-0.40737017, -0.91325153,  0.00460274,  0.91326245, -0.40735857,  0.00326916],
+    default_size = [0.7625, 1.37, 0.02]
+
     def __init__(
         self,
         model_name,
         name,
-        position=[-1.0516994761921965,-0.9872490528968945,-0.9757189781717682],#[0.8, 1.7, -0.475],
-        xy_axes = [-0.40737017, -0.91325153,  0.00460274,  0.91326245, -0.40735857,  0.00326916],
-        size=[0.7625, 1.37, 0.02],
+        position=default_position,
+        size=default_size,
+        xy_axes = default_xy_axes,
         color=[0.05, 0.3, 0.23, 1.0],
     ):
         self.model_name = model_name
@@ -136,16 +141,10 @@ class Robot:
         self.index_qvel = -1
 
     def get_xml(self):
-        (
-            xml,
-            joint,
-            geom_racket,
-            geom_racket_handle,
-            nb_bodies,
-        ) = xml_templates.get_robot_xml(
+        (xml, joint, geom_racket, nb_bodies,) = xml_templates.get_robot_xml(
             self.model_name, self.name, self.position, self.xy_axes, self.muscles
         )
-        return (xml, joint, geom_racket, geom_racket_handle, nb_bodies)
+        return (xml, joint, geom_racket, nb_bodies)
 
 
 def defaults_solrefs():
@@ -154,7 +153,6 @@ def defaults_solrefs():
         "ball": {
             "racket": (-0.1, -0.1),
             "floor": (0.003, 0.25),
-            "racket_handle": (0.003, 0.35),
             "table": (-0.1, -0.1),
             "net": (0.003, 10.0),
         },
@@ -164,7 +162,7 @@ def defaults_solrefs():
 
 def defaults_gaps():
 
-    return {"ball": {"floor": 0.0, "table": 0.02}}
+    return {"ball": {"floor": 0.0, "table": 0.0}}
 
 
 def generate_model(
@@ -232,10 +230,9 @@ def generate_model(
 
     # ...
     for robot in robots:
-        (xml, joint, geom_racket, geom_racket_handle, nb_bodies) = robot.get_xml()
+        (xml, joint, geom_racket, nb_bodies) = robot.get_xml()
         bodies.append(xml)
         robot.geom_racket = geom_racket
-        robot.geom_racket_handle = geom_racket_handle
         robot.index_qpos = index_qpos
         robot.index_qvel = index_qvel
         robot.joint = joint
@@ -262,8 +259,6 @@ def generate_model(
     template = template.replace("<!-- contacts -->", contacts)
 
     path = paths.write_model_xml(model_name, template)
-
-    print("created mujoco xml model file:", path)
 
     return path
 
