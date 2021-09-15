@@ -283,7 +283,7 @@ def model_factory(
 
     tables = []
     if table is not None:
-        table = Table(model_name, table.segment_id, table.positions, table.orientation)
+        table = Table(model_name, table.segment_id, table.position, table.orientation)
         tables.append(table)
         r["table"] = table
     else:
