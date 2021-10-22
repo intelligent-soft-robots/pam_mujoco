@@ -2,6 +2,7 @@ import os
 import itertools
 import numpy as np
 from .mujoco_robot import MujocoRobot
+from .mujoco_table import MujocoTable
 from .mujoco_item import MujocoItem
 from . import xml_templates
 from . import paths
@@ -93,7 +94,8 @@ class Ball:
 
 class Table:
 
-    default_position = [0.8, 1.7, -0.475]
+    default_position = [-1.0516994761921965,-0.9872490528968945,-0.9757189781717682],#[0.8, 1.7, -0.475],
+    default_xy_axes = [-0.40737017, -0.91325153,  0.00460274,  0.91326245, -0.40735857,  0.00326916],
     default_size = [0.7625, 1.37, 0.02]
 
     def __init__(
@@ -102,6 +104,7 @@ class Table:
         name,
         position=default_position,
         size=default_size,
+        xy_axes = default_xy_axes,
         color=[0.05, 0.3, 0.23, 1.0],
     ):
         self.model_name = model_name
@@ -109,6 +112,7 @@ class Table:
         self.position = position
         self.size = size
         self.color = color
+        self.xy_axes = xy_axes
         # will be filled by the "generate_model"
         # function (in this file)
         self.geom_plate = None
@@ -116,7 +120,7 @@ class Table:
 
     def get_xml(self):
         (xml, name_plate_geom, name_net_geom, nb_bodies) = xml_templates.get_table_xml(
-            self.name, self.model_name, self.position, self.size, self.color
+            self.name, self.model_name, self.position, self.size, self.color, self.xy_axes
         )
         return (xml, name_plate_geom, name_net_geom, nb_bodies)
 
@@ -262,7 +266,7 @@ def generate_model(
 def model_factory(
     model_name: str,
     time_step: float = 0.002,
-    table: bool = False,
+    table: MujocoTable = None,
     balls: list = [],
     goals: list = [],
     hit_points: list = [],
@@ -273,8 +277,8 @@ def model_factory(
     r = {}
 
     tables = []
-    if table:
-        table = Table(model_name, "table")
+    if table is not None:
+        table = Table(model_name, table.segment_id, table.position, table.orientation)
         tables.append(table)
         r["table"] = table
     else:
