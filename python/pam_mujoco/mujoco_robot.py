@@ -15,7 +15,7 @@ class MujocoRobot:
         self,
         segment_id,
         position=[0.435, 0.1175, -0.0025],
-        orientation=None,
+        orientation="-1 0 0 0 -1 0",
         control=NO_CONTROL,
         active_only_control=CONSTANT_CONTROL,
         json_control_path=pam_interface.DefaultConfiguration.get_path(),
