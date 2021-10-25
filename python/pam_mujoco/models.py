@@ -94,17 +94,13 @@ class Ball:
 
 class Table:
 
-    default_position = [-1.0516994761921965,-0.9872490528968945,-0.9757189781717682],#[0.8, 1.7, -0.475],
-    default_xy_axes = [-0.40737017, -0.91325153,  0.00460274,  0.91326245, -0.40735857,  0.00326916],
-    default_size = [0.7625, 1.37, 0.02]
-
     def __init__(
         self,
         model_name,
         name,
-        position=default_position,
-        size=default_size,
-        xy_axes = default_xy_axes,
+        position,
+        size,
+        xy_axes,
         color=[0.05, 0.3, 0.23, 1.0],
     ):
         self.model_name = model_name
@@ -117,6 +113,7 @@ class Table:
         # function (in this file)
         self.geom_plate = None
         self.geom_net = None
+        
 
     def get_xml(self):
         (xml, name_plate_geom, name_net_geom, nb_bodies) = xml_templates.get_table_xml(
@@ -278,7 +275,11 @@ def model_factory(
 
     tables = []
     if table is not None:
-        table = Table(model_name, table.segment_id, table.position, table.orientation)
+        table = Table(model_name, 
+                      table.segment_id, 
+                      table.position, 
+                      table.size,
+                      table.orientation)
         tables.append(table)
         r["table"] = table
     else:
