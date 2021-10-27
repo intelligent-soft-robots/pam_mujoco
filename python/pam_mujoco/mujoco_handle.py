@@ -2,35 +2,40 @@ import time, logging, shared_memory, o80, o80_pam, pam_mujoco_wrp
 from functools import partial
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
-from .mujoco_item import MujocoItem,MujocoItems
+from .mujoco_item import MujocoItem, MujocoItems
 from . import models
+
 
 class NoSuchFrontend(Exception):
 
-    '''
+    """
     Exception to be thrown when user code attempts to use a frontend
     that does not exists (via an instance of MujocoHandle)
     :param str segment_id: segment id of the frontend
     :param MujocoHandle mujoco_handle: instance of MujocoHandle that
                                        hosts the frontends
-    '''
-    
-    def __init__(self,segment_id,mujoco_handle=None):
+    """
+
+    def __init__(self, segment_id, mujoco_handle=None):
         self._segment_id = segment_id
         self._mujoco_handle = mujoco_handle
 
     def __str__(self):
         if not self._mujoco_handle:
-            valid_ids=""
+            valid_ids = ""
         else:
-            valid_ids= ", valid ids: {}".format(self._mujoco_handle.frontends.keys())
-        return "no frontend corresponding to segment id {}{}".format(self._segment_id,
-                                                                     valid_ids)
-        
+            valid_ids = ", valid ids: {}".format(self._mujoco_handle.frontends.keys())
+        return "no frontend corresponding to segment id {}{}".format(
+            self._segment_id, valid_ids
+        )
 
 
 def _get_mujoco_items_control(
-        mujoco_items: MujocoItems, balls: list, goals: list, hit_points: list, robot_geom: str
+    mujoco_items: MujocoItems,
+    balls: list,
+    goals: list,
+    hit_points: list,
+    robot_geom: str,
 ):
 
     class_name = "".join(["Mujoco", str(mujoco_items.size), "ItemsControl"])
@@ -235,7 +240,9 @@ class MujocoHandle:
                 )
 
             if hit_points:
-                logging.info("creating item controls for {} hit points".format(len(hit_points)))
+                logging.info(
+                    "creating item controls for {} hit points".format(len(hit_points))
+                )
                 mujoco_item_controls.extend(
                     [
                         _get_hit_point(mujoco_item, model_item)
@@ -268,7 +275,7 @@ class MujocoHandle:
                     items["balls"][len(balls) :],
                     items["goals"][len(goals) :],
                     items["hit_points"][len(hit_points) :],
-                    items["robot1"].geom_racket
+                    items["robot1"].geom_racket,
                 )
 
                 # function name, depending on the number of combined mujoco items.
@@ -345,18 +352,19 @@ class MujocoHandle:
                 size = 0
                 segment_id = None
 
-            combined=None
-            item_controls_attrs = [(nb_balls,"item_{}_controls".format(nb_balls))
-                                   for nb_balls in (3,10,20,50,100)]
-            for (nb_balls,attr) in item_controls_attrs:
-                mujoco_items_control_instance = getattr(config,attr)
+            combined = None
+            item_controls_attrs = [
+                (nb_balls, "item_{}_controls".format(nb_balls))
+                for nb_balls in (3, 10, 20, 50, 100)
+            ]
+            for (nb_balls, attr) in item_controls_attrs:
+                mujoco_items_control_instance = getattr(config, attr)
                 if mujoco_items_control_instance:
                     combined = _Combined
                     combined.size = nb_balls
                     combined.segment_id = mujoco_items_control_instance[0].segment_id
                     break
 
-                
         # if bursting mode, creating a burster client
         if burst_mode:
             self._burster_client = o80.BursterClient(mujoco_id)
@@ -436,8 +444,9 @@ class MujocoHandle:
                     self.interfaces[robot.segment_id] = interface
 
         if combined:
-            self.frontends[combined.segment_id]=self.get_extra_balls_frontend(combined.segment_id,
-                                                                              combined.size)
+            self.frontends[combined.segment_id] = self.get_extra_balls_frontend(
+                combined.segment_id, combined.size
+            )
 
         # for tracking contact
         self.contacts = {}
@@ -472,11 +481,11 @@ class MujocoHandle:
         logging.info("handle for mujoco {} created".format(mujoco_id))
 
     @classmethod
-    def get_extra_balls_frontend(cls,segment_id,nb_balls,setid=0):
+    def get_extra_balls_frontend(cls, segment_id, nb_balls, setid=0):
         frontend_class_name = "".join(["Balls", str(nb_balls), "FrontEnd"])
         frontend_class = getattr(pam_mujoco_wrp, frontend_class_name)
         return frontend_class(segment_id)
-        
+
     def reset(self):
         # sharing the reset commands
         for _, interface in self.interfaces.items():
@@ -495,7 +504,7 @@ class MujocoHandle:
 
     def get_mujoco_id(self):
         return self._mujoco_id
-                
+
     def get_mujoco_step(self):
         return shared_memory.get_long_int(self._mujoco_id, "nbsteps")
 
@@ -517,13 +526,10 @@ class MujocoHandle:
     def burst(self, nb_iterations=1):
         self._burster_client.burst(nb_iterations)
 
-    def sleep(self,
-              duration:float,
-              segment_id:str,
-              time_step:float=0.002):
-        '''
-        Similar to time.sleep, except that it 
-        will also work in accelerated time. 
+    def sleep(self, duration: float, segment_id: str, time_step: float = 0.002):
+        """
+        Similar to time.sleep, except that it
+        will also work in accelerated time.
         This method converts duration into a number of iterations,
         and wait for this number of iteration to pass (according
         to the o80 frontend corresponding to the segment_id)
@@ -533,17 +539,16 @@ class MujocoHandle:
         :raise NoSuchBackend: if no backend of the corresponding
                               segment_id exists
         :raise ValueError: if duration < time_step
-        '''
+        """
         if segment_id not in self.frontends:
-            raise NoSuchFrontend(segment_id,self)
-        if time_step>duration:
-            raise ValueError(str("Can not sleep shorted than"
-                                 "a mujoco time step"))
-        nb_iterations=int( (duration/time_step) + 0.5 )
+            raise NoSuchFrontend(segment_id, self)
+        if time_step > duration:
+            raise ValueError(str("Can not sleep shorted than" "a mujoco time step"))
+        nb_iterations = int((duration / time_step) + 0.5)
         front = self.frontends[segment_id]
-        target_iteration = front.latest().get_iteration()+nb_iterations
+        target_iteration = front.latest().get_iteration() + nb_iterations
         front.read(target_iteration)
-        
+
     def mujoco_exit(self):
         shared_memory.set_bool(self._mujoco_id, "exit", True)
         if self._burster_client:
