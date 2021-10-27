@@ -93,7 +93,6 @@ class Ball:
 
 
 class Table:
-
     def __init__(
         self,
         model_name,
@@ -113,11 +112,15 @@ class Table:
         # function (in this file)
         self.geom_plate = None
         self.geom_net = None
-        
 
     def get_xml(self):
         (xml, name_plate_geom, name_net_geom, nb_bodies) = xml_templates.get_table_xml(
-            self.name, self.model_name, self.position, self.size, self.color, self.xy_axes
+            self.name,
+            self.model_name,
+            self.position,
+            self.size,
+            self.color,
+            self.xy_axes,
         )
         return (xml, name_plate_geom, name_net_geom, nb_bodies)
 
@@ -275,11 +278,9 @@ def model_factory(
 
     tables = []
     if table is not None:
-        table = Table(model_name, 
-                      table.segment_id, 
-                      table.position, 
-                      table.size,
-                      table.orientation)
+        table = Table(
+            model_name, table.segment_id, table.position, table.size, table.orientation
+        )
         tables.append(table)
         r["table"] = table
     else:

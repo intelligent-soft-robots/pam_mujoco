@@ -75,8 +75,7 @@ def get_table_xml(model_name, name, position, size, color, xy_axes):
 
     template_body = '<body pos = "$position$" name = "$name$" xyaxes="$xy_axes$">'
     template_geom_plate = str(
-        '<geom name="$name_plate_geom$" type="box"'
-        + ' size="$size$" rgba="$color$" />'
+        '<geom name="$name_plate_geom$" type="box"' + ' size="$size$" rgba="$color$" />'
     )
 
     template_geom_leg = str(
