@@ -11,6 +11,7 @@ Required for this executable:
 - first in another terminal :'pam_mujoco robot_ball_replay'
 """
 
+import typing
 import pathlib
 import o80
 import signal_handler
@@ -95,6 +96,79 @@ def _get_handle() -> pam_mujoco.MujocoHandle:
     return handle
 
 
+def _add_ball_commands(
+    data: typing.Sequence[typing.Tuple], ball: o80_pam.MirrorFreeJointFrontEnd
+) -> None:
+    class _Data:
+        def __init__(self, d):
+            self.ball_id, self.stamp, self.position, self.velocity = d
+
+        def same(self, other):
+            return self.ball_id == other.ball_id
+
+        def duration(self, earlier):
+            return o80.Duration_us.nanoseconds(self.stamp - earlier.stamp)
+
+    previous = None
+
+    for d in data:
+        instance = _Data(d)
+        if previous is None:
+            previous = instance
+        if not instance.same(previous):
+            ball.add_command(
+                instance.position,
+                instance.velocity,
+                instance.duration(previous),
+                o80.Mode.QUEUE
+            )
+            previous = instance
+
+
+def _add_robot_commands(
+        data: typing.Sequence[typing.Tuple], robot: o80_pam.MirrorRobotFrontEnd
+) -> None:
+    class _Data:
+        def __init__(self, d):
+            self.stamp, self.positions, self.velocities = d
+
+        def same(self, other):
+            return self.stamp == other.stamp
+
+        def duration(self, earlier):
+            return o80.Duration_us.nanoseconds(self.stamp - earlier.stamp)
+
+    previous = None
+
+    for d in data:
+        instance = _Data(d)
+        if previous is None:
+            previous = instance
+        if not instance.same(previous):
+            robot.add_command(
+                instance.positions,
+                instance.velocities,
+                instance.duration(previous),
+                o80.Mode.QUEUE
+            )
+            previous = instance
+
+
+def _add_commands(
+        data: typing.Sequence[typing.Tuple[typing.Tuple,typing.Tuple]],
+    ball1: o80_pam.MirrorFreeJointFrontEnd,
+    ball2: o80_pam.MirrorFreeJointFrontEnd,
+    robot: o80_pam.MirrorRobotFrontEnd,
+) -> None:
+
+    d_ball = [d[0] for d in data]
+    d_robot = [d[1] for d in data]
+
+    _add_ball_commands(d_ball, ball1)
+    _add_ball_commands(d_ball, ball2)
+    _add_robot_commands(d_robot, robot)
+
+
 def run(filepath: pathlib.Path):
     """
     Parse filepath and plays the corresponding
@@ -114,32 +188,13 @@ def run(filepath: pathlib.Path):
     # parsing file
     data = list(o80_pam.robot_ball_parser.parse(filepath))
 
-    # duration between 2 ball observations
-    duration = int(data[1][0][1] - data[0][0][1]) * 1e-9
+    # loading all commands in the frontends
+    _add_commands(data, ball_real, ball_sim, robot)
 
-    # managing frequency corresponding to duration period
-    frequency_manager = o80.FrequencyManager(1.0 / float(duration))
-
-    # playing the ball trajectory
-    signal_handler.init()  # for detecting ctrl+c
-    previous_ball_id = None
-    previous_robot_time_stamp = None
-    for d in data:
-        frequency_manager.wait()
-        ball_id, _, ball_position, ball_velocity = d[0]
-        robot_time_stamp, robot_positions, robot_velocities = d[1]
-        if ball_id != previous_ball_id:
-            ball_real.add_command(ball_position, ball_velocity, o80.Mode.OVERWRITE)
-            ball_sim.add_command(ball_position, ball_velocity, o80.Mode.OVERWRITE)
-        if robot_time_stamp != previous_robot_time_stamp:
-            robot.add_command(robot_positions, robot_velocities, o80.Mode.OVERWRITE)
-        ball_real.pulse()
-        ball_sim.pulse()
-        robot.pulse()
-        previous_ball_id = ball_id
-        previous_robot_time_stamp = robot_time_stamp
-        if signal_handler.has_received_sigint():
-            break
+    # sending commands to pam mujoco
+    ball_real.pulse()
+    ball_sim.pulse()
+    robot.pulse_and_wait()
 
 
 if __name__ == "__main__":
