@@ -171,6 +171,8 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/process_pam_visualization
   ${CMAKE_INSTALL_PREFIX}/bin/process_pam_visualization COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring_real_robot
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mirroring_real_robot COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/o80_robot_ball_replay
+  ${CMAKE_INSTALL_PREFIX}/bin/o80_robot_ball_replay COPYONLY)
 
 
 ######################
