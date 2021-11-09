@@ -3,31 +3,31 @@
 
 #include "context/contact_information.hpp"
 #include "o80/pybind11_helper.hpp"
-#include "shared_memory/serializer.hpp"
 #include "pam_mujoco/add_controllers.hpp"
 #include "pam_mujoco/contact_ball.hpp"
+#include "pam_mujoco/extra_balls_extended_state.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/read_robot_state.hpp"
-#include "pam_mujoco/extra_balls_extended_state.hpp"
+#include "shared_memory/serializer.hpp"
 
 #define NB_DOFS 4
 #define QUEUE_SIZE 500000
 
-template<int NB_BALLS>
+template <int NB_BALLS>
 void add_extra_balls_extended_state(pybind11::module& m)
 
 {
-  typedef pam_mujoco::ExtraBallsExtendedState<NB_BALLS> EES;
-  pybind11::class_<EES>(m, ("ExtraBallsExtendedState"+std::to_string(NB_BALLS)).c_str())
-    .def(pybind11::init<>())
-    .def_readonly("contacts", &EES::contacts)
-    .def_readonly("episode", &EES::episode)
-    .def_readonly("robot_position", &EES::robot_position);
+    typedef pam_mujoco::ExtraBallsExtendedState<NB_BALLS> EES;
+    pybind11::class_<EES>(
+        m, ("ExtraBallsExtendedState" + std::to_string(NB_BALLS)).c_str())
+        .def(pybind11::init<>())
+        .def_readonly("contacts", &EES::contacts)
+        .def_readonly("episode", &EES::episode)
+        .def_readonly("robot_position", &EES::robot_position);
 }
 
 PYBIND11_MODULE(pam_mujoco_wrp, m)
 {
-
     add_extra_balls_extended_state<3>(m);
     add_extra_balls_extended_state<10>(m);
     add_extra_balls_extended_state<20>(m);
@@ -92,7 +92,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 3>,
                             std::array<int, 3>,
                             std::array<std::string, 3>,
-	                    std::string,
+                            std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -110,7 +110,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 10>,
                             std::array<int, 10>,
                             std::array<std::string, 10>,
-    	                    std::string,
+                            std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -128,7 +128,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 20>,
                             std::array<int, 20>,
                             std::array<std::string, 20>,
-     	                    std::string,
+                            std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -146,7 +146,7 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
                             std::array<int, 50>,
                             std::array<int, 50>,
                             std::array<std::string, 50>,
-     	                    std::string,
+                            std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
         .def_readonly("segment_id",
@@ -218,65 +218,67 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     m.def("set_mujoco_config", &pam_mujoco::set_mujoco_config);
     m.def("wait_for_mujoco", &pam_mujoco::_wait_for_mujoco);
 
-    m.def("get_mujoco_config", [](std::string mujoco_id) {
-        pam_mujoco::MujocoConfig config;
-        pam_mujoco::get_mujoco_config(mujoco_id, config);
-        return config;
-    });
+    m.def("get_mujoco_config",
+          [](std::string mujoco_id)
+          {
+              pam_mujoco::MujocoConfig config;
+              pam_mujoco::get_mujoco_config(mujoco_id, config);
+              return config;
+          });
 
-    m.def("get_contact", [](std::string segment_id) {
-        context::ContactInformation ci;
-        shared_memory::deserialize(segment_id, segment_id, ci);
-        return ci;
-    });
+    m.def("get_contact",
+          [](std::string segment_id)
+          {
+              context::ContactInformation ci;
+              shared_memory::deserialize(segment_id, segment_id, ci);
+              return ci;
+          });
 
     m.def("reset_contact", &pam_mujoco::reset_contact);
     m.def("activate_contact", &pam_mujoco::activate_contact);
     m.def("deactivate_contact", &pam_mujoco::deactivate_contact);
 
-    o80::create_python_bindings<
-      QUEUE_SIZE,
-      3,
-      o80::Item3dState,
-      pam_mujoco::ExtraBallsExtendedState<3>,
-      o80::NO_EXTENDED_STATE,
-      o80::NO_STATE,
-      o80::NO_INTROSPECTOR>(m,std::string("Balls3"));
+    o80::create_python_bindings<QUEUE_SIZE,
+                                3,
+                                o80::Item3dState,
+                                pam_mujoco::ExtraBallsExtendedState<3>,
+                                o80::NO_EXTENDED_STATE,
+                                o80::NO_STATE,
+                                o80::NO_INTROSPECTOR>(m, std::string("Balls3"));
 
-    o80::create_python_bindings<
-      QUEUE_SIZE,
-      10,
-      o80::Item3dState,
-      pam_mujoco::ExtraBallsExtendedState<10>,
-      o80::NO_EXTENDED_STATE,
-      o80::NO_STATE,
-      o80::NO_INTROSPECTOR>(m,std::string("Balls10"));
+    o80::create_python_bindings<QUEUE_SIZE,
+                                10,
+                                o80::Item3dState,
+                                pam_mujoco::ExtraBallsExtendedState<10>,
+                                o80::NO_EXTENDED_STATE,
+                                o80::NO_STATE,
+                                o80::NO_INTROSPECTOR>(m,
+                                                      std::string("Balls10"));
 
-    o80::create_python_bindings<
-      QUEUE_SIZE,
-      20,
-      o80::Item3dState,
-      pam_mujoco::ExtraBallsExtendedState<20>,
-      o80::NO_EXTENDED_STATE,
-      o80::NO_STATE,
-      o80::NO_INTROSPECTOR>(m,std::string("Balls20"));
+    o80::create_python_bindings<QUEUE_SIZE,
+                                20,
+                                o80::Item3dState,
+                                pam_mujoco::ExtraBallsExtendedState<20>,
+                                o80::NO_EXTENDED_STATE,
+                                o80::NO_STATE,
+                                o80::NO_INTROSPECTOR>(m,
+                                                      std::string("Balls20"));
 
-    o80::create_python_bindings<
-      QUEUE_SIZE,
-      50,
-      o80::Item3dState,
-      pam_mujoco::ExtraBallsExtendedState<50>,
-      o80::NO_EXTENDED_STATE,
-      o80::NO_STATE,
-      o80::NO_INTROSPECTOR>(m,std::string("Balls50"));
+    o80::create_python_bindings<QUEUE_SIZE,
+                                50,
+                                o80::Item3dState,
+                                pam_mujoco::ExtraBallsExtendedState<50>,
+                                o80::NO_EXTENDED_STATE,
+                                o80::NO_STATE,
+                                o80::NO_INTROSPECTOR>(m,
+                                                      std::string("Balls50"));
 
-    o80::create_python_bindings<
-      QUEUE_SIZE,
-      100,
-      o80::Item3dState,
-      pam_mujoco::ExtraBallsExtendedState<100>,
-      o80::NO_EXTENDED_STATE,
-      o80::NO_STATE,
-      o80::NO_INTROSPECTOR>(m,std::string("Balls100"));
-    
+    o80::create_python_bindings<QUEUE_SIZE,
+                                100,
+                                o80::Item3dState,
+                                pam_mujoco::ExtraBallsExtendedState<100>,
+                                o80::NO_EXTENDED_STATE,
+                                o80::NO_STATE,
+                                o80::NO_INTROSPECTOR>(m,
+                                                      std::string("Balls100"));
 }

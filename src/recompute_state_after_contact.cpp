@@ -2,9 +2,9 @@
 
 namespace pam_mujoco
 {
-  namespace internal
-  {
-  
+namespace internal
+{
+
 RecomputeStateConfig::RecomputeStateConfig()
 {
 }
@@ -169,11 +169,11 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
 
     // the contact is not occuring during this time step,
     // exiting
-    if(delta_t_after_impact<0)
-      {
-	return false;
-      }
-   
+    if (delta_t_after_impact < 0)
+    {
+        return false;
+    }
+
     // post-contact in relative frame
     internal::ContactStates post_contact_relative;
 
@@ -213,6 +213,6 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
     return true;
 }
 
-}
+}  // namespace internal
 
 }  // namespace pam_mujoco

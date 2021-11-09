@@ -59,9 +59,6 @@ void save_state(const mjData* d,
     get_states.time_stamp = d->time;
 }
 
-
-  
-
 }  // namespace internal
 
 }  // namespace pam_mujoco

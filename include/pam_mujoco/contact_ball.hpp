@@ -1,13 +1,13 @@
 #pragma once
 
+#include "context/contact_information.hpp"
+#include "pam_mujoco/contact_items.hpp"
+#include "pam_mujoco/controllers.hpp"
+#include "pam_mujoco/internal/contact_states.hpp"
+#include "pam_mujoco/internal/is_in_contact.hpp"
+#include "pam_mujoco/recompute_state_after_contact.hpp"
 #include "shared_memory/serializer.hpp"
 #include "shared_memory/shared_memory.hpp"
-#include "context/contact_information.hpp"
-#include "pam_mujoco/internal/contact_states.hpp"
-#include "pam_mujoco/recompute_state_after_contact.hpp"
-#include "pam_mujoco/internal/is_in_contact.hpp"
-#include "pam_mujoco/controllers.hpp"
-#include "pam_mujoco/contact_items.hpp"
 
 #define NB_ITERATIONS_CONTACT_MUTED 1000
 
@@ -44,7 +44,8 @@ public:
 private:
     void init(const mjModel* m);
     void reset();
-  bool update(const mjModel* m, mjData* d);
+    bool update(const mjModel* m, mjData* d);
+
 private:
     std::string segment_id_;
     internal::RecomputeStateConfig config_;

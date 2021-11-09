@@ -19,12 +19,12 @@
 #include <experimental/filesystem>
 #include <string>
 #include "o80/burster.hpp"
-#include "signal_handler/signal_handler.hpp"
+#include "pam_mujoco/add_controllers.hpp"
+#include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/listener.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
-#include "pam_mujoco/controllers.hpp"
-#include "pam_mujoco/add_controllers.hpp"
 #include "shared_memory/shared_memory.hpp"
+#include "signal_handler/signal_handler.hpp"
 
 //-------------------------------- global
 //-----------------------------------------------
@@ -102,10 +102,10 @@ struct
     // to decide when to inform
     // client(s) all is ready
     bool graphics_first_iteration = true;
-    bool graphics_ready=false;
-    bool client_notified=false;
+    bool graphics_ready = false;
+    bool client_notified = false;
     char mujoco_id[200];
-  
+
 } settings;
 
 // section ids
@@ -1089,40 +1089,42 @@ void loadmodel(void)
     d = mj_makeData(m);
     mj_forward(m, d);
 
-    if(settings.graphics)
-      {
-	// re-create scene and context
-	mjv_makeScene(m, &scn, maxgeom);
-	mjr_makeContext(m, &con, 50 * (settings.font + 1));
+    if (settings.graphics)
+    {
+        // re-create scene and context
+        mjv_makeScene(m, &scn, maxgeom);
+        mjr_makeContext(m, &con, 50 * (settings.font + 1));
 
-	// clear perturbation state
-	pert.active = 0;
-	pert.select = 0;
-	pert.skinselect = -1;
+        // clear perturbation state
+        pert.active = 0;
+        pert.select = 0;
+        pert.skinselect = -1;
 
-	// align and scale view, update scene
-	alignscale();
-	mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
+        // align and scale view, update scene
+        alignscale();
+        mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
 
-	// set window title to model name
-	if (window && m->names)
-	  {
-	    glfwSetWindowTitle(window, settings.mujoco_id);
-	  }
+        // set window title to model name
+        if (window && m->names)
+        {
+            glfwSetWindowTitle(window, settings.mujoco_id);
+        }
 
-	// set keyframe range and divisions
-	ui0.sect[SECT_SIMULATION].item[6].slider.range[0] = 0;
-	ui0.sect[SECT_SIMULATION].item[6].slider.range[1] = mjMAX(0, m->nkey - 1);
-	ui0.sect[SECT_SIMULATION].item[6].slider.divisions = mjMAX(1, m->nkey - 1);
+        // set keyframe range and divisions
+        ui0.sect[SECT_SIMULATION].item[6].slider.range[0] = 0;
+        ui0.sect[SECT_SIMULATION].item[6].slider.range[1] =
+            mjMAX(0, m->nkey - 1);
+        ui0.sect[SECT_SIMULATION].item[6].slider.divisions =
+            mjMAX(1, m->nkey - 1);
 
-	// rebuild UI sections
-	makesections();
+        // rebuild UI sections
+        makesections();
 
-	// full ui update
-	uiModify(window, &ui0, &uistate, &con);
-	uiModify(window, &ui1, &uistate, &con);
-	updatesettings();
-      }
+        // full ui update
+        uiModify(window, &ui0, &uistate, &con);
+        uiModify(window, &ui1, &uistate, &con);
+        updatesettings();
+    }
 }
 
 //--------------------------------- UI hooks (for uitools.c)
@@ -1789,11 +1791,11 @@ void render(GLFWwindow* window)
     // finalize
     glfwSwapBuffers(window);
 
-    if(!settings.graphics_ready)
-      {
-	std::cout << "\ngraphics ready" << std::endl;
-	settings.graphics_ready=true;
-      }
+    if (!settings.graphics_ready)
+    {
+        std::cout << "\ngraphics ready" << std::endl;
+        settings.graphics_ready = true;
+    }
 }
 
 void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
@@ -1897,74 +1899,71 @@ void simulate(std::string mujoco_id,
 
     // to detect ctrl+c
     signal_handler::SignalHandler::initialize();
-    
+
     pam_mujoco::Listener reset_listener(mujoco_id, "reset");
     pam_mujoco::Listener pause_listener(mujoco_id, "pause");
-    pam_mujoco::Listener exit_listener(mujoco_id,"exit");
+    pam_mujoco::Listener exit_listener(mujoco_id, "exit");
 
     long int nb_steps = 0;
-    shared_memory::set<long int>(mujoco_id,"nbsteps",nb_steps);
-    
-    // waiting for the graphics
-    while ( (!settings.graphics_ready) && (!settings.exitrequest) )
-      {
-	usleep(1000);
-      }
+    shared_memory::set<long int>(mujoco_id, "nbsteps", nb_steps);
 
-    bool first_iteration=true;
-    
+    // waiting for the graphics
+    while ((!settings.graphics_ready) && (!settings.exitrequest))
+    {
+        usleep(1000);
+    }
+
+    bool first_iteration = true;
+
     // run until asked to exit
     while (!settings.exitrequest)
     {
+        // exit because mujoco gui turned off
+        if (settings.exitrequest) break;
 
-      // exit because mujoco gui turned off
-      if (settings.exitrequest)
-	break;
-
-      // exit because another process
-      // set the shared memory (mujoco_id,"exit") to True
-      if (exit_listener.is_on())
-	{
-	  settings.exitrequest=1;
-	  break;
-	}
-
-      // exit because user pressed ctrl+c
-      if (signal_handler::SignalHandler::has_received_sigint())
+        // exit because another process
+        // set the shared memory (mujoco_id,"exit") to True
+        if (exit_listener.is_on())
         {
-	  settings.exitrequest=1;
-	  break;
+            settings.exitrequest = 1;
+            break;
         }
 
-      
+        // exit because user pressed ctrl+c
+        if (signal_handler::SignalHandler::has_received_sigint())
+        {
+            settings.exitrequest = 1;
+            break;
+        }
+
         // sleep for 1 ms or yield, to let main thread run
         //  yield results in busy wait - which has better timing but kills
         //  battery life
 
         if (settings.run && settings.busywait)
-	  std::this_thread::yield();
-	else if (!accelerated_time)
-	  std::this_thread::sleep_for(std::chrono::milliseconds(1));
-      
+            std::this_thread::yield();
+        else if (!accelerated_time)
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
         // start exclusive access
         mtx.lock();
 
         if (burster && !first_iteration)
         {
-	  burster->pulse();
+            burster->pulse();
         }
-	first_iteration=false;
+        first_iteration = false;
 
-	// resetting if requested to
+        // resetting if requested to
         if (reset_listener.do_once())
         {
-	  // resetting the mujoco simulation
-	  reset();
-	  // resetting the controllers
-	  pam_mujoco::Controllers::reset_time();
-	}
+            // resetting the mujoco simulation
+            reset();
+            // resetting the controllers
+            pam_mujoco::Controllers::reset_time();
+        }
 
-	// pausing if requested to
+        // pausing if requested to
         if (pause_listener.is_on())
         {
             settings.run = 0;
@@ -1976,21 +1975,20 @@ void simulate(std::string mujoco_id,
 
         do_simulate(accelerated_time, cpusync, simsync);
 
-	if( !settings.client_notified )
-	  {
-	    shared_memory::set<bool>(mujoco_id,"running",true);
-	    std::cout << "\nrunning ...\n" <<std::endl;
-	    settings.client_notified=true;
-	  }
+        if (!settings.client_notified)
+        {
+            shared_memory::set<bool>(mujoco_id, "running", true);
+            std::cout << "\nrunning ...\n" << std::endl;
+            settings.client_notified = true;
+        }
 
-	// letting the world know which step number we are in
-	nb_steps++;
-	shared_memory::set<long int>(mujoco_id,"nbsteps",nb_steps);
+        // letting the world know which step number we are in
+        nb_steps++;
+        shared_memory::set<long int>(mujoco_id, "nbsteps", nb_steps);
 
         // end exclusive access
         mtx.unlock();
     }
-
 }
 
 //-------------------------------- init and main
@@ -2036,130 +2034,133 @@ void init()
     set_mujoco_key();
     mj_activate("mjkey.txt");
 
-    if(settings.graphics)
-      {
-    
-	// init GLFW, set timer callback (milliseconds)
-	if (!glfwInit()) mju_error("could not initialize GLFW");
-	mjcb_time = timer;
+    if (settings.graphics)
+    {
+        // init GLFW, set timer callback (milliseconds)
+        if (!glfwInit()) mju_error("could not initialize GLFW");
+        mjcb_time = timer;
 
-	// multisampling
-	glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_VISIBLE, 1);
+        // multisampling
+        glfwWindowHint(GLFW_SAMPLES, 4);
+        glfwWindowHint(GLFW_VISIBLE, 1);
 
-	// get videomode and save
-	vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
+        // get videomode and save
+        vmode = *glfwGetVideoMode(glfwGetPrimaryMonitor());
 
-	// create window
-	window = glfwCreateWindow(
-				  (2 * vmode.width) / 3, (2 * vmode.height) / 3, "Simulate", NULL, NULL);
-	if (!window)
-	  {
-	    glfwTerminate();
-	    mju_error("could not create window");
-	  }
+        // create window
+        window = glfwCreateWindow((2 * vmode.width) / 3,
+                                  (2 * vmode.height) / 3,
+                                  "Simulate",
+                                  NULL,
+                                  NULL);
+        if (!window)
+        {
+            glfwTerminate();
+            mju_error("could not create window");
+        }
 
-	// save window position and size
-	glfwGetWindowPos(window, windowpos, windowpos + 1);
-	glfwGetWindowSize(window, windowsize, windowsize + 1);
+        // save window position and size
+        glfwGetWindowPos(window, windowpos, windowpos + 1);
+        glfwGetWindowSize(window, windowsize, windowsize + 1);
 
-	// make context current, set v-sync
-	glfwMakeContextCurrent(window);
-	glfwSwapInterval(settings.vsync);
+        // make context current, set v-sync
+        glfwMakeContextCurrent(window);
+        glfwSwapInterval(settings.vsync);
 
-	// init abstract visualization
-	mjv_defaultCamera(&cam);
-	mjv_defaultOption(&vopt);
-	profilerinit();
-	sensorinit();
+        // init abstract visualization
+        mjv_defaultCamera(&cam);
+        mjv_defaultOption(&vopt);
+        profilerinit();
+        sensorinit();
 
-	// make empty scene
-	mjv_defaultScene(&scn);
-	mjv_makeScene(NULL, &scn, maxgeom);
+        // make empty scene
+        mjv_defaultScene(&scn);
+        mjv_makeScene(NULL, &scn, maxgeom);
 
-	// select default font
-	int fontscale = uiFontScale(window);
-	settings.font = fontscale / 50 - 1;
+        // select default font
+        int fontscale = uiFontScale(window);
+        settings.font = fontscale / 50 - 1;
 
-	// make empty context
-	mjr_defaultContext(&con);
-	mjr_makeContext(NULL, &con, fontscale);
+        // make empty context
+        mjr_defaultContext(&con);
+        mjr_makeContext(NULL, &con, fontscale);
 
-	// set GLFW callbacks
-	uiSetCallback(window, &uistate, uiEvent, uiLayout);
-	glfwSetWindowRefreshCallback(window, render);
-	glfwSetDropCallback(window, drop);
+        // set GLFW callbacks
+        uiSetCallback(window, &uistate, uiEvent, uiLayout);
+        glfwSetWindowRefreshCallback(window, render);
+        glfwSetDropCallback(window, drop);
 
-	// init state and uis
-	memset(&uistate, 0, sizeof(mjuiState));
-	memset(&ui0, 0, sizeof(mjUI));
-	memset(&ui1, 0, sizeof(mjUI));
-	ui0.spacing = mjui_themeSpacing(settings.spacing);
-	ui0.color = mjui_themeColor(settings.color);
-	ui0.predicate = uiPredicate;
-	ui0.rectid = 1;
-	ui0.auxid = 0;
-	ui1.spacing = mjui_themeSpacing(settings.spacing);
-	ui1.color = mjui_themeColor(settings.color);
-	ui1.predicate = uiPredicate;
-	ui1.rectid = 2;
-	ui1.auxid = 1;
+        // init state and uis
+        memset(&uistate, 0, sizeof(mjuiState));
+        memset(&ui0, 0, sizeof(mjUI));
+        memset(&ui1, 0, sizeof(mjUI));
+        ui0.spacing = mjui_themeSpacing(settings.spacing);
+        ui0.color = mjui_themeColor(settings.color);
+        ui0.predicate = uiPredicate;
+        ui0.rectid = 1;
+        ui0.auxid = 0;
+        ui1.spacing = mjui_themeSpacing(settings.spacing);
+        ui1.color = mjui_themeColor(settings.color);
+        ui1.predicate = uiPredicate;
+        ui1.rectid = 2;
+        ui1.auxid = 1;
 
-	// populate uis with standard sections
-	mjui_add(&ui0, defFile);
-	mjui_add(&ui0, defOption);
-	mjui_add(&ui0, defSimulation);
-	mjui_add(&ui0, defWatch);
-	uiModify(window, &ui0, &uistate, &con);
-	uiModify(window, &ui1, &uistate, &con);
-      }
+        // populate uis with standard sections
+        mjui_add(&ui0, defFile);
+        mjui_add(&ui0, defOption);
+        mjui_add(&ui0, defSimulation);
+        mjui_add(&ui0, defWatch);
+        uiModify(window, &ui0, &uistate, &con);
+        uiModify(window, &ui1, &uistate, &con);
+    }
 }
 
 // run event loop
 int main(int argc, const char** argv)
 {
-  if (argc!=2)
+    if (argc != 2)
     {
-      std::cerr << "launch_pam_mujoco: takes 1 argument (mujoco_id)" << std::endl;
-      return 1;
+        std::cerr << "launch_pam_mujoco: takes 1 argument (mujoco_id)"
+                  << std::endl;
+        return 1;
     }
-  
+
     std::string mujoco_id{argv[1]};
-    strcat(settings.mujoco_id,mujoco_id.c_str());
-	   
-    std::cout << "\n**** PAM MUJOCO: " << mujoco_id 
-	      << " ****\n" << std::endl;
-    
-    std::cout << "clearing memory for mujoco_id: " << mujoco_id << "\n" << std::endl;
+    strcat(settings.mujoco_id, mujoco_id.c_str());
+
+    std::cout << "\n**** PAM MUJOCO: " << mujoco_id << " ****\n" << std::endl;
+
+    std::cout << "clearing memory for mujoco_id: " << mujoco_id << "\n"
+              << std::endl;
     shared_memory::clear_shared_memory(mujoco_id);
 
     // optionally, a client can share with the controllers the current
     // episode id (if it turns out the client deals with episodes)
-    shared_memory::set<long int>(mujoco_id,"episode",-1);
-    
+    shared_memory::set<long int>(mujoco_id, "episode", -1);
+
     // indicating potiential clients that it is not running yet
-    shared_memory::set<bool>(mujoco_id,"running",false);
-    
+    shared_memory::set<bool>(mujoco_id, "running", false);
+
     pam_mujoco::MujocoConfig config;
     std::cout << "waiting for configuration ... \n" << std::endl;
     bool exit_requested = pam_mujoco::wait_for_mujoco_config(mujoco_id, config);
-    if(exit_requested)
-      {
-	std::cout << "\npam_mujoco " << mujoco_id << " exiting\n";
-	return 0;
-      }
+    if (exit_requested)
+    {
+        std::cout << "\npam_mujoco " << mujoco_id << " exiting\n";
+        return 0;
+    }
     std::cout << config.to_string() << std::endl;
 
-    if(config.use_graphics)
-      {
-	settings.graphics=true;
-      }
+    if (config.use_graphics)
+    {
+        settings.graphics = true;
+    }
     else
-      {
-	settings.graphics=false;
-	settings.graphics_ready=true;
-      }
-	
+    {
+        settings.graphics = false;
+        settings.graphics_ready = true;
+    }
+
     // initialize everything
     init();
 
@@ -2167,81 +2168,80 @@ int main(int argc, const char** argv)
     o80::Burster* burster = nullptr;
     if (config.burst_mode)
     {
-      std::cout << "\nsetting up burster: " << mujoco_id << std::endl;
-      burster = new o80::Burster(mujoco_id);
+        std::cout << "\nsetting up burster: " << mujoco_id << std::endl;
+        burster = new o80::Burster(mujoco_id);
     }
-    
+
     // loading the model
     mju_strncpy(filename, config.model_path, 1000);
     std::cout << "\nloading model: " << filename << std::endl;
     settings.loadrequest = 2;
     std::cout << "model loaded" << std::endl;
-    
+
     // populating the controllers
     for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
     {
-      std::cout << "\nadding controller:"<< std::endl;
-      std::cout << mic.to_string() << std::endl;
-      pam_mujoco::add_item_control(config,mic);
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mic.to_string() << std::endl;
+        pam_mujoco::add_item_control(config, mic);
     }
 
     for (const pam_mujoco::MujocoItemsControl<3>& mic : config.item_3_controls)
     {
-      std::cout << "\nadding controller:"<< std::endl;
-      std::cout << mic.to_string() << std::endl;
-      pam_mujoco::add_3_items_control(config,mic);
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mic.to_string() << std::endl;
+        pam_mujoco::add_3_items_control(config, mic);
     }
 
-    for (const pam_mujoco::MujocoItemsControl<10>& mic : config.item_10_controls)
-      {
-	std::cout << "\nadding controller:"<< std::endl;
-	std::cout << mic.to_string() << std::endl;
-	pam_mujoco::add_10_items_control(config,mic);
-      }
+    for (const pam_mujoco::MujocoItemsControl<10>& mic :
+         config.item_10_controls)
+    {
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mic.to_string() << std::endl;
+        pam_mujoco::add_10_items_control(config, mic);
+    }
 
+    for (const pam_mujoco::MujocoItemsControl<20>& mic :
+         config.item_20_controls)
+    {
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mic.to_string() << std::endl;
+        pam_mujoco::add_20_items_control(config, mic);
+    }
 
-    for (const pam_mujoco::MujocoItemsControl<20>& mic : config.item_20_controls)
-      {
-	std::cout << "\nadding controller:"<< std::endl;
-	std::cout << mic.to_string() << std::endl;
-	pam_mujoco::add_20_items_control(config,mic);
-      }
+    for (const pam_mujoco::MujocoItemsControl<50>& mic :
+         config.item_50_controls)
+    {
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mic.to_string() << std::endl;
+        pam_mujoco::add_50_items_control(config, mic);
+    }
 
+    for (const pam_mujoco::MujocoItemsControl<100>& mic :
+         config.item_100_controls)
+    {
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mic.to_string() << std::endl;
+        pam_mujoco::add_100_items_control(config, mic);
+    }
 
-    for (const pam_mujoco::MujocoItemsControl<50>& mic : config.item_50_controls)
-      {
-	std::cout << "\nadding controller:"<< std::endl;
-	std::cout << mic.to_string() << std::endl;
-	pam_mujoco::add_50_items_control(config,mic);
-      }
-
-
-    for (const pam_mujoco::MujocoItemsControl<100>& mic : config.item_100_controls)
-      {
-	std::cout << "\nadding controller:"<< std::endl;
-	std::cout << mic.to_string() << std::endl;
-	pam_mujoco::add_100_items_control(config,mic);
-      }
-
-    
     for (const pam_mujoco::MujocoRobotJointControl& mrc : config.joint_controls)
     {
-      std::cout << "\nadding controller:"<< std::endl;
-      std::cout << mrc.to_string() << std::endl;
-      pam_mujoco::add_joints_control(mrc);
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mrc.to_string() << std::endl;
+        pam_mujoco::add_joints_control(mrc);
     }
-    for (const pam_mujoco::MujocoRobotPressureControl& mpc : config.pressure_controls)
+    for (const pam_mujoco::MujocoRobotPressureControl& mpc :
+         config.pressure_controls)
     {
-      std::cout << "\nadding controller:"<< std::endl;
-      std::cout << mpc.to_string() << std::endl;
-      pam_mujoco::add_pressures_control(mpc);
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mpc.to_string() << std::endl;
+        pam_mujoco::add_pressures_control(mpc);
     }
 
-    
     mjcb_control = pam_mujoco::Controllers::apply;
     mjcb_act_bias = pam_mujoco::Controllers::get_bias;
 
-        
     // start simulation thread
     std::cout << "\nstarting simulation thread" << std::endl;
     std::thread simthread(
@@ -2260,8 +2260,7 @@ int main(int argc, const char** argv)
             settings.loadrequest = 1;
 
         // handle events (calls all callbacks)
-	if(settings.graphics)
-	  glfwPollEvents();
+        if (settings.graphics) glfwPollEvents();
 
         // prepare to render
         prepare();
@@ -2270,15 +2269,11 @@ int main(int argc, const char** argv)
         mtx.unlock();
 
         // render while simulation is running
-        if (settings.graphics)
-	  render(window);
+        if (settings.graphics) render(window);
 
-	if(settings.graphics && glfwWindowShouldClose(window))
-	  break;
+        if (settings.graphics && glfwWindowShouldClose(window)) break;
 
-	if(settings.exitrequest)
-	  break;
-
+        if (settings.exitrequest) break;
     }
 
     // stop simulation thread
@@ -2289,10 +2284,9 @@ int main(int argc, const char** argv)
     {
         delete burster;
     }
-    
+
     // delete everything we allocated
-    if (settings.graphics)
-      uiClearCallback(window);
+    if (settings.graphics) uiClearCallback(window);
     mj_deleteData(d);
     mj_deleteModel(m);
     mjv_freeScene(&scn);

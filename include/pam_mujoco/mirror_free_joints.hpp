@@ -4,11 +4,11 @@
 #include <map>
 #include "context/contact_information.hpp"
 #include "o80/back_end.hpp"
-#include "o80/memory_clearing.hpp"
 #include "o80/item3d_state.hpp"
+#include "o80/memory_clearing.hpp"
 #include "pam_mujoco/controllers.hpp"
-#include "pam_mujoco/joint_state.hpp"
 #include "pam_mujoco/extra_balls_extended_state.hpp"
+#include "pam_mujoco/joint_state.hpp"
 
 namespace pam_mujoco
 {
@@ -25,18 +25,18 @@ private:
 
 public:
     MirrorFreeJoints(std::string mujoco_id,
-		     std::string segment_id,
+                     std::string segment_id,
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
-		     std::string geom_robot,
+                     std::string geom_robot,
                      bool active_only);
     MirrorFreeJoints(std::string mujoco_id,
-		     std::string segment_id,
+                     std::string segment_id,
                      std::array<std::string, NB_ITEMS> joint,
                      std::array<int, NB_ITEMS> index_qpos,
                      std::array<int, NB_ITEMS> index_qvel,
-		     std::string geom_robot,
+                     std::string geom_robot,
                      std::array<std::string, NB_ITEMS> interrupt_segment_id,
                      bool active_only);
     void set_contact_interrupt(int item_index, std::string segment_id);
@@ -56,7 +56,6 @@ private:
     Backend backend_;
     States read_states_;
     States set_states_;
-
 
     std::array<bool, NB_ITEMS> contact_interrupt_;
     std::array<bool, NB_ITEMS> interrupted_;

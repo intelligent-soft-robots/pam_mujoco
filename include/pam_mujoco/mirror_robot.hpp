@@ -4,9 +4,9 @@
 #include "o80/memory_clearing.hpp"
 #include "o80/state2d.hpp"
 #include "o80/time.hpp"
+#include "o80_pam/robot_fk_extended_state.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
-#include "o80_pam/robot_fk_extended_state.hpp"
 
 namespace pam_mujoco
 {
@@ -14,9 +14,11 @@ template <int QUEUE_SIZE, int NB_DOFS>
 class MirrorRobot : public ControllerBase
 {
 private:
-    typedef o80::
-    BackEnd<QUEUE_SIZE, NB_DOFS, o80::State2d, o80_pam::RobotFKExtendedState>
-            Backend;
+    typedef o80::BackEnd<QUEUE_SIZE,
+                         NB_DOFS,
+                         o80::State2d,
+                         o80_pam::RobotFKExtendedState>
+        Backend;
     typedef o80::States<NB_DOFS, o80::State2d> States;
 
 public:
@@ -29,7 +31,7 @@ public:
 private:
     bool same(const States& s1, const States& s2) const;
     void update_robot_fk(const mjData* d);
-  
+
 private:
     Backend backend_;
     std::string robot_joint_base_;
@@ -40,7 +42,6 @@ private:
     States set_states_;
     States previous_set_states_;
     o80_pam::RobotFKExtendedState robot_fk_;
-  
 };
 
 #include "mirror_robot.hxx"

@@ -168,7 +168,6 @@ template <int NB_ITEMS>
 void add_items_control(const MujocoConfig& config,
                        MujocoItemsControl<NB_ITEMS> mic)
 {
-
     std::array<std::string, NB_ITEMS> str_joints;
     for (int i = 0; i < NB_ITEMS; i++)
     {
@@ -227,7 +226,7 @@ void add_items_control(const MujocoConfig& config,
             }
         }
         add_mirror_until_contact_free_joints<NB_ITEMS>(
-						       std::string(config.mujoco_id),
+            std::string(config.mujoco_id),
             std::string(mic.segment_id),
             str_joints,
             mic.index_qpos,
@@ -239,21 +238,20 @@ void add_items_control(const MujocoConfig& config,
 
     else
     {
-      add_mirror_free_joints<NB_ITEMS>(std::string(config.mujoco_id),
-				       std::string(mic.segment_id),
-				       str_joints,
-				       mic.index_qpos,
-				       mic.index_qvel,
-				       mic.robot_geom,
-				       mic.active_only);
+        add_mirror_free_joints<NB_ITEMS>(std::string(config.mujoco_id),
+                                         std::string(mic.segment_id),
+                                         str_joints,
+                                         mic.index_qpos,
+                                         mic.index_qvel,
+                                         mic.robot_geom,
+                                         mic.active_only);
     }
 }
 
 void add_3_items_control(const MujocoConfig& config, MujocoItemsControl<3> mic)
 {
-  add_items_control<3>(config, mic);
+    add_items_control<3>(config, mic);
 }
-
 
 void add_10_items_control(const MujocoConfig& config,
                           MujocoItemsControl<10> mic)

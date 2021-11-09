@@ -129,7 +129,7 @@ public:
                        std::array<int, NB_ITEMS> _index_qpos,
                        std::array<int, NB_ITEMS> _index_qvel,
                        std::array<std::string, NB_ITEMS> _geometry,
-		       std::string _robot_geom,
+                       std::string _robot_geom,
                        bool _active_only,
                        ContactTypes _contact_type);
 
@@ -146,7 +146,7 @@ public:
                 index_qpos,
                 index_qvel,
                 geometry,
-		robot_geom,
+                robot_geom,
                 active_only,
                 contact_type);
     }

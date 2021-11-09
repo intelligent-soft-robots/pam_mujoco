@@ -1,7 +1,7 @@
 #pragma once
 
-#include "shared_memory/serializer.hpp"
 #include "mujoco.h"
+#include "shared_memory/serializer.hpp"
 
 namespace pam_mujoco
 {
@@ -15,7 +15,7 @@ class ContactStates
 {
 public:
     template <class Archive>
-    void serialize(Archive &archive)
+    void serialize(Archive& archive)
     {
         archive(contactee_position,
                 contactee_orientation,
@@ -53,7 +53,7 @@ void save_state(const mjData* d,
                 int index_qvel,
                 int index_geom_contactee,
                 internal::ContactStates& get_states);
-  
+
 }  // namespace internal
 
 }  // namespace pam_mujoco

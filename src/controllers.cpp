@@ -21,11 +21,11 @@ bool ControllerBase::must_update(mjData* d)
     return false;
 }
 
-  void ControllerBase::reset_time()
-  {
-    previous_stamp_=o80::TimePoint{-1};
-  }
-  
+void ControllerBase::reset_time()
+{
+    previous_stamp_ = o80::TimePoint{-1};
+}
+
 const o80::TimePoint& ControllerBase::get_time_stamp()
 {
     return previous_stamp_;
@@ -51,11 +51,10 @@ void Controllers::reset_time()
 {
     for (std::shared_ptr<ControllerBase> controller : Controllers::controllers_)
     {
-      controller->reset_time();
+        controller->reset_time();
     }
 }
 
-  
 void Controllers::apply(const mjModel* m, mjData* d)
 {
     for (std::shared_ptr<ControllerBase> controller : Controllers::controllers_)
