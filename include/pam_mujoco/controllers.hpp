@@ -3,8 +3,12 @@
 #include <iostream>
 #include <memory>
 #include <vector>
+
+// clang-format off
+// NOTE: mjmodel.h MUST be included before mjdata.h.
 #include "mjmodel.h"
 #include "mjdata.h"
+// clang-format on
 
 #include "o80/time.hpp"
 
