@@ -295,12 +295,28 @@ class MujocoHandle:
                     if r:
                         config.add_control(r)
 
+            # waiting for pam_mujoco to have created the shared memory segment_id
+
+            logging.info("waiting for pam_mujoco {}".format(mujoco_id))
+            created = False
+            while not created:
+                created = shared_memory.wait_for_segment(mujoco_id,100)
+                
+                        
             # writing the mujoco config in the shared memory.
             # the mujoco executable is expected to read it and start
 
             logging.info("sharing mujoco configuration for {}".format(mujoco_id))
 
             pam_mujoco_wrp.set_mujoco_config(config)
+
+
+        # waiting for pam_mujoco to have created the shared memory segment_id
+        
+        logging.info("waiting for pam_mujoco {}".format(mujoco_id))
+        created = False
+        while not created:
+            created = shared_memory.wait_for_segment(mujoco_id,100)
 
         # waiting for mujoco to report it is ready
 
