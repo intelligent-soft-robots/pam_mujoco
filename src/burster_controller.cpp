@@ -8,15 +8,18 @@ BursterController::BursterController(std::string mujoco_id)
 {
 }
 
-BursterController::apply(const mjModel* m, mjData* d)
+void BursterController::apply(const mjModel* m, mjData* d)
 {
     (void)m;  // avoiding unused argument warning upon compilation
-    if (this->must_update(d) && !first_iteration_)
+    if (this->must_update(d))
     {
-        // we do not block the first iteration: allows pam_mujoco
-        // to start graphics properly.
-        burster_.pulse();
-        first_iteration_ = false;
+      if(!first_iteration_)
+	{
+	  burster_.pulse();
+	}
+      // we do not block the first iteration: allows pam_mujoco
+      // to start graphics properly.
+      first_iteration_ = false;
     }
 }
 
