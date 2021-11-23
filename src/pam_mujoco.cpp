@@ -20,6 +20,7 @@
 #include <string>
 #include "o80/burster.hpp"
 #include "pam_mujoco/add_controllers.hpp"
+#include "pam_mujoco/burster_controller.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/listener.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
@@ -1889,9 +1890,7 @@ void reset()
 }
 
 // simulate in background thread (while rendering in main thread)
-void simulate(std::string mujoco_id,
-              o80::Burster* burster,
-              bool accelerated_time)
+void simulate(std::string mujoco_id, bool accelerated_time)
 {
     // cpu-sim syncronization point
     double cpusync = 0;
@@ -1912,8 +1911,6 @@ void simulate(std::string mujoco_id,
     {
         usleep(1000);
     }
-
-    bool first_iteration = true;
 
     // run until asked to exit
     while (!settings.exitrequest)
@@ -1947,12 +1944,6 @@ void simulate(std::string mujoco_id,
 
         // start exclusive access
         mtx.lock();
-
-        if (burster && !first_iteration)
-        {
-            burster->pulse();
-        }
-        first_iteration = false;
 
         // resetting if requested to
         if (reset_listener.do_once())
@@ -2164,14 +2155,6 @@ int main(int argc, const char** argv)
     // initialize everything
     init();
 
-    // setting up a burster, if requested to
-    o80::Burster* burster = nullptr;
-    if (config.burst_mode)
-    {
-        std::cout << "\nsetting up burster: " << mujoco_id << std::endl;
-        burster = new o80::Burster(mujoco_id);
-    }
-
     // loading the model
     mju_strncpy(filename, config.model_path, 1000);
     std::cout << "\nloading model: " << filename << std::endl;
@@ -2179,6 +2162,15 @@ int main(int argc, const char** argv)
     std::cout << "model loaded" << std::endl;
 
     // populating the controllers
+
+    if (config.burst_mode)
+    {
+        std::cout << "\nadding burster: " << mujoco_id << std::endl;
+        auto burster =
+            std::make_shared<pam_mujoco::BursterController>(mujoco_id);
+        pam_mujoco::Controllers::add(burster);
+    }
+
     for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
     {
         std::cout << "\nadding controller:" << std::endl;
@@ -2244,8 +2236,7 @@ int main(int argc, const char** argv)
 
     // start simulation thread
     std::cout << "\nstarting simulation thread" << std::endl;
-    std::thread simthread(
-        simulate, mujoco_id, burster, config.accelerated_time);
+    std::thread simthread(simulate, mujoco_id, config.accelerated_time);
 
     // event loop
     while (true)
@@ -2279,11 +2270,6 @@ int main(int argc, const char** argv)
     // stop simulation thread
     settings.exitrequest = 1;
     simthread.join();
-
-    if (burster)
-    {
-        delete burster;
-    }
 
     // delete everything we allocated
     if (settings.graphics) uiClearCallback(window);

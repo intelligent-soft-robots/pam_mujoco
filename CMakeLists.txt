@@ -73,6 +73,7 @@ add_library( ${PROJECT_NAME} SHARED
   src/recompute_state_after_contact.cpp
   src/controllers.cpp
   src/add_controllers.cpp
+  src/burster_controller.cpp
   src/listener.cpp
   src/mujoco_config.cpp
   src/is_in_contact.cpp
