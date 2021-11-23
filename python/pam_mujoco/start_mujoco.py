@@ -76,12 +76,7 @@ def pseudo_real_robot(
 
     # starting mujoco
     process = multiprocessing.Process(
-        target=_execute_mujoco,
-        args=(
-            mujoco_id,
-            segment_id,
-            pam_model_config,
-        ),
+        target=_execute_mujoco, args=(mujoco_id, segment_id, pam_model_config)
     )
 
     pam_mujoco.clear(mujoco_id)
