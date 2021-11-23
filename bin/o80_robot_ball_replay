@@ -1,0 +1,202 @@
+#!/usr/bin/env python3
+
+"""
+Display in a mujoco simulated environment the ball and the robot
+as logged in a o80_robot_ball_{x} file, i.e. a file
+generated via o80_robot_ball_logger.
+Two balls are displayed: the one mirroring the real ball (red),
+a second one (green) mirroring the real ball up to contact with the robot
+racket, then applying our custmor contact model.
+Required for this executable:
+- first in another terminal :'pam_mujoco robot_ball_replay'
+"""
+
+import typing
+import pathlib
+import o80
+import signal_handler
+import o80_pam
+import pam_mujoco
+from lightargs import BrightArgs, FileExists
+
+DEFAULT_SAVE_FOLDER = pathlib.Path("/tmp")
+MUJOCO_ID = "robot_ball_replay"
+
+
+def _get_default_file(
+    directory: pathlib.Path, file_prefix="o80_robot_ball_*"
+) -> pathlib.Path:
+    """
+    Returns one of the file "/tmp/o80_robot_ball_*"
+    Return empty string if no such file.
+    """
+
+    for filename in directory.glob(file_prefix):
+        if filename.is_file():
+            return directory / filename
+
+    return ""
+
+
+def _configure() -> BrightArgs:
+    """
+    Configuration dialog
+    """
+
+    global DEFAULT_SAVE_FOLDER
+    config = BrightArgs("o80 robot ball replay")
+    config.add_option(
+        "filepath",
+        str(_get_default_file(DEFAULT_SAVE_FOLDER)),
+        "absolute path of the log file to replay",
+        str,
+        [FileExists()],
+    )
+    change_all = False
+    config.dialog(change_all)
+    print()
+    return config
+
+
+def _get_handle() -> pam_mujoco.MujocoHandle:
+    """
+    Configures mujoco to have a controllable ball
+    and returns the handle
+    """
+
+    global MUJOCO_ID
+    ball_real = pam_mujoco.MujocoItem(
+        "ball_real",
+        control=pam_mujoco.MujocoItem.COMMAND_ACTIVE_CONTROL,
+        color=(1, 0, 0, 1),
+    )
+    ball_sim = pam_mujoco.MujocoItem(
+        "ball_sim",
+        control=pam_mujoco.MujocoItem.COMMAND_ACTIVE_CONTROL,
+        contact_type=pam_mujoco.ContactTypes.racket1,  # applies custom contact model upon contact
+        color=(0, 1, 0, 1),
+    )
+    robot = pam_mujoco.MujocoRobot(
+        "robot",
+        control=pam_mujoco.MujocoRobot.JOINT_CONTROL,
+        active_only_control=pam_mujoco.MujocoRobot.COMMAND_ACTIVE_CONTROL,
+    )
+    table = pam_mujoco.MujocoTable("table")
+    graphics = True
+    accelerated_time = False
+    handle = pam_mujoco.MujocoHandle(
+        MUJOCO_ID,
+        table=table,
+        robot1=robot,
+        balls=(ball_real, ball_sim),
+        graphics=graphics,
+        accelerated_time=accelerated_time,
+        burst_mode=False,
+    )
+    return handle
+
+
+def _add_ball_commands(
+    data: typing.Sequence[typing.Tuple], ball: o80_pam.MirrorFreeJointFrontEnd
+) -> None:
+    class _Data:
+        def __init__(self, d):
+            self.ball_id, self.stamp, self.position, self.velocity = d
+
+        def same(self, other):
+            return self.ball_id == other.ball_id
+
+        def duration(self, earlier):
+            return o80.Duration_us.nanoseconds(self.stamp - earlier.stamp)
+
+    previous = None
+
+    for d in data:
+        instance = _Data(d)
+        if previous is None:
+            previous = instance
+        if not instance.same(previous):
+            ball.add_command(
+                instance.position,
+                instance.velocity,
+                instance.duration(previous),
+                o80.Mode.QUEUE
+            )
+            previous = instance
+
+
+def _add_robot_commands(
+        data: typing.Sequence[typing.Tuple], robot: o80_pam.MirrorRobotFrontEnd
+) -> None:
+    class _Data:
+        def __init__(self, d):
+            self.stamp, self.positions, self.velocities = d
+
+        def same(self, other):
+            return self.stamp == other.stamp
+
+        def duration(self, earlier):
+            return o80.Duration_us.nanoseconds(self.stamp - earlier.stamp)
+
+    previous = None
+
+    for d in data:
+        instance = _Data(d)
+        if previous is None:
+            previous = instance
+        if not instance.same(previous):
+            robot.add_command(
+                instance.positions,
+                instance.velocities,
+                instance.duration(previous),
+                o80.Mode.QUEUE
+            )
+            previous = instance
+
+
+def _add_commands(
+        data: typing.Sequence[typing.Tuple[typing.Tuple,typing.Tuple]],
+    ball1: o80_pam.MirrorFreeJointFrontEnd,
+    ball2: o80_pam.MirrorFreeJointFrontEnd,
+    robot: o80_pam.MirrorRobotFrontEnd,
+) -> None:
+
+    d_ball = [d[0] for d in data]
+    d_robot = [d[1] for d in data]
+
+    _add_ball_commands(d_ball, ball1)
+    _add_ball_commands(d_ball, ball2)
+    _add_robot_commands(d_robot, robot)
+
+
+def run(filepath: pathlib.Path):
+    """
+    Parse filepath and plays the corresponding
+    ball trajectory in mujoco (via an o80 frontend)
+    """
+
+    # configuring and staring mujoco
+    handle = _get_handle()
+
+    # getting a frontend for balls control
+    ball_real = handle.frontends["ball_real"]
+    ball_sim = handle.frontends["ball_sim"]
+
+    # getting a frontend for robot control
+    robot = handle.frontends["robot"]
+
+    # parsing file
+    data = list(o80_pam.robot_ball_parser.parse(filepath))
+
+    # loading all commands in the frontends
+    _add_commands(data, ball_real, ball_sim, robot)
+
+    # sending commands to pam mujoco
+    ball_real.pulse()
+    ball_sim.pulse()
+    robot.pulse_and_wait()
+
+
+if __name__ == "__main__":
+    config = _configure()
+    run(pathlib.Path(config.filepath))

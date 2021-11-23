@@ -14,7 +14,7 @@ class MujocoRobot:
     def __init__(
         self,
         segment_id,
-        position=[0.435, 0.1175, -0.0025],
+        position=[0.435, 0.1175, -0.0],
         orientation="-1 0 0 0 -1 0",
         control=NO_CONTROL,
         active_only_control=CONSTANT_CONTROL,
