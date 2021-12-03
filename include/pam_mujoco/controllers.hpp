@@ -14,7 +14,6 @@
 
 namespace pam_mujoco
 {
-
 class ActuatorBiasBase
 {
 public:

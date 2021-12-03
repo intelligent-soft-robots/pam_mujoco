@@ -9,7 +9,6 @@ namespace pam_mujoco
 {
 namespace internal
 {
-
 /**
  * Configuration parameters required to compute
  * the position and velocity of the ball after contact

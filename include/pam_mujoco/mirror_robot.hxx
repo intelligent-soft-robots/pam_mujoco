@@ -1,10 +1,12 @@
 
 template <int QUEUE_SIZE, int NB_DOFS>
 MirrorRobot<QUEUE_SIZE, NB_DOFS>::MirrorRobot(std::string segment_id,
-                                              std::string robot_joint_base)
+                                              std::string robot_joint_base,
+                                              std::string robot_racket)
     : ControllerBase{},
       backend_{segment_id},
       robot_joint_base_(robot_joint_base),
+      robot_racket_(robot_racket),
       index_geom_(-1),
       index_q_robot_(-1),
       index_qvel_robot_(-1)
@@ -53,7 +55,7 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
             m, mjOBJ_JOINT, robot_joint_base_.c_str())];
         index_qvel_robot_ = m->jnt_dofadr[mj_name2id(
             m, mjOBJ_JOINT, robot_joint_base_.c_str())];
-        index_geom_ = mj_name2id(m, mjOBJ_GEOM, robot_joint_base_.c_str());
+        index_geom_ = mj_name2id(m, mjOBJ_GEOM, robot_racket_.c_str());
     }
     bool set_to_mujoco = false;
     if (this->must_update(d))

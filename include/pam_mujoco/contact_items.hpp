@@ -2,7 +2,6 @@
 
 namespace pam_mujoco
 {
-
 enum ContactItems
 {
     Robot1,

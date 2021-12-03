@@ -124,7 +124,10 @@ def _get_mujoco_robot_control(mujoco_robot: MujocoRobot, model_item: dict):
 
     if mujoco_robot.control == MujocoRobot.JOINT_CONTROL:
         return pam_mujoco_wrp.MujocoRobotJointControl(
-            mujoco_robot.segment_id, model_item.joint, active_only
+            mujoco_robot.segment_id,
+            model_item.joint,
+            model_item.geom_racket,
+            active_only,
         )
     if mujoco_robot.control == MujocoRobot.PRESSURE_CONTROL:
         return pam_mujoco_wrp.MujocoRobotPressureControl(

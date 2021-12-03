@@ -8,11 +8,13 @@ MujocoRobotJointControl::MujocoRobotJointControl()
 
 MujocoRobotJointControl::MujocoRobotJointControl(std::string _segment_id,
                                                  std::string _joint,
+                                                 std::string _racket,
                                                  bool _active_only)
     : active_only{_active_only}
 {
     std::strcpy(segment_id, _segment_id.c_str());
     std::strcpy(joint, _joint.c_str());
+    std::strcpy(racket, _racket.c_str());
 }
 
 std::string MujocoRobotJointControl::to_string() const

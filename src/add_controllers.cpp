@@ -2,12 +2,14 @@
 
 namespace pam_mujoco
 {
-void add_mirror_robot(std::string segment_id, std::string robot_joint_base)
+void add_mirror_robot(std::string segment_id,
+                      std::string robot_joint_base,
+                      std::string robot_racket)
 {
     pam_mujoco::MirrorRobot<QUEUE_SIZE, NB_DOFS>::clear(segment_id);
     typedef pam_mujoco::MirrorRobot<QUEUE_SIZE, NB_DOFS> mer;
     std::shared_ptr<mer> mirroring =
-        std::make_shared<mer>(segment_id, robot_joint_base);
+        std::make_shared<mer>(segment_id, robot_joint_base, robot_racket);
     pam_mujoco::Controllers::add(mirroring);
 }
 
@@ -122,7 +124,9 @@ void add_robot2_contact_free_joint(std::string segment_id,
 
 void add_joints_control(MujocoRobotJointControl mrc)
 {
-    add_mirror_robot(std::string(mrc.segment_id), std::string(mrc.joint));
+    add_mirror_robot(std::string(mrc.segment_id),
+                     std::string(mrc.joint),
+                     std::string(mrc.racket));
     return;
 }
 

@@ -28,6 +28,7 @@ public:
     MujocoRobotJointControl();
     MujocoRobotJointControl(std::string _segment_id,
                             std::string _joint,
+                            std::string _racket,
                             bool _active_only);
     std::string to_string() const;
 
@@ -35,12 +36,13 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(segment_id, joint, active_only);
+        archive(segment_id, joint, racket, active_only);
     }
 
 public:
     char segment_id[200];
     char joint[200];
+    char racket[200];
     bool active_only;
 };
 

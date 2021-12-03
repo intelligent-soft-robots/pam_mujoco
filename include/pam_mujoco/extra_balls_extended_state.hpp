@@ -8,7 +8,6 @@
 
 namespace pam_mujoco
 {
-
 template <int NB_BALLS>
 class ExtraBallsExtendedState
 {

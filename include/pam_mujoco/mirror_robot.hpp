@@ -22,7 +22,9 @@ private:
     typedef o80::States<NB_DOFS, o80::State2d> States;
 
 public:
-    MirrorRobot(std::string segment_id, std::string robot_joint_base);
+    MirrorRobot(std::string segment_id,
+                std::string robot_joint_base,
+                std::string robot_racket);
     void apply(const mjModel* m, mjData* d);
 
 public:
@@ -34,6 +36,7 @@ private:
 
 private:
     Backend backend_;
+    std::string robot_racket_;
     std::string robot_joint_base_;
     int index_geom_;
     int index_q_robot_;
