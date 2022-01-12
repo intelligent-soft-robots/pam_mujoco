@@ -14,18 +14,21 @@
 
 #include <chrono>
 #include <mutex>
+#include <sstream>
 #include <thread>
 
 #include <experimental/filesystem>
 #include <string>
 #include "o80/burster.hpp"
+#include "shared_memory/shared_memory.hpp"
+#include "signal_handler/signal_handler.hpp"
+
 #include "pam_mujoco/add_controllers.hpp"
 #include "pam_mujoco/burster_controller.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/listener.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
-#include "shared_memory/shared_memory.hpp"
-#include "signal_handler/signal_handler.hpp"
+#include "pam_mujoco/mj_state_tools.hpp"
 
 //-------------------------------- global
 //-----------------------------------------------
@@ -1799,7 +1802,7 @@ void render(GLFWwindow* window)
     }
 }
 
-void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
+void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync, const std::string &mujoco_id)
 {
     // run only if model is present
     if (m)
@@ -1829,6 +1832,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
 
                     // run single step, let next iteration deal with timing
                     mj_step(m, d);
+                    //pam_mujoco::managed_save_state(m, d, mujoco_id);
                 }
 
                 // in-sync
@@ -1849,6 +1853,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                         // run mj_step
                         mjtNum prevtm = d->time;
                         mj_step(m, d);
+                        //pam_mujoco::managed_save_state(m, d, mujoco_id);
 
                         // break on reset
                         if (d->time < prevtm) break;
@@ -1859,6 +1864,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
             else
             {
                 mj_step(m, d);
+                //pam_mujoco::managed_save_state(m, d, mujoco_id);
             }
         }
 
@@ -1961,7 +1967,7 @@ void simulate(std::string mujoco_id, bool accelerated_time)
             settings.run = 1;
         }
 
-        do_simulate(accelerated_time, cpusync, simsync);
+        do_simulate(accelerated_time, cpusync, simsync, mujoco_id);
 
         if (!settings.client_notified)
         {
@@ -2227,6 +2233,10 @@ int main(int argc, const char** argv)
         std::cout << mpc.to_string() << std::endl;
         pam_mujoco::add_pressures_control(mpc);
     }
+
+    auto state_saver =
+        std::make_shared<pam_mujoco::SaveStateController>(mujoco_id);
+    pam_mujoco::Controllers::add(state_saver);
 
     mjcb_control = pam_mujoco::Controllers::apply;
     mjcb_act_bias = pam_mujoco::Controllers::get_bias;

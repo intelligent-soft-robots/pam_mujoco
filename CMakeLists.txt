@@ -26,6 +26,7 @@ find_package(pam_interface REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(mujoco_interface REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system thread)
+find_package(fmt REQUIRED)
 
 ament_export_dependencies(
   Boost
@@ -85,7 +86,9 @@ list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
 
 add_executable( launch_pam_mujoco
-  src/pam_mujoco.cpp )
+  src/pam_mujoco.cpp
+  src/mj_state_tools.cpp
+)
 target_include_directories(
   launch_pam_mujoco PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
@@ -94,6 +97,7 @@ target_link_libraries(launch_pam_mujoco shared_memory::shared_memory)
 target_link_libraries(launch_pam_mujoco mujoco_interface::mujoco_interface)
 target_link_libraries(launch_pam_mujoco o80::o80)
 target_link_libraries(launch_pam_mujoco context::context)
+target_link_libraries(launch_pam_mujoco fmt::fmt)
 target_link_libraries(launch_pam_mujoco ${PROJECT_NAME})
 foreach(mujoco_lib ${mujoco_libs})
   target_link_libraries(launch_pam_mujoco ${mujoco_lib_dir}/${mujoco_lib})
@@ -101,6 +105,25 @@ endforeach(mujoco_lib)
 target_link_libraries(launch_pam_mujoco stdc++fs)
 target_link_libraries(launch_pam_mujoco EGL GL GLU glut)
 list(APPEND all_targets launch_pam_mujoco)
+
+add_executable(mj_data_file_bin2json
+  src/mj_data_file_bin2json.cpp
+  src/mj_state_tools.cpp
+)
+target_include_directories(
+  mj_data_file_bin2json PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  ${mujoco_include_dir}
+  $<INSTALL_INTERFACE:include>)
+target_compile_definitions(launch_pam_mujoco PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
+target_link_libraries(mj_data_file_bin2json fmt::fmt)
+target_link_libraries(mj_data_file_bin2json ${PROJECT_NAME})
+foreach(mujoco_lib ${mujoco_libs})
+  target_link_libraries(mj_data_file_bin2json ${mujoco_lib_dir}/${mujoco_lib})
+endforeach(mujoco_lib)
+list(APPEND all_targets mj_data_file_bin2json)
+
+
 
 
 ###################
