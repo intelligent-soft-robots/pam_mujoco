@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/format.h>
 #include "o80_pam/actuator_state.hpp"
 #include "pam_interface/state/robot.hpp"
 #include "pam_models/hill/factory.hpp"

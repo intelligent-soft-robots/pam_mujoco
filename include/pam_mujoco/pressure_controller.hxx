@@ -1,5 +1,6 @@
 
-
+#include <cmath>
+#include <iostream>
 template <int QUEUE_SIZE, int NB_DOFS>
 PressureController<QUEUE_SIZE, NB_DOFS>::PressureController(
     std::string segment_id,
@@ -81,6 +82,17 @@ void PressureController<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
                 d->qvel[index_qvel_robot_ + dof],  // velocity
                 0,                                 // encoder
                 true);                             // reference found
+
+            // only need to check qpos and qvel, others are int and thus cannot
+            // be nan
+            if (std::isnan(d->qpos[index_q_robot_ + dof])) {
+                std::cerr << fmt::format("!!!! [pressure controller] qpos[{:d}] (DOF={:d}) is NaN! time={:f}",
+                        index_q_robot_ + dof, dof, d->time) << std::endl;
+            }
+            if (std::isnan(d->qvel[index_qvel_robot_ + dof])) {
+                std::cerr << fmt::format("!!!! [pressure controller] qvel[{:d}] (DOF={:d}) is NaN! time={:f}",
+                        index_qvel_robot_ + dof, dof, d->time) << std::endl;
+            }
         }
 
         // reading desired pressure from o80
