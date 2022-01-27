@@ -95,6 +95,12 @@ void managed_save_state(const mjModel* model,
                         mjData* data,
                         const std::string& filename_prefix)
 {
+    // in the case under investigation, the nan appears at t=0.8, so only start
+    // logging a bit before that
+    if (data->time < 0.75 || data->time > 0.85) {
+        return;
+    }
+
     // FIXME: This function is rather dirty
 
     static constexpr size_t N_KEEP = 100;
