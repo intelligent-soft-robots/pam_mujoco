@@ -67,6 +67,7 @@ void PressureController<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
         pam_interface::RobotState<NB_DOFS> robot_state(
             iteration_, iteration_, time_stamp_pi);
         iteration_++;
+        bool has_nan = false;
         for (std::size_t dof = 0; dof < NB_DOFS; dof++)
         {
             robot_state.set_joint(
@@ -88,11 +89,22 @@ void PressureController<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
             if (std::isnan(d->qpos[index_q_robot_ + dof])) {
                 std::cerr << fmt::format("!!!! [pressure controller] qpos[{:d}] (DOF={:d}) is NaN! time={:f}",
                         index_q_robot_ + dof, dof, d->time) << std::endl;
+                has_nan = true;
             }
             if (std::isnan(d->qvel[index_qvel_robot_ + dof])) {
                 std::cerr << fmt::format("!!!! [pressure controller] qvel[{:d}] (DOF={:d}) is NaN! time={:f}",
                         index_qvel_robot_ + dof, dof, d->time) << std::endl;
+                has_nan = true;
             }
+        }
+        if (has_nan) {
+            static const std::string FILENAME_FMT =
+                "./mujoco_state_snapshots/nan_state{:012d}.dat";
+            static size_t index = 0;
+
+            std::string path = fmt::format(FILENAME_FMT, index);
+            index++;
+            save_state(m, d, path);
         }
 
         // reading desired pressure from o80

@@ -62,7 +62,9 @@ add_library( ${PROJECT_NAME} SHARED
   src/listener.cpp
   src/mujoco_config.cpp
   src/is_in_contact.cpp
-  src/listener.cpp)
+  src/listener.cpp
+  src/mj_state_tools.cpp
+  )
 target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}

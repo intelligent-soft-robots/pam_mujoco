@@ -6,6 +6,8 @@
 #include "pam_models/hill/factory.hpp"
 #include "pam_mujoco/controllers.hpp"
 
+#include "mj_state_tools.hpp"
+
 namespace pam_mujoco
 {
 template <int QUEUE_SIZE, int NB_DOFS>
