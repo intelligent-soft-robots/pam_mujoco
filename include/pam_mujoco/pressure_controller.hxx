@@ -1,5 +1,6 @@
 
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 template <int QUEUE_SIZE, int NB_DOFS>
 PressureController<QUEUE_SIZE, NB_DOFS>::PressureController(

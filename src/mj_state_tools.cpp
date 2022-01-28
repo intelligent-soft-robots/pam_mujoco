@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <pam_mujoco/mj_state_tools.hpp>
 
@@ -112,6 +113,11 @@ void managed_save_state(const mjModel* model,
     index++;
 
     save_state(model, data, path);
+
+    if (std::isnan(data->qvel[16])) {
+        std::cerr << "!!!!! Detected NAN [" << path << "].  Exit." << std::endl;
+        std::exit(-1);
+    }
 
     // only keep the newest files, so delete old ones
     if (index >= N_KEEP)
