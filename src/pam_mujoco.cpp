@@ -2165,6 +2165,11 @@ int main(int argc, const char** argv)
     std::cout << "model loaded" << std::endl;
 
     // populating the controllers
+    {
+        auto state_saver =
+            std::make_shared<pam_mujoco::SaveStateController>(mujoco_id + "_first");
+        pam_mujoco::Controllers::add(state_saver);
+    }
 
     if (config.burst_mode)
     {
@@ -2235,7 +2240,7 @@ int main(int argc, const char** argv)
     }
 
     auto state_saver =
-        std::make_shared<pam_mujoco::SaveStateController>(mujoco_id);
+        std::make_shared<pam_mujoco::SaveStateController>(mujoco_id + "_last");
     pam_mujoco::Controllers::add(state_saver);
 
     mjcb_control = pam_mujoco::Controllers::apply;
