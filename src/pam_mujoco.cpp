@@ -1036,7 +1036,7 @@ void updatesettings(void)
 }
 
 // drop file callback
-void drop(GLFWwindow* window, int count, const char** paths)
+void drop(GLFWwindow* /*window*/, int count, const char** paths)
 {
     // make sure list is non-empty
     if (count > 0)
@@ -1130,7 +1130,7 @@ void loadmodel(void)
 //----------------------------
 
 // determine enable/disable item state given category
-int uiPredicate(int category, void* userdata)
+int uiPredicate(int category, void* /*userdata*/)
 {
     switch (category)
     {
