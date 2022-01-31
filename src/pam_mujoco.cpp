@@ -135,7 +135,7 @@ const mjuiDef defFile[] = {{mjITEM_SECTION, "File", 1, NULL, "AF"},
                            {mjITEM_BUTTON, "Print model", 2, NULL, "CM"},
                            {mjITEM_BUTTON, "Print data", 2, NULL, "CD"},
                            {mjITEM_BUTTON, "Quit", 1, NULL, "CQ"},
-                           {mjITEM_END}};
+                           {mjITEM_END, "", 0, NULL, ""}};
 
 // option section of UI
 const mjuiDef defOption[] = {
@@ -164,7 +164,7 @@ const mjuiDef defOption[] = {
 #endif
     {mjITEM_CHECKINT, "Vertical Sync", 1, &settings.vsync, " #295"},
     {mjITEM_CHECKINT, "Busy Wait", 1, &settings.busywait, " #296"},
-    {mjITEM_END}};
+    {mjITEM_END, "", 0, NULL, ""}};
 
 // simulation section of UI
 const mjuiDef defSimulation[] = {
@@ -175,9 +175,9 @@ const mjuiDef defSimulation[] = {
     {mjITEM_BUTTON, "Align", 2, NULL, "CA"},
     {mjITEM_BUTTON, "Copy pose", 2, NULL, "CC"},
     {mjITEM_SLIDERINT, "Key", 3, &settings.key, "0 0"},
-    {mjITEM_BUTTON, "Reset to key", 3},
-    {mjITEM_BUTTON, "Set key", 3},
-    {mjITEM_END}};
+    {mjITEM_BUTTON, "Reset to key", 3, NULL, ""},
+    {mjITEM_BUTTON, "Set key", 3, NULL, ""},
+    {mjITEM_END, "", 0, NULL, ""}};
 
 // watch section of UI
 const mjuiDef defWatch[] = {
@@ -185,7 +185,7 @@ const mjuiDef defWatch[] = {
     {mjITEM_EDITTXT, "Field", 2, settings.field, "qpos"},
     {mjITEM_EDITINT, "Index", 2, &settings.index, "1"},
     {mjITEM_STATIC, "Value", 2, NULL, " "},
-    {mjITEM_END}};
+    {mjITEM_END, "", 0, NULL, ""}};
 
 // help strings
 const char help_content[] =
@@ -660,7 +660,7 @@ void makephysics(int oldstate)
          &(m->opt.jacobian),
          "Dense\nSparse\nAuto"},
         {mjITEM_SELECT, "Solver", 2, &(m->opt.solver), "PGS\nCG\nNewton"},
-        {mjITEM_SEPARATOR, "Algorithmic Parameters", 1},
+        {mjITEM_SEPARATOR, "Algorithmic Parameters", 1, NULL, ""},
         {mjITEM_EDITNUM, "Timestep", 2, &(m->opt.timestep), "1 0 1"},
         {mjITEM_EDITINT, "Iterations", 2, &(m->opt.iterations), "1 0 1000"},
         {mjITEM_EDITNUM, "Tolerance", 2, &(m->opt.tolerance), "1 0 1"},
@@ -673,29 +673,30 @@ void makephysics(int oldstate)
         {mjITEM_EDITINT, "MRR Iter", 2, &(m->opt.mpr_iterations), "1 0 1000"},
         {mjITEM_EDITNUM, "MPR Tol", 2, &(m->opt.mpr_tolerance), "1 0 1"},
         {mjITEM_EDITNUM, "API Rate", 2, &(m->opt.apirate), "1 0 1000"},
-        {mjITEM_SEPARATOR, "Physical Parameters", 1},
+        {mjITEM_SEPARATOR, "Physical Parameters", 1, NULL, ""},
         {mjITEM_EDITNUM, "Gravity", 2, m->opt.gravity, "3"},
         {mjITEM_EDITNUM, "Wind", 2, m->opt.wind, "3"},
         {mjITEM_EDITNUM, "Magnetic", 2, m->opt.magnetic, "3"},
         {mjITEM_EDITNUM, "Density", 2, &(m->opt.density), "1"},
         {mjITEM_EDITNUM, "Viscosity", 2, &(m->opt.viscosity), "1"},
         {mjITEM_EDITNUM, "Imp Ratio", 2, &(m->opt.impratio), "1"},
-        {mjITEM_SEPARATOR, "Disable Flags", 1},
-        {mjITEM_END}};
-    mjuiDef defEnableFlags[] = {{mjITEM_SEPARATOR, "Enable Flags", 1},
-                                {mjITEM_END}};
+        {mjITEM_SEPARATOR, "Disable Flags", 1, NULL, ""},
+        {mjITEM_END, "", 0, NULL, ""}};
+    mjuiDef defEnableFlags[] = {{mjITEM_SEPARATOR, "Enable Flags", 1, NULL, ""},
+                                {mjITEM_END, "", 0, NULL, ""}};
     mjuiDef defOverride[] = {
-        {mjITEM_SEPARATOR, "Contact Override", 1},
+        {mjITEM_SEPARATOR, "Contact Override", 1, NULL, ""},
         {mjITEM_EDITNUM, "Margin", 2, &(m->opt.o_margin), "1"},
         {mjITEM_EDITNUM, "Sol Imp", 2, &(m->opt.o_solimp), "5"},
         {mjITEM_EDITNUM, "Sol Ref", 2, &(m->opt.o_solref), "2"},
-        {mjITEM_END}};
+        {mjITEM_END, "", 0, NULL, ""}};
 
     // add physics
     mjui_add(&ui0, defPhysics);
 
     // add flags programmatically
-    mjuiDef defFlag[] = {{mjITEM_CHECKINT, "", 2, NULL, ""}, {mjITEM_END}};
+    mjuiDef defFlag[] = {{mjITEM_CHECKINT, "", 2, NULL, ""},
+                         {mjITEM_END, "", 0, NULL, ""}};
     for (i = 0; i < mjNDISABLE; i++)
     {
         strcpy(defFlag[0].name, mjDISABLESTRING[i]);
@@ -731,10 +732,10 @@ void makerendering(int oldstate)
          2,
          &(vopt.frame),
          "None\nBody\nGeom\nSite\nCamera\nLight\nWorld"},
-        {mjITEM_SEPARATOR, "Model Elements", 1},
-        {mjITEM_END}};
-    mjuiDef defOpenGL[] = {{mjITEM_SEPARATOR, "OpenGL Effects", 1},
-                           {mjITEM_END}};
+        {mjITEM_SEPARATOR, "Model Elements", 1, NULL, ""},
+        {mjITEM_END, "", 0, NULL, ""}};
+    mjuiDef defOpenGL[] = {{mjITEM_SEPARATOR, "OpenGL Effects", 1, NULL, ""},
+                           {mjITEM_END, "", 0, NULL, ""}};
 
     // add model cameras, up to UI limit
     for (int i = 0; i < mjMIN(m->ncam, mjMAXUIMULTI - 2); i++)
@@ -758,7 +759,8 @@ void makerendering(int oldstate)
     mjui_add(&ui0, defRendering);
 
     // add flags programmatically
-    mjuiDef defFlag[] = {{mjITEM_CHECKBYTE, "", 2, NULL, ""}, {mjITEM_END}};
+    mjuiDef defFlag[] = {{mjITEM_CHECKBYTE, "", 2, NULL, ""},
+                         {mjITEM_END, "", 0, NULL, ""}};
     for (int i = 0; i < mjNVISFLAG; i++)
     {
         // set name, remove "&"
@@ -790,42 +792,42 @@ void makegroup(int oldstate)
 {
     mjuiDef defGroup[] = {
         {mjITEM_SECTION, "Group enable", oldstate, NULL, "AG"},
-        {mjITEM_SEPARATOR, "Geom groups", 1},
+        {mjITEM_SEPARATOR, "Geom groups", 1, NULL, ""},
         {mjITEM_CHECKBYTE, "Geom 0", 2, vopt.geomgroup, " 0"},
         {mjITEM_CHECKBYTE, "Geom 1", 2, vopt.geomgroup + 1, " 1"},
         {mjITEM_CHECKBYTE, "Geom 2", 2, vopt.geomgroup + 2, " 2"},
         {mjITEM_CHECKBYTE, "Geom 3", 2, vopt.geomgroup + 3, " 3"},
         {mjITEM_CHECKBYTE, "Geom 4", 2, vopt.geomgroup + 4, " 4"},
         {mjITEM_CHECKBYTE, "Geom 5", 2, vopt.geomgroup + 5, " 5"},
-        {mjITEM_SEPARATOR, "Site groups", 1},
+        {mjITEM_SEPARATOR, "Site groups", 1, NULL, ""},
         {mjITEM_CHECKBYTE, "Site 0", 2, vopt.sitegroup, "S0"},
         {mjITEM_CHECKBYTE, "Site 1", 2, vopt.sitegroup + 1, "S1"},
         {mjITEM_CHECKBYTE, "Site 2", 2, vopt.sitegroup + 2, "S2"},
         {mjITEM_CHECKBYTE, "Site 3", 2, vopt.sitegroup + 3, "S3"},
         {mjITEM_CHECKBYTE, "Site 4", 2, vopt.sitegroup + 4, "S4"},
         {mjITEM_CHECKBYTE, "Site 5", 2, vopt.sitegroup + 5, "S5"},
-        {mjITEM_SEPARATOR, "Joint groups", 1},
+        {mjITEM_SEPARATOR, "Joint groups", 1, NULL, ""},
         {mjITEM_CHECKBYTE, "Joint 0", 2, vopt.jointgroup, ""},
         {mjITEM_CHECKBYTE, "Joint 1", 2, vopt.jointgroup + 1, ""},
         {mjITEM_CHECKBYTE, "Joint 2", 2, vopt.jointgroup + 2, ""},
         {mjITEM_CHECKBYTE, "Joint 3", 2, vopt.jointgroup + 3, ""},
         {mjITEM_CHECKBYTE, "Joint 4", 2, vopt.jointgroup + 4, ""},
         {mjITEM_CHECKBYTE, "Joint 5", 2, vopt.jointgroup + 5, ""},
-        {mjITEM_SEPARATOR, "Tendon groups", 1},
+        {mjITEM_SEPARATOR, "Tendon groups", 1, NULL, ""},
         {mjITEM_CHECKBYTE, "Tendon 0", 2, vopt.tendongroup, ""},
         {mjITEM_CHECKBYTE, "Tendon 1", 2, vopt.tendongroup + 1, ""},
         {mjITEM_CHECKBYTE, "Tendon 2", 2, vopt.tendongroup + 2, ""},
         {mjITEM_CHECKBYTE, "Tendon 3", 2, vopt.tendongroup + 3, ""},
         {mjITEM_CHECKBYTE, "Tendon 4", 2, vopt.tendongroup + 4, ""},
         {mjITEM_CHECKBYTE, "Tendon 5", 2, vopt.tendongroup + 5, ""},
-        {mjITEM_SEPARATOR, "Actuator groups", 1},
+        {mjITEM_SEPARATOR, "Actuator groups", 1, NULL, ""},
         {mjITEM_CHECKBYTE, "Actuator 0", 2, vopt.actuatorgroup, ""},
         {mjITEM_CHECKBYTE, "Actuator 1", 2, vopt.actuatorgroup + 1, ""},
         {mjITEM_CHECKBYTE, "Actuator 2", 2, vopt.actuatorgroup + 2, ""},
         {mjITEM_CHECKBYTE, "Actuator 3", 2, vopt.actuatorgroup + 3, ""},
         {mjITEM_CHECKBYTE, "Actuator 4", 2, vopt.actuatorgroup + 4, ""},
         {mjITEM_CHECKBYTE, "Actuator 5", 2, vopt.actuatorgroup + 5, ""},
-        {mjITEM_END}};
+        {mjITEM_END, "", 0, NULL, ""}};
 
     // add section
     mjui_add(&ui0, defGroup);
@@ -837,9 +839,9 @@ void makejoint(int oldstate)
     int i;
 
     mjuiDef defJoint[] = {{mjITEM_SECTION, "Joint", oldstate, NULL, "AJ"},
-                          {mjITEM_END}};
+                          {mjITEM_END, "", 0, NULL, ""}};
     mjuiDef defSlider[] = {{mjITEM_SLIDERNUM, "", 2, NULL, "0 1"},
-                           {mjITEM_END}};
+                           {mjITEM_END, "", 0, NULL, ""}};
 
     // add section
     mjui_add(&ui1, defJoint);
@@ -887,10 +889,10 @@ void makecontrol(int oldstate)
     int i;
 
     mjuiDef defControl[] = {{mjITEM_SECTION, "Control", oldstate, NULL, "AC"},
-                            {mjITEM_BUTTON, "Clear all", 2},
-                            {mjITEM_END}};
+                            {mjITEM_BUTTON, "Clear all", 2, NULL, ""},
+                            {mjITEM_END, "", 0, NULL, ""}};
     mjuiDef defSlider[] = {{mjITEM_SLIDERNUM, "", 2, NULL, "0 1"},
-                           {mjITEM_END}};
+                           {mjITEM_END, "", 0, NULL, ""}};
 
     // add section
     mjui_add(&ui1, defControl);
