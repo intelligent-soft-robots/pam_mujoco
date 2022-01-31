@@ -763,7 +763,7 @@ void makerendering(int oldstate)
     {
         // set name, remove "&"
         strcpy(defFlag[0].name, mjVISSTRING[i][0]);
-        for (int j = 0; j < strlen(mjVISSTRING[i][0]); j++)
+        for (int j = 0; j < static_cast<int>(strlen(mjVISSTRING[i][0])); j++)
             if (mjVISSTRING[i][0][j] == '&')
             {
                 strcpy(defFlag[0].name + j, mjVISSTRING[i][0] + j + 1);
