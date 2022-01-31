@@ -717,8 +717,6 @@ void makephysics(int oldstate)
 // make rendering section of UI
 void makerendering(int oldstate)
 {
-    int i, j;
-
     mjuiDef defRendering[] = {
         {mjITEM_SECTION, "Rendering", oldstate, NULL, "AR"},
         {mjITEM_SELECT, "Camera", 2, &(settings.camera), "Free\nTracking"},
@@ -739,7 +737,7 @@ void makerendering(int oldstate)
                            {mjITEM_END}};
 
     // add model cameras, up to UI limit
-    for (i = 0; i < mjMIN(m->ncam, mjMAXUIMULTI - 2); i++)
+    for (int i = 0; i < mjMIN(m->ncam, mjMAXUIMULTI - 2); i++)
     {
         // prepare name
         char camname[mjMAXUITEXT] = "\n";
@@ -761,11 +759,11 @@ void makerendering(int oldstate)
 
     // add flags programmatically
     mjuiDef defFlag[] = {{mjITEM_CHECKBYTE, "", 2, NULL, ""}, {mjITEM_END}};
-    for (i = 0; i < mjNVISFLAG; i++)
+    for (int i = 0; i < mjNVISFLAG; i++)
     {
         // set name, remove "&"
         strcpy(defFlag[0].name, mjVISSTRING[i][0]);
-        for (j = 0; j < strlen(mjVISSTRING[i][0]); j++)
+        for (int j = 0; j < strlen(mjVISSTRING[i][0]); j++)
             if (mjVISSTRING[i][0][j] == '&')
             {
                 strcpy(defFlag[0].name + j, mjVISSTRING[i][0] + j + 1);
@@ -778,7 +776,7 @@ void makerendering(int oldstate)
         mjui_add(&ui0, defFlag);
     }
     mjui_add(&ui0, defOpenGL);
-    for (i = 0; i < mjNRNDFLAG; i++)
+    for (int i = 0; i < mjNRNDFLAG; i++)
     {
         strcpy(defFlag[0].name, mjRNDSTRING[i][0]);
         sprintf(defFlag[0].other, " %s", mjRNDSTRING[i][2]);
