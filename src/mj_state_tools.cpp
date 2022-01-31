@@ -1,9 +1,9 @@
-#include <cmath>
-#include <iostream>
 #include <pam_mujoco/mj_state_tools.hpp>
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 #include <fmt/format.h>
@@ -14,7 +14,7 @@
 
 namespace pam_mujoco
 {
-void save_state(const mjModel* model, mjData* data, const std::string& filename)
+void save_state(const mjModel* model, const mjData* data, const std::string& filename)
 {
     // The following code snippet from the documentation shows what field needs
     // to be copied to copy a state from mjData src to dst.
@@ -90,45 +90,6 @@ void save_state(const mjModel* model, mjData* data, const std::string& filename)
             CEREAL_NVP(qacc_warmstart),
             CEREAL_NVP(qacc),
             CEREAL_NVP(ctrl));
-}
-
-void managed_save_state(const mjModel* model,
-                        mjData* data,
-                        const std::string& filename_prefix)
-{
-    // in the case under investigation, the nan appears at t=0.8, so only start
-    // logging a bit before that
-    if (data->time < 0.75 || data->time > 0.85) {
-        return;
-    }
-
-    // FIXME: This function is rather dirty
-
-    static constexpr size_t N_KEEP = 100;
-    static const std::string FILENAME_FMT =
-        "./mujoco_state_snapshots/{}{:012d}.dat";
-
-    static size_t index = 0;
-    std::string path = fmt::format(FILENAME_FMT, filename_prefix, index);
-    index++;
-
-    save_state(model, data, path);
-
-    if (std::isnan(data->qvel[16])) {
-        std::cerr << "!!!!! Detected NAN [" << path << "].  Exit." << std::endl;
-        std::exit(-1);
-    }
-
-    // only keep the newest files, so delete old ones
-    if (index >= N_KEEP)
-    {
-        size_t del_idx = index - N_KEEP;
-        path = fmt::format(FILENAME_FMT, filename_prefix, del_idx);
-        if (!std::filesystem::remove(path))
-        {
-            std::cerr << "ERROR: file " << path << " not found.\n";
-        }
-    }
 }
 
 void _assert_vector_length(const std::string& name,
@@ -233,5 +194,45 @@ void print_state_file(const std::string& filename)
         throw std::runtime_error("Invalid file format version " +
                                  std::to_string(file_format_version));
     }
+}
+
+void MujocoStateSaver::save(const mjModel* model, const mjData* data)
+{
+    // FIXME: For Debugging
+    // in the case under investigation, the nan appears at t=0.8, so only start
+    // logging a bit before that
+    if (data->time < 0.75 || data->time > 0.81)
+    {
+        return;
+    }
+
+    // FIXME: This function is rather dirty
+
+    static const std::string FILENAME_FMT =
+        "./mujoco_state_snapshots/{}{:012d}.dat";
+
+    std::string path = fmt::format(FILENAME_FMT, filename_prefix_, index_);
+
+    save_state(model, data, path);
+
+    // FIXME: For Debugging
+    if (std::isnan(data->qvel[16]))
+    {
+        std::cerr << "!!!!! Detected NAN [" << path << "].  Exit." << std::endl;
+        std::exit(-1);
+    }
+
+    // only keep the newest files, so delete old ones
+    if (index_ >= num_keep_files_)
+    {
+        size_t del_idx = index_ - num_keep_files_;
+        path = fmt::format(FILENAME_FMT, filename_prefix_, del_idx);
+        if (!std::filesystem::remove(path))
+        {
+            std::cerr << "ERROR: file " << path << " not found.\n";
+        }
+    }
+
+    index_++;
 }
 }  // namespace pam_mujoco
