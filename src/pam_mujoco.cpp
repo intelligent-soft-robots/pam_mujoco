@@ -1802,9 +1802,6 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
     // run only if model is present
     if (m)
     {
-        // record start time
-        double startwalltm = glfwGetTime();
-
         // running
         if (settings.run)
         {
