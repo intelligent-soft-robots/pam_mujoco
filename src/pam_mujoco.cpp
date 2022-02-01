@@ -1802,7 +1802,7 @@ void render(GLFWwindow* window)
     }
 }
 
-void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync, const std::string &mujoco_id)
+void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync, [[maybe_unused]] const std::string &mujoco_id)
 {
     // run only if model is present
     if (m)

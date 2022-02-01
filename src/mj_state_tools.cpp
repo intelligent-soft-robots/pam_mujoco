@@ -96,7 +96,7 @@ void _assert_vector_length(const std::string& name,
                            size_t vector_length,
                            int expected_length)
 {
-    if (vector_length != expected_length)
+    if (vector_length != static_cast<size_t>(expected_length))
     {
         throw std::runtime_error(
             name + " length in file does not match model (file: " +
@@ -148,7 +148,6 @@ void load_state(const std::string& filename, const mjModel* model, mjData* data)
 void print_state_file(const std::string& filename)
 {
     int file_format_version = 0;
-    int nq, nv, nu, nmocap, nsensordata;
 
     std::ifstream is(filename, std::ios::binary);
     if (is.fail())
