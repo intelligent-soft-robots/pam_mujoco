@@ -40,17 +40,17 @@ public:
     static void clear(std::string segment_id);
 
 private:
+    Backend backend_;
     std::string segment_id_;
     std::string joint_;
     int index_qpos_;
     int index_qvel_;
-    Backend backend_;
-    States read_states_;
-    States set_states_;
     bool contact_interrupt_;
     bool interrupted_;
-    std::string segment_id_contact_;
     bool active_only_;
+    States read_states_;
+    States set_states_;
+    std::string segment_id_contact_;
 };
 
 #include "mirror_free_joint.hxx"

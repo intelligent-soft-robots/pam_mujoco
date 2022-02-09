@@ -36,8 +36,8 @@ private:
 
 private:
     Backend backend_;
-    std::string robot_racket_;
     std::string robot_joint_base_;
+    std::string robot_racket_;
     int index_geom_;
     int index_q_robot_;
     int index_qvel_robot_;

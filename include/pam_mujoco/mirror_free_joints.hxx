@@ -146,7 +146,7 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
         // take hand), checking if such contact occured.
         // (note: see Contacts.hpp to check what serializes ContactInformation
         // instances into the shared memory)
-        bool contact_disabled;
+        bool contact_disabled=false;
         // the ball is set to have control interrupted in case of contact
         if (contact_interrupt_[index])
         {

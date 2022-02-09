@@ -48,20 +48,18 @@ public:
 private:
     std::string mujoco_id_;
     std::string segment_id_;
+    Backend backend_;
     std::array<std::string, NB_ITEMS> joint_;
     std::array<int, NB_ITEMS> index_qpos_;
     std::array<int, NB_ITEMS> index_qvel_;
     std::string geom_robot_;
     int index_robot_geom_;
-    Backend backend_;
+    bool active_only_;
     States read_states_;
     States set_states_;
-
     std::array<bool, NB_ITEMS> contact_interrupt_;
     std::array<bool, NB_ITEMS> interrupted_;
     std::array<std::string, NB_ITEMS> segment_id_contact_;
-
-    bool active_only_;
 };
 
 #include "mirror_free_joints.hxx"
