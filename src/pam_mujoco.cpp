@@ -27,8 +27,8 @@
 #include "pam_mujoco/burster_controller.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/listener.hpp"
-#include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/mj_state_tools.hpp"
+#include "pam_mujoco/mujoco_config.hpp"
 
 //-------------------------------- global
 //-----------------------------------------------
@@ -38,6 +38,8 @@ const int maxgeom = 5000;         // preallocated geom array in mjvScene
 const double syncmisalign = 0.1;  // maximum time mis-alignment before re-sync
 const double refreshfactor =
     0.7;  // fraction of refresh available for simulation
+
+const std::string STATE_OUTPUT_DIR = "./mujoco_state_snapshots/";
 
 // model and data
 mjModel* m = NULL;
@@ -1802,7 +1804,10 @@ void render(GLFWwindow* window)
     }
 }
 
-void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync, [[maybe_unused]] const std::string &mujoco_id)
+void do_simulate(bool accelerated_time,
+                 double& cpusync,
+                 mjtNum& simsync,
+                 [[maybe_unused]] const std::string& mujoco_id)
 {
     // run only if model is present
     if (m)
@@ -1832,7 +1837,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync, [[mayb
 
                     // run single step, let next iteration deal with timing
                     mj_step(m, d);
-                    //pam_mujoco::managed_save_state(m, d, mujoco_id);
+                    // pam_mujoco::managed_save_state(m, d, mujoco_id);
                 }
 
                 // in-sync
@@ -1853,7 +1858,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync, [[mayb
                         // run mj_step
                         mjtNum prevtm = d->time;
                         mj_step(m, d);
-                        //pam_mujoco::managed_save_state(m, d, mujoco_id);
+                        // pam_mujoco::managed_save_state(m, d, mujoco_id);
 
                         // break on reset
                         if (d->time < prevtm) break;
@@ -1864,7 +1869,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync, [[mayb
             else
             {
                 mj_step(m, d);
-                //pam_mujoco::managed_save_state(m, d, mujoco_id);
+                // pam_mujoco::managed_save_state(m, d, mujoco_id);
             }
         }
 
@@ -2166,8 +2171,8 @@ int main(int argc, const char** argv)
 
     // populating the controllers
     {
-        auto state_saver =
-            std::make_shared<pam_mujoco::SaveStateController>(mujoco_id + "_first");
+        auto state_saver = std::make_shared<pam_mujoco::SaveStateController>(
+            STATE_OUTPUT_DIR + mujoco_id + "_first");
         pam_mujoco::Controllers::add(state_saver);
     }
 
@@ -2239,8 +2244,8 @@ int main(int argc, const char** argv)
         pam_mujoco::add_pressures_control(mpc);
     }
 
-    auto state_saver =
-        std::make_shared<pam_mujoco::SaveStateController>(mujoco_id + "_last");
+    auto state_saver = std::make_shared<pam_mujoco::SaveStateController>(
+        STATE_OUTPUT_DIR + mujoco_id + "_last");
     pam_mujoco::Controllers::add(state_saver);
 
     mjcb_control = pam_mujoco::Controllers::apply;

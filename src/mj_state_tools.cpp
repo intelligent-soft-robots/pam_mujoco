@@ -14,7 +14,9 @@
 
 namespace pam_mujoco
 {
-void save_state(const mjModel* model, const mjData* data, const std::string& filename)
+void save_state(const mjModel* model,
+                const mjData* data,
+                const std::string& filename)
 {
     // The following code snippet from the documentation shows what field needs
     // to be copied to copy a state from mjData src to dst.
@@ -107,36 +109,59 @@ void _assert_vector_length(const std::string& name,
 
 void load_state(const std::string& filename, const mjModel* model, mjData* data)
 {
-    // FIXME: This needs to be updated to the changes in save_state()
-
     int file_format_version = 0;
 
     std::ifstream is(filename, std::ios::binary);
-    cereal::JSONInputArchive archive(is);
+
+    if (!is)
+    {
+        throw std::runtime_error("Failed to read file " + filename);
+    }
+
+    // cereal::JSONInputArchive archive(is);
+    cereal::BinaryInputArchive archive(is);
 
     archive(file_format_version);
 
     if (file_format_version == 1)
     {
-        std::vector<float> qpos, qvel, ctrl, mocap_pos, mocap_quat, sensordata;
-        archive(qpos, qvel, ctrl, mocap_pos, mocap_quat, sensordata);
+        float time;
+        std::vector<float> qpos, qvel, act, mocap_pos, mocap_quat, userdata,
+            qacc_warmstart, qacc, ctrl;
+        archive(time,
+                qpos,
+                qvel,
+                act,
+                mocap_pos,
+                mocap_quat,
+                userdata,
+                qacc_warmstart,
+                qacc,
+                ctrl);
 
         // check if sizes match
         _assert_vector_length("qpos", qpos.size(), model->nq);
         _assert_vector_length("qvel", qvel.size(), model->nv);
-        _assert_vector_length("ctrl", ctrl.size(), model->nu);
+        _assert_vector_length("act", act.size(), model->na);
         _assert_vector_length("mocap_pos", mocap_pos.size(), 3 * model->nmocap);
         _assert_vector_length(
             "mocap_quat", mocap_quat.size(), 4 * model->nmocap);
+        _assert_vector_length("userdata", userdata.size(), model->nuserdata);
         _assert_vector_length(
-            "sensordata", sensordata.size(), model->nsensordata);
+            "qacc_warmstart", qacc_warmstart.size(), model->nv);
+        _assert_vector_length("qacc", qacc.size(), model->nv);
+        _assert_vector_length("ctrl", ctrl.size(), model->nu);
 
+        data->time = time;
         mju_f2n(data->qpos, qpos.data(), model->nq);
         mju_f2n(data->qvel, qvel.data(), model->nv);
-        mju_f2n(data->ctrl, ctrl.data(), model->nu);
+        mju_f2n(data->act, act.data(), model->na);
         mju_f2n(data->mocap_pos, mocap_pos.data(), 3 * model->nmocap);
         mju_f2n(data->mocap_quat, mocap_quat.data(), 4 * model->nmocap);
-        mju_f2n(data->sensordata, sensordata.data(), model->nsensordata);
+        mju_f2n(data->userdata, userdata.data(), model->nuserdata);
+        mju_f2n(data->qacc_warmstart, qacc_warmstart.data(), model->nv);
+        mju_f2n(data->qacc, qacc.data(), model->nv);
+        mju_f2n(data->ctrl, ctrl.data(), model->nu);
     }
     else
     {
@@ -197,18 +222,7 @@ void print_state_file(const std::string& filename)
 
 void MujocoStateSaver::save(const mjModel* model, const mjData* data)
 {
-    // FIXME: For Debugging
-    // in the case under investigation, the nan appears at t=0.8, so only start
-    // logging a bit before that
-    if (data->time < 0.75 || data->time > 0.81)
-    {
-        return;
-    }
-
-    // FIXME: This function is rather dirty
-
-    static const std::string FILENAME_FMT =
-        "./mujoco_state_snapshots/{}{:012d}.dat";
+    static const std::string FILENAME_FMT = "{}{:012d}.dat";
 
     std::string path = fmt::format(FILENAME_FMT, filename_prefix_, index_);
 
