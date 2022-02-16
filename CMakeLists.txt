@@ -102,6 +102,29 @@ target_link_libraries(launch_pam_mujoco EGL GL GLU glut glfw)
 
 list(APPEND all_targets launch_pam_mujoco)
 
+add_executable(pam_mujoco_load_snapshot
+  src/pam_mujoco_load.cpp
+  src/mj_state_tools.cpp
+)
+target_include_directories(pam_mujoco_load_snapshot
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    ${mujoco_include_dir}
+    $<INSTALL_INTERFACE:include>)
+target_compile_definitions(pam_mujoco_load_snapshot PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
+target_link_libraries(pam_mujoco_load_snapshot shared_memory::shared_memory)
+target_link_libraries(pam_mujoco_load_snapshot mujoco_interface::mujoco_interface)
+target_link_libraries(pam_mujoco_load_snapshot o80::o80)
+target_link_libraries(pam_mujoco_load_snapshot context::context)
+target_link_libraries(pam_mujoco_load_snapshot fmt::fmt)
+target_link_libraries(pam_mujoco_load_snapshot ${PROJECT_NAME})
+foreach(mujoco_lib ${mujoco_libs})
+  target_link_libraries(pam_mujoco_load_snapshot ${mujoco_lib_dir}/${mujoco_lib})
+endforeach(mujoco_lib)
+target_link_libraries(pam_mujoco_load_snapshot stdc++fs)
+target_link_libraries(pam_mujoco_load_snapshot EGL GL GLU glut)
+list(APPEND all_targets pam_mujoco_load_snapshot)
+
 add_executable(mj_data_file_bin2json
   src/mj_data_file_bin2json.cpp
   src/mj_state_tools.cpp
