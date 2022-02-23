@@ -30,6 +30,8 @@
 #include "pam_mujoco/mj_state_tools.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 
+#include <cereal/archives/json.hpp>
+
 //-------------------------------- global
 //-----------------------------------------------
 
@@ -2149,6 +2151,16 @@ int main(int argc, const char** argv)
         return 0;
     }
     std::cout << config.to_string() << std::endl;
+
+    {
+        // store config in file
+        const std::string config_out_file =
+            "/tmp/pam_mujoco_config_" + mujoco_id + ".json";
+
+        std::ofstream os(config_out_file, std::ios::binary);
+        cereal::JSONOutputArchive archive(os);
+        archive(config);
+    }
 
     if (config.use_graphics)
     {
