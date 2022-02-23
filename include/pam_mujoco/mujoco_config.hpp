@@ -99,14 +99,14 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(type,
-                segment_id,
-                joint,
-                index_qpos,
-                index_qvel,
-                geometry,
-                active_only,
-                contact_type);
+        archive(CEREAL_NVP(type),
+                CEREAL_NVP(segment_id),
+                CEREAL_NVP(joint),
+                CEREAL_NVP(index_qpos),
+                CEREAL_NVP(index_qvel),
+                CEREAL_NVP(geometry),
+                CEREAL_NVP(active_only),
+                CEREAL_NVP(contact_type));
     }
 
 public:
@@ -142,15 +142,15 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(type,
-                segment_id,
-                joint,
-                index_qpos,
-                index_qvel,
-                geometry,
-                robot_geom,
-                active_only,
-                contact_type);
+        archive(CEREAL_NVP(type),
+                CEREAL_NVP(segment_id),
+                CEREAL_NVP(joint),
+                CEREAL_NVP(index_qpos),
+                CEREAL_NVP(index_qvel),
+                CEREAL_NVP(geometry),
+                CEREAL_NVP(robot_geom),
+                CEREAL_NVP(active_only),
+                CEREAL_NVP(contact_type));
     }
 
 public:
@@ -195,22 +195,22 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(mujoco_id,
-                model_path,
-                burst_mode,
-                accelerated_time,
-                use_graphics,
-                item_controls,
-                item_3_controls,
-                item_10_controls,
-                item_20_controls,
-                item_50_controls,
-                item_100_controls,
-                joint_controls,
-                pressure_controls,
-                table_geometry,
-                racket1_geometry,
-                racket2_geometry);
+        archive(CEREAL_NVP(mujoco_id),
+                CEREAL_NVP(model_path),
+                CEREAL_NVP(burst_mode),
+                CEREAL_NVP(accelerated_time),
+                CEREAL_NVP(use_graphics),
+                CEREAL_NVP(item_controls),
+                CEREAL_NVP(item_3_controls),
+                CEREAL_NVP(item_10_controls),
+                CEREAL_NVP(item_20_controls),
+                CEREAL_NVP(item_50_controls),
+                CEREAL_NVP(item_100_controls),
+                CEREAL_NVP(joint_controls),
+                CEREAL_NVP(pressure_controls),
+                CEREAL_NVP(table_geometry),
+                CEREAL_NVP(racket1_geometry),
+                CEREAL_NVP(racket2_geometry));
     }
 
 public:
