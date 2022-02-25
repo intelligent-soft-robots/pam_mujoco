@@ -13,16 +13,18 @@ class MujocoRobot:
 
     def __init__(
         self,
+        pamy1: bool,
         segment_id,
         position=[0.435, 0.1175, -0.0],
         orientation="-1 0 0 0 -1 0",
         control=NO_CONTROL,
         active_only_control=CONSTANT_CONTROL,
-        json_control_path=pam_interface.DefaultConfiguration.get_path(),
+        json_control_path=pam_interface.Pamy2DefaultConfiguration.get_path(),
         json_ago_hill_path=pam_models.get_default_config_path(),
         json_antago_hill_path=pam_models.get_default_config_path(),
     ):
 
+        self.pamy1 = pamy1
         self.segment_id = segment_id
         self.position = position
         self.orientation = orientation

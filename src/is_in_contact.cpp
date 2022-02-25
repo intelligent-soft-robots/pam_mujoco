@@ -10,6 +10,7 @@ bool is_in_contact(const mjModel* m,
                    int index_geom,
                    int index_geom_contactee)
 {
+  (void)(m);
     for (int i = 0; i < d->ncon; i++)
     {
         if (d->contact[i].geom1 == index_geom &&
