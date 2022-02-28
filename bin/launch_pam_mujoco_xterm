@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# != 1 ]; then
+    >&2 echo "Invalid number of arguments"
+    >&2 echo "Usage: $0 <mujoco_id>"
+    exit 1
+fi
+
+mujoco_id="$1"
+
+exec xterm -T "$mujoco_id" -n "$mujoco_id" -e launch_pam_mujoco "$mujoco_id"

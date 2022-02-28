@@ -157,6 +157,7 @@ ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
 ######################
 
 install(PROGRAMS
+    bin/launch_pam_mujoco_xterm
     bin/pam_mujoco
     bin/pam_mujoco_no_xterms
     bin/pam_mujoco_stop

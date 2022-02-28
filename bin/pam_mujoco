@@ -2,8 +2,7 @@
 
 for mujoco_id in "$@"
 do
-
-    xterm -T "$mujoco_id" -n "$mujoco_id" -e launch_pam_mujoco "$mujoco_id" &
+    launch_pam_mujoco_xterm "$mujoco_id" &
     pid=$!
     echo "launch_pam_mujoco ${mujoco_id} pid: ${pid}"
 done
