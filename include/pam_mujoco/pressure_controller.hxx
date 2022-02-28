@@ -143,7 +143,8 @@ mjtNum PressureController<QUEUE_SIZE, NB_DOFS>::get_bias(const mjModel* m,
                                                          const mjData* d,
                                                          int id)
 {
-  (void)(m); (void)(d);
+    (void)(m);
+    (void)(d);
     int i_muscle = id - 2 * NB_DOFS;
     return -bias_forces_[i_muscle];  // computed in the apply function
     // note: optional filtering performed in the original code, ignored for now

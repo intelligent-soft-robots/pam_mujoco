@@ -40,7 +40,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(std::string segment_id)
 template <int QUEUE_SIZE>
 void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
 {
-   (void)(m);
+    (void)(m);
     if (this->must_update(d))
     {
         read_states_.values[0].value = d->qpos[index_qpos_];
@@ -62,7 +62,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     // take hand), checking if such contact occured.
     // (note: see Contacts.hpp to see what serialize ContactInformation
     // instances into the shared memory)
-    bool contact_disabled=false;
+    bool contact_disabled = false;
     if (contact_interrupt_)
     {
         context::ContactInformation ci;

@@ -5,7 +5,7 @@ namespace pam_mujoco
 {
 namespace internal
 {
-bool is_in_contact(const mjModel* m,
+bool is_in_contact(const mjModel*,
                    mjData* d,
                    int index_geom,
                    int index_geom_contactee)
