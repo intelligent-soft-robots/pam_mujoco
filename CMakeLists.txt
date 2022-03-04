@@ -152,33 +152,24 @@ install(TARGETS ${PROJECT_NAME}_py DESTINATION ${PYTHON_INSTALL_DIR})
 ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
 
 
-###############
-# Executables #
-###############
-
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_no_xterms
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_no_xterms COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_stop
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_stop COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_stop_all
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_stop_all COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_visualization
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_visualization COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_visualization_no_xterms
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_visualization_no_xterms COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/process_pam_visualization
-  ${CMAKE_INSTALL_PREFIX}/bin/process_pam_visualization COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mirroring_real_robot
-  ${CMAKE_INSTALL_PREFIX}/bin/pam_mirroring_real_robot COPYONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/o80_robot_ball_replay
-  ${CMAKE_INSTALL_PREFIX}/bin/o80_robot_ball_replay COPYONLY)
-
-
 ######################
 # Install and export #
 ######################
+
+install(PROGRAMS
+    bin/launch_pam_mujoco_xterm
+    bin/pam_mujoco
+    bin/pam_mujoco_no_xterms
+    bin/pam_mujoco_stop
+    bin/pam_mujoco_stop_all
+    bin/pam_mujoco_visualization
+    bin/pam_mujoco_visualization_no_xterms
+    bin/process_pam_visualization
+    bin/pam_mirroring_real_robot
+    bin/o80_robot_ball_replay
+
+    DESTINATION bin
+)
 
 install(DIRECTORY include/ DESTINATION include)
 install(
