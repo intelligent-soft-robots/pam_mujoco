@@ -83,7 +83,9 @@ target_include_directories(
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
 target_compile_definitions(${PROJECT_NAME} PRIVATE
-  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
+  PAMY1_DEFAULT_CONFIG_FILE_PATH="${PAMY1_JSON_DEFAULT_CONFIG_FILE}"
+  PAMY2_DEFAULT_CONFIG_FILE_PATH="${PAMY2_JSON_DEFAULT_CONFIG_FILE}"
+)
 target_link_libraries(${PROJECT_NAME} context::context)
 target_link_libraries(${PROJECT_NAME} shared_memory::shared_memory)
 target_link_libraries(${PROJECT_NAME} pam_models::pam_models)
@@ -107,7 +109,9 @@ target_include_directories(
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
 target_compile_definitions(launch_pam_mujoco PRIVATE
-  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
+  PAMY1_DEFAULT_CONFIG_FILE_PATH="${PAMY1_JSON_DEFAULT_CONFIG_FILE}"
+  PAMY2_DEFAULT_CONFIG_FILE_PATH="${PAMY2_JSON_DEFAULT_CONFIG_FILE}"
+)
 target_link_libraries(launch_pam_mujoco shared_memory::shared_memory)
 target_link_libraries(launch_pam_mujoco mujoco_interface::mujoco_interface)
 target_link_libraries(launch_pam_mujoco o80::o80)
@@ -127,7 +131,8 @@ list(APPEND all_targets launch_pam_mujoco)
 
 add_library(${PROJECT_NAME}_py MODULE srcpy/wrappers.cpp)
 target_compile_definitions(${PROJECT_NAME}_py PRIVATE
-  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
+  PAMY1_DEFAULT_CONFIG_FILE_PATH="${PAMY1_JSON_DEFAULT_CONFIG_FILE}"
+  PAMY2_DEFAULT_CONFIG_FILE_PATH="${PAMY2_JSON_DEFAULT_CONFIG_FILE}")
 target_link_libraries(${PROJECT_NAME}_py PRIVATE pybind11::module)
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PROJECT_NAME})
