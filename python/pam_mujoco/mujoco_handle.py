@@ -348,14 +348,16 @@ class MujocoHandle:
             robots = []
             for joint_robot in config.joint_controls:
                 r = MujocoRobot(
-                    True, # has no effect, because no xml config file is written
-                    joint_robot.segment_id, control=MujocoRobot.JOINT_CONTROL
+                    True,  # has no effect, because no xml config file is written
+                    joint_robot.segment_id,
+                    control=MujocoRobot.JOINT_CONTROL,
                 )
                 robots.append(r)
             for pressure_robot in config.pressure_controls:
                 r = MujocoRobot(
-                    True, # has no effect, because no xml config file is written
-                    joint_robot.segment_id, control=MujocoRobot.PRESSURE_CONTROL
+                    True,  # has no effect, because no xml config file is written
+                    joint_robot.segment_id,
+                    control=MujocoRobot.PRESSURE_CONTROL,
                 )
                 robots.append(r)
             try:

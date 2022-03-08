@@ -137,7 +137,12 @@ class Robot:
 
     def get_xml(self):
         (xml, joint, geom_racket, nb_bodies) = xml_templates.get_robot_xml(
-            self.model_name, self.name, self.position, self.xy_axes, self.muscles, self.pamy1
+            self.model_name,
+            self.name,
+            self.position,
+            self.xy_axes,
+            self.muscles,
+            self.pamy1,
         )
         return (xml, joint, geom_racket, nb_bodies)
 
@@ -289,7 +294,11 @@ def model_factory(
             muscles = robot.control == MujocoRobot.PRESSURE_CONTROL
             instance = Robot(
                 robot.pamy1,
-                model_name, robot.segment_id, robot.position, robot.orientation, muscles
+                model_name,
+                robot.segment_id,
+                robot.position,
+                robot.orientation,
+                muscles,
             )
             robots.append(instance)
             r[key] = instance
