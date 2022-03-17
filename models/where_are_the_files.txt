@@ -1,0 +1,2 @@
+files have been moved to:
+https://github.com/intelligent-soft-robots/pam_configuration/tree/master/config/pam_mujoco/models
