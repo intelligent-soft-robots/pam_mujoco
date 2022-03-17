@@ -96,8 +96,6 @@ foreach(mujoco_lib ${mujoco_libs})
 endforeach(mujoco_lib)
 target_link_libraries(${PROJECT_NAME} stdc++fs)
 target_link_libraries(${PROJECT_NAME} EGL GL GLU glut)
-target_compile_definitions(pam_mujoco PRIVATE
-  MODEL_PATHS="${MODELS_PATH}")
 ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
@@ -108,10 +106,6 @@ target_include_directories(
   launch_pam_mujoco PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
-target_compile_definitions(launch_pam_mujoco PRIVATE
-  PAMY1_DEFAULT_CONFIG_FILE_PATH="${PAMY1_JSON_DEFAULT_CONFIG_FILE}"
-  PAMY2_DEFAULT_CONFIG_FILE_PATH="${PAMY2_JSON_DEFAULT_CONFIG_FILE}"
-)
 target_link_libraries(launch_pam_mujoco shared_memory::shared_memory)
 target_link_libraries(launch_pam_mujoco mujoco_interface::mujoco_interface)
 target_link_libraries(launch_pam_mujoco o80::o80)
@@ -144,8 +138,6 @@ target_include_directories(
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:include> SYSTEM
   PUBLIC ${PYTHON_INCLUDE_DIRS})
-target_compile_definitions(pam_mujoco PRIVATE
-  MODEL_PATHS="${MODELS_PATH}")
 _ament_cmake_python_get_python_install_dir()
 install(TARGETS ${PROJECT_NAME}_py DESTINATION ${PYTHON_INSTALL_DIR})
 
