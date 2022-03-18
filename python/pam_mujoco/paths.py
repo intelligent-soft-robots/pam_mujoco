@@ -1,25 +1,15 @@
 import os
+import pam_configuration
 
-# models folder expected to have been
-# installed in /opt/mpi-is/models.
-# see: CMakeLists.txt
-_models_folder = "/opt/mpi-is/models"
 _tmp_folder = "/tmp/"
 
+_MODEL_SUFFIX_PATH = "pam_mujoco" + os.sep + "models"
 
-def get_models_path():
-    #
-    # deprecated : used to use the in-source
-    # models folder
-    #
-    # from catkin_pkg import workspaces
-    # packages = workspaces.get_spaces()
-    # context_pkg_path = [ p for p in packages
-    #                     if p.endswith("pam_mujoco") ][0]
-    # return os.path.join(context_pkg_path,
-    #                    "models")
-    global _models_folder
-    return _models_folder
+
+def get_models_path() -> str:
+    config_path = str(pam_configuration.get_path())
+    abs_path = config_path + os.sep + _MODEL_SUFFIX_PATH
+    return abs_path
 
 
 def get_main_template_xml():

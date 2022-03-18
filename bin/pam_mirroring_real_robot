@@ -96,6 +96,7 @@ class BallManager:
         self._ball_interface.play_trajectory(trajectory_points, overwrite=True)
         self._handle.reset_contact("ball")
 
+
 def run():
 
     config = configure()

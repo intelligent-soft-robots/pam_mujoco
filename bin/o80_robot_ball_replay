@@ -121,13 +121,13 @@ def _add_ball_commands(
                 instance.position,
                 instance.velocity,
                 instance.duration(previous),
-                o80.Mode.QUEUE
+                o80.Mode.QUEUE,
             )
             previous = instance
 
 
 def _add_robot_commands(
-        data: typing.Sequence[typing.Tuple], robot: o80_pam.MirrorRobotFrontEnd
+    data: typing.Sequence[typing.Tuple], robot: o80_pam.MirrorRobotFrontEnd
 ) -> None:
     class _Data:
         def __init__(self, d):
@@ -150,13 +150,13 @@ def _add_robot_commands(
                 instance.positions,
                 instance.velocities,
                 instance.duration(previous),
-                o80.Mode.QUEUE
+                o80.Mode.QUEUE,
             )
             previous = instance
 
 
 def _add_commands(
-        data: typing.Sequence[typing.Tuple[typing.Tuple,typing.Tuple]],
+    data: typing.Sequence[typing.Tuple[typing.Tuple, typing.Tuple]],
     ball1: o80_pam.MirrorFreeJointFrontEnd,
     ball2: o80_pam.MirrorFreeJointFrontEnd,
     robot: o80_pam.MirrorRobotFrontEnd,
