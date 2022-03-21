@@ -46,22 +46,6 @@ set(all_targets)
 set(all_target_exports)
 
 
-#######################
-# Configuration files #
-#######################
-
-get_filename_component(MODEL_CONFIG_DIR models ABSOLUTE)
-# installing files in /opt/mpi-is/ if exists
-if (EXISTS "/opt/mpi-is")
-  install(DIRECTORY
-    "${MODEL_CONFIG_DIR}" DESTINATION /opt/mpi-is/)
-endif()
-# installing in workspace/install
-install(DIRECTORY
-  "${MODEL_CONFIG_DIR}" DESTINATION opt/mpi-is/)
-set(MODELS_PATH "/tmp/")
-
-
 ###########
 # Library #
 ###########
@@ -124,9 +108,6 @@ list(APPEND all_targets launch_pam_mujoco)
 ###################
 
 add_library(${PROJECT_NAME}_py MODULE srcpy/wrappers.cpp)
-target_compile_definitions(${PROJECT_NAME}_py PRIVATE
-  PAMY1_DEFAULT_CONFIG_FILE_PATH="${PAMY1_JSON_DEFAULT_CONFIG_FILE}"
-  PAMY2_DEFAULT_CONFIG_FILE_PATH="${PAMY2_JSON_DEFAULT_CONFIG_FILE}")
 target_link_libraries(${PROJECT_NAME}_py PRIVATE pybind11::module)
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PYTHON_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_py PRIVATE ${PROJECT_NAME})
