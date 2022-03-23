@@ -217,9 +217,18 @@ ament_package()
 # Unit tests #
 ##############
 
-# ignored for now
-#if(BUILD_TESTING)
-#  find_package(ament_cmake_gtest REQUIRED)
-#  ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
-#  target_link_libraries(test_${PROJECT_NAME}_cpp ${PROJECT_NAME})
-#endif()
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  # ignored for now
+  # ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
+  # target_link_libraries(test_${PROJECT_NAME}_cpp ${PROJECT_NAME})
+
+  ament_add_gtest(test_ring_buffer tests/main.cpp tests/test_ring_buffer.cpp)
+  target_include_directories(
+      test_ring_buffer
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+
+endif()
