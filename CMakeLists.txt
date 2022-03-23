@@ -28,6 +28,7 @@ find_package(mujoco_interface REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system thread)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(fmt REQUIRED)
 
 ament_export_dependencies(
   Boost
@@ -100,6 +101,25 @@ target_link_libraries(launch_pam_mujoco stdc++fs)
 target_link_libraries(launch_pam_mujoco EGL GL GLU glut glfw)
 
 list(APPEND all_targets launch_pam_mujoco)
+
+add_executable(mj_data_file_bin2json
+  src/mj_data_file_bin2json.cpp
+  src/mj_state_tools.cpp
+)
+target_include_directories(
+  mj_data_file_bin2json PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  ${mujoco_include_dir}
+  $<INSTALL_INTERFACE:include>)
+target_compile_definitions(launch_pam_mujoco PRIVATE
+  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
+target_link_libraries(mj_data_file_bin2json fmt::fmt)
+target_link_libraries(mj_data_file_bin2json ${PROJECT_NAME})
+foreach(mujoco_lib ${mujoco_libs})
+  target_link_libraries(mj_data_file_bin2json ${mujoco_lib_dir}/${mujoco_lib})
+endforeach(mujoco_lib)
+list(APPEND all_targets mj_data_file_bin2json)
+
+
 
 
 ###################
