@@ -23,6 +23,7 @@
 #include "pam_mujoco/burster_controller.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/listener.hpp"
+#include "pam_mujoco/mj_state_tools.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "shared_memory/shared_memory.hpp"
 #include "signal_handler/signal_handler.hpp"
@@ -2117,6 +2118,19 @@ int main(int argc, const char** argv)
         settings.graphics_ready = true;
     }
 
+    // Check if environment variable DBG_NAN_SNAPSHOT_DIR is set.  If yes
+    // enable mujoco state monitoring to detect NaN values and use the
+    // specified value as output directory for mjData snapshots.
+    std::string mjdata_nan_snapshot_path;
+    char* mjdata_nan_snapshot_path_cstr = std::getenv("DBG_NAN_SNAPSHOT_DIR");
+    if (mjdata_nan_snapshot_path_cstr != nullptr)
+    {
+        mjdata_nan_snapshot_path = mjdata_nan_snapshot_path_cstr;
+        std::cout << "Enable NaN Monitoring.\n"
+                  << "Output dir for state snapshots: "
+                  << mjdata_nan_snapshot_path << std::endl;
+    }
+
     // initialize everything
     init();
 
@@ -2127,6 +2141,15 @@ int main(int argc, const char** argv)
     std::cout << "model loaded" << std::endl;
 
     // populating the controllers
+
+    if (!mjdata_nan_snapshot_path.empty())
+    {
+        std::string prefix =
+            mjdata_nan_snapshot_path + "/" + mujoco_id + "_first";
+        auto state_saver =
+            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix);
+        pam_mujoco::Controllers::add(state_saver);
+    }
 
     if (config.burst_mode)
     {
@@ -2194,6 +2217,15 @@ int main(int argc, const char** argv)
         std::cout << "\nadding controller:" << std::endl;
         std::cout << mpc.to_string() << std::endl;
         pam_mujoco::add_pressures_control(mpc);
+    }
+
+    if (!mjdata_nan_snapshot_path.empty())
+    {
+        std::string prefix =
+            mjdata_nan_snapshot_path + "/" + mujoco_id + "_last";
+        auto state_saver =
+            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix);
+        pam_mujoco::Controllers::add(state_saver);
     }
 
     mjcb_control = pam_mujoco::Controllers::apply;

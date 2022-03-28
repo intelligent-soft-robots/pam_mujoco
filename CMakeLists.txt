@@ -113,6 +113,7 @@ target_include_directories(
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(launch_pam_mujoco ${PROJECT_NAME})
+target_link_libraries(launch_pam_mujoco mj_state_tools)
 target_link_libraries(launch_pam_mujoco stdc++fs)
 target_link_libraries(launch_pam_mujoco EGL GL GLU glut glfw)
 
