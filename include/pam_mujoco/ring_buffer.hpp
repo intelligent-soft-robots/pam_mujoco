@@ -15,21 +15,21 @@ template <typename T, size_t size>
 class RingBuffer
 {
 public:
-
     /**
      * @brief Move to the next element.
      *
-     * Important: This invalidates the pointer of a previous call to get().
+     * Important: This invalidates the reference of a previous call to
+     * current().
      */
     void next()
     {
         index_ = (index_ + 1) % size;
     }
 
-    //! @brief Get pointer on the currently active element.
-    T* get()
+    //! @brief Get writeable reference to the currently active element.
+    T& current()
     {
-        return &buffer_[index_];
+        return buffer_[index_];
     }
 
     /**
@@ -38,7 +38,8 @@ public:
      * The content of the buffer is reordered so that the oldest element is
      * first.
      *
-     * Important: This invalidates the pointer of a previous call to get().
+     * Important: This invalidates the reference of a previous call to
+     * current().
      */
     const std::array<T, size>& get_all()
     {

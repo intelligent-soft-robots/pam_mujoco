@@ -7,32 +7,32 @@ TEST(RingBuffer, test_basics)
 {
     RingBuffer<int, 3> rb;
 
-    *(rb.get()) = 1;
+    rb.current() = 1;
     rb.next();
-    *(rb.get()) = 2;
+    rb.current() = 2;
     rb.next();
-    *(rb.get()) = 3;
+    rb.current() = 3;
     rb.next();
-    *(rb.get()) = 4;
+    rb.current() = 4;
 
-    ASSERT_EQ(*(rb.get()), 4);
+    ASSERT_EQ(rb.current(), 4);
     rb.next();
-    ASSERT_EQ(*(rb.get()), 2);
+    ASSERT_EQ(rb.current(), 2);
     rb.next();
-    ASSERT_EQ(*(rb.get()), 3);
+    ASSERT_EQ(rb.current(), 3);
     rb.next();
-    ASSERT_EQ(*(rb.get()), 4);
+    ASSERT_EQ(rb.current(), 4);
 }
 
 TEST(RingBuffer, test_get_all)
 {
     RingBuffer<int, 3> rb;
 
-    *(rb.get()) = 1;
+    rb.current() = 1;
     rb.next();
-    *(rb.get()) = 2;
+    rb.current() = 2;
     rb.next();
-    *(rb.get()) = 3;
+    rb.current() = 3;
 
     {
         const auto &data = rb.get_all();
@@ -41,7 +41,7 @@ TEST(RingBuffer, test_get_all)
     }
 
     rb.next();
-    *(rb.get()) = 4;
+    rb.current() = 4;
 
     {
         const auto &data = rb.get_all();
@@ -50,7 +50,7 @@ TEST(RingBuffer, test_get_all)
     }
 
     rb.next();
-    *(rb.get()) = 5;
+    rb.current() = 5;
 
     {
         const auto &data = rb.get_all();

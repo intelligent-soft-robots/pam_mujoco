@@ -286,7 +286,7 @@ void MujocoStateSaver::save(const mjModel* model, const mjData* data)
 
 void SaveNaNStateController::apply(const mjModel* model, mjData* data)
 {
-    copy_data(model, data, buffer_.get());
+    copy_data(model, data, &buffer_.current());
 
     if (has_nan(model, data))
     {
