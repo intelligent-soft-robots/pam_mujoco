@@ -7,9 +7,24 @@
 #include <string>
 
 #include <pam_mujoco/controllers.hpp>
+#include <pam_mujoco/ring_buffer.hpp>
 
 namespace pam_mujoco
 {
+/**
+ * @brief Copy Mujoco simulation state.
+ *
+ * Copies the relevant fields of ``from`` to ``to`` (leaving out fields
+ * that do not affect the simulation, see
+ * https://mujoco.readthedocs.io/en/latest/programming.html#sistatecontrol).
+ *
+ * @param model The model is needed as it contains information about the
+ *      dimensions of data.
+ * @param from Mujoco data from which to copy.
+ * @param to   Mujoco data to which to copy.
+ */
+void copy_data(const mjModel* model, const mjData* from, mjData* to);
+
 /**
  * @brief Save the simulation state from the given mjData
  *
@@ -46,6 +61,20 @@ void load_state(const std::string& filename,
  * @param filename Path to the data file.
  */
 void print_state_file(const std::string& filename);
+
+/**
+ * @brief Check if the given Mujoco data has NaN values in relevant fields.
+ *
+ * The following parts of the data are checked:
+ * - qpos
+ * - qvel
+ *
+ * @param model  The model that is used (needed as it contains information
+ *      about the dimensions of the data).
+ * @param data The Mujoco data that is checked for NaN values.
+ * @returns True if one or more NaN values are found.
+ */
+bool has_nan(const mjModel* model, const mjData* data);
 
 /**
  * @brief Save Mujoco states, keeping only the last N states.
@@ -106,6 +135,28 @@ public:
 
 private:
     std::string mujoco_id_;
+};
+
+/**
+ * @brief A "Controller" that monitors the Mujoco state and saves in case of
+ *  NaN.
+ *
+ * Keeps copies of the Mujoco state of the last view time steps and writes them
+ * to files in case a NaN value is observed.
+ */
+class SaveNaNStateController : public ControllerBase, public MujocoStateSaver
+{
+public:
+    SaveNaNStateController(const std::string& mujoco_id)
+        : MujocoStateSaver(mujoco_id)
+    {
+    }
+
+    void apply(const mjModel* model, mjData* data) override;
+
+private:
+    std::string mujoco_id_;
+    RingBuffer<mjData, 5> buffer_;
 };
 
 }  // namespace pam_mujoco

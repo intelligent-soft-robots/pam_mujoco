@@ -245,6 +245,23 @@ void print_state_file(const std::string& filename)
     }
 }
 
+bool _has_nan(const mjtNum* array, size_t length)
+{
+    for (size_t i = 0; i < length; ++i)
+    {
+        if (std::isnan(array[i]))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool has_nan(const mjModel* model, const mjData* data)
+{
+    return _has_nan(data->qpos, model->nq) or _has_nan(data->qvel, model->nv);
+}
+
 void MujocoStateSaver::save(const mjModel* model, const mjData* data)
 {
     static const std::string FILENAME_FMT = "{}{:012d}.dat";
@@ -252,13 +269,6 @@ void MujocoStateSaver::save(const mjModel* model, const mjData* data)
     std::string path = fmt::format(FILENAME_FMT, filename_prefix_, index_);
 
     save_state(model, data, path);
-
-    // FIXME: For Debugging
-    if (std::isnan(data->qvel[16]))
-    {
-        std::cerr << "!!!!! Detected NAN [" << path << "].  Exit." << std::endl;
-        std::exit(-1);
-    }
 
     // only keep the newest files, so delete old ones
     if (index_ >= num_keep_files_)
@@ -272,5 +282,27 @@ void MujocoStateSaver::save(const mjModel* model, const mjData* data)
     }
 
     index_++;
+}
+
+void SaveNaNStateController::apply(const mjModel* model, mjData* data)
+{
+    copy_data(model, data, buffer_.get());
+
+    if (has_nan(model, data))
+    {
+        // save all states from the buffer
+        for (const mjData& d : buffer_.get_all())
+        {
+            save(model, &d);
+        }
+
+        // stop the program immediately in case of NaN
+        std::cerr << "!!!!! Detected NaN. Save snapshots and exit."
+                  << std::endl;
+        std::exit(-1);
+    }
+
+    // only move on after potential save
+    buffer_.next();
 }
 }  // namespace pam_mujoco
