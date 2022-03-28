@@ -41,7 +41,7 @@ void copy_data(const mjModel* model, const mjData* from, mjData* to)
 
 void save_state(const mjModel* model,
                 const mjData* data,
-                const std::string& filename)
+                const std::filesystem::path& filename)
 {
     // The following code snippet from the documentation shows what field needs
     // to be copied to copy a state from mjData src to dst.
@@ -132,7 +132,9 @@ void _assert_vector_length(const std::string& name,
     }
 }
 
-void load_state(const std::string& filename, const mjModel* model, mjData* data)
+void load_state(const std::filesystem::path& filename,
+                const mjModel* model,
+                mjData* data)
 {
     int file_format_version = 0;
 
@@ -140,7 +142,7 @@ void load_state(const std::string& filename, const mjModel* model, mjData* data)
 
     if (!is)
     {
-        throw std::runtime_error("Failed to read file " + filename);
+        throw std::runtime_error("Failed to read file " + filename.string());
     }
 
     // cereal::JSONInputArchive archive(is);
@@ -195,14 +197,14 @@ void load_state(const std::string& filename, const mjModel* model, mjData* data)
     }
 }
 
-void print_state_file(const std::string& filename)
+void print_state_file(const std::filesystem::path& filename)
 {
     int file_format_version = 0;
 
     std::ifstream is(filename, std::ios::binary);
     if (is.fail())
     {
-        throw std::runtime_error("Failed to open file " + filename);
+        throw std::runtime_error("Failed to open file " + filename.string());
     }
 
     cereal::BinaryInputArchive in_archive(is);

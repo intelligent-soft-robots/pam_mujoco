@@ -3,8 +3,10 @@
  */
 #pragma once
 
-#include <mujoco.h>
+#include <filesystem>
 #include <string>
+
+#include <mujoco.h>
 
 #include <pam_mujoco/controllers.hpp>
 #include <pam_mujoco/ring_buffer.hpp>
@@ -38,7 +40,7 @@ void copy_data(const mjModel* model, const mjData* from, mjData* to);
  */
 void save_state(const mjModel* model,
                 const mjData* data,
-                const std::string& filename);
+                const std::filesystem::path& filename);
 
 /**
  * @brief Load simulation state from file.
@@ -51,7 +53,7 @@ void save_state(const mjModel* model,
  * @param model The model that was used when saving the state.
  * @param data Data object to which the state is written.
  */
-void load_state(const std::string& filename,
+void load_state(const std::filesystem::path& filename,
                 const mjModel* model,
                 mjData* data);
 
@@ -60,7 +62,7 @@ void load_state(const std::string& filename,
  *
  * @param filename Path to the data file.
  */
-void print_state_file(const std::string& filename);
+void print_state_file(const std::filesystem::path& filename);
 
 /**
  * @brief Check if the given Mujoco data has NaN values in relevant fields.
