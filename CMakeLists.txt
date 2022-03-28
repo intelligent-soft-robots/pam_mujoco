@@ -86,6 +86,22 @@ list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
 
 
+add_library(mj_state_tools src/mj_state_tools.cpp)
+target_include_directories(
+  mj_state_tools
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  )
+target_link_libraries(mj_state_tools
+    fmt::fmt
+    cereal::cereal
+    o80::o80
+    mujoco_interface::mujoco_interface
+    EGL GL GLU glut
+)
+list(APPEND all_targets mj_state_tools)
+
+
 ##############
 # Executable #
 ##############
@@ -102,46 +118,28 @@ target_link_libraries(launch_pam_mujoco EGL GL GLU glut glfw)
 
 list(APPEND all_targets launch_pam_mujoco)
 
+
 add_executable(pam_mujoco_load_snapshot
   src/pam_mujoco_load.cpp
-  src/mj_state_tools.cpp
 )
 target_include_directories(pam_mujoco_load_snapshot
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    ${mujoco_include_dir}
     $<INSTALL_INTERFACE:include>)
-target_compile_definitions(pam_mujoco_load_snapshot PRIVATE
-  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
-target_link_libraries(pam_mujoco_load_snapshot shared_memory::shared_memory)
-target_link_libraries(pam_mujoco_load_snapshot mujoco_interface::mujoco_interface)
-target_link_libraries(pam_mujoco_load_snapshot o80::o80)
-target_link_libraries(pam_mujoco_load_snapshot context::context)
-target_link_libraries(pam_mujoco_load_snapshot fmt::fmt)
 target_link_libraries(pam_mujoco_load_snapshot ${PROJECT_NAME})
-foreach(mujoco_lib ${mujoco_libs})
-  target_link_libraries(pam_mujoco_load_snapshot ${mujoco_lib_dir}/${mujoco_lib})
-endforeach(mujoco_lib)
-target_link_libraries(pam_mujoco_load_snapshot stdc++fs)
-target_link_libraries(pam_mujoco_load_snapshot EGL GL GLU glut)
+target_link_libraries(pam_mujoco_load_snapshot mj_state_tools)
 list(APPEND all_targets pam_mujoco_load_snapshot)
+
 
 add_executable(mj_data_file_bin2json
   src/mj_data_file_bin2json.cpp
-  src/mj_state_tools.cpp
 )
 target_include_directories(
-  mj_data_file_bin2json PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  ${mujoco_include_dir}
-  $<INSTALL_INTERFACE:include>)
-target_compile_definitions(launch_pam_mujoco PRIVATE
-  PAM_DEFAULT_CONFIG_FILE_PATH="${JSON_DEFAULT_CONFIG_FILE}")
-target_link_libraries(mj_data_file_bin2json fmt::fmt)
-target_link_libraries(mj_data_file_bin2json ${PROJECT_NAME})
-foreach(mujoco_lib ${mujoco_libs})
-  target_link_libraries(mj_data_file_bin2json ${mujoco_lib_dir}/${mujoco_lib})
-endforeach(mujoco_lib)
+  mj_data_file_bin2json
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(mj_data_file_bin2json mj_state_tools)
 list(APPEND all_targets mj_data_file_bin2json)
-
 
 
 
