@@ -230,4 +230,12 @@ if(BUILD_TESTING)
       $<INSTALL_INTERFACE:include>
   )
 
+  ament_add_gtest(test_mj_state_tools tests/main.cpp tests/test_mj_state_tools.cpp)
+  target_include_directories(
+      test_mj_state_tools PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+  target_link_libraries(test_mj_state_tools mj_state_tools)
+
 endif()

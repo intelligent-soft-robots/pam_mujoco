@@ -91,6 +91,8 @@ bool has_nan(const mjModel* model, const mjData* data);
 class MujocoStateSaver
 {
 public:
+    const std::string FILENAME_FMT_ = "{}{:012d}.dat";
+
     /**
      * @brief
      *

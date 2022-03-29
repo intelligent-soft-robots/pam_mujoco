@@ -266,9 +266,7 @@ bool has_nan(const mjModel* model, const mjData* data)
 
 void MujocoStateSaver::save(const mjModel* model, const mjData* data)
 {
-    static const std::string FILENAME_FMT = "{}{:012d}.dat";
-
-    std::string path = fmt::format(FILENAME_FMT, filename_prefix_, index_);
+    std::string path = fmt::format(FILENAME_FMT_, filename_prefix_, index_);
 
     save_state(model, data, path);
 
@@ -276,7 +274,7 @@ void MujocoStateSaver::save(const mjModel* model, const mjData* data)
     if (index_ >= num_keep_files_)
     {
         size_t del_idx = index_ - num_keep_files_;
-        path = fmt::format(FILENAME_FMT, filename_prefix_, del_idx);
+        path = fmt::format(FILENAME_FMT_, filename_prefix_, del_idx);
         if (!std::filesystem::remove(path))
         {
             std::cerr << "ERROR: file " << path << " not found.\n";
