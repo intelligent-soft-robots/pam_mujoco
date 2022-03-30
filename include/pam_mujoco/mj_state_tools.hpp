@@ -79,6 +79,13 @@ void print_state_file(const std::filesystem::path& filename);
 bool has_nan(const mjModel* model, const mjData* data);
 
 /**
+ * @brief Exception indicating that a NaN value was detected in the Mujoco data.
+ */
+class NaNInMujocoDataError : public std::exception
+{
+};
+
+/**
  * @brief Save Mujoco states, keeping only the last N states.
  *
  * Every time save() is called, a new file is created with the name
@@ -148,26 +155,37 @@ private:
  * Keeps copies of the Mujoco states of the last view time steps and writes them
  * to files in case a NaN value is observed.
  */
-// FIXME: add unit tests
 class SaveNaNStateController : public ControllerBase, public MujocoStateSaver
 {
 public:
+    static constexpr std::size_t BUFFER_SIZE_ = 5;
 
     /**
-     * @param mujoco_id  Name prefix for the files if they are written.
+     * @param filename_prefix   Prefix for the files if they are written (can
+     *  contain a path).
      * @param model  The mujoco model that is used (needed to initialise the
      *  data buffer).
      */
-    SaveNaNStateController(const std::string& mujoco_id, mjModel *model);
+    SaveNaNStateController(const std::string& filename_prefix, mjModel* model);
 
     ~SaveNaNStateController();
 
+    /**
+     * @brief Add current data to buffer and check for NaN values.
+     *
+     * Copies the current data to the buffer (overwriting the oldest entry in
+     * the buffer if it is full).
+     * Checks if there are NaN values in relevant fields of the data (@see
+     * has_nan).  If yes, all data instances from the buffer are saved to files
+     * and a NaNInMujocoDataError is thrown.
+     *
+     * @param model
+     * @param data
+     * @throw NaNInMujocoDataError if NaN value is detected.
+     */
     void apply(const mjModel* model, mjData* data) override;
 
 private:
-    static constexpr std::size_t BUFFER_SIZE_ = 5;
-
-    std::string mujoco_id_;
     RingBuffer<mjData*, BUFFER_SIZE_> buffer_;
 };
 
