@@ -218,5 +218,39 @@ TEST_F(TestMjStateTools, test_mujoco_state_saver)
         // cleanup
         mj_deleteData(loaded_data);
     }
+}
 
+TEST_F(TestMjStateTools, test_save_nan_state_controller)
+{
+    std::string prefix = tmp_dir_ / "test";
+    SaveNaNStateController ctrl(prefix, model_);
+
+    // Make sure the buffer size is as expected (in case it changes, the test
+    // likely needs to be adapted).
+    ASSERT_EQ(SaveNaNStateController::BUFFER_SIZE_, 5u);
+
+    // add a number of "good" states
+    for (int i = 0; i < 7; i++)
+    {
+        data_->time = i;
+        ctrl.apply(model_, data_);
+    }
+    // add a state with NaN
+    data_->time++;
+    data_->qpos[0] = std::numeric_limits<float>::quiet_NaN();
+    EXPECT_THROW(ctrl.apply(model_, data_), NaNInMujocoDataError);
+
+    // check if files were saved
+    const int time_of_first_snapshot = 3;
+    for (size_t i = 0; i < ctrl.BUFFER_SIZE_; ++i)
+    {
+        std::string filename = fmt::format(ctrl.FILENAME_FMT_, prefix, i);
+        ASSERT_TRUE(std::filesystem::is_regular_file(filename));
+
+        // load the file and check the time stamp
+        mjData *loaded_data = mj_makeData(model_);
+        load_state(filename, model_, loaded_data);
+        EXPECT_EQ(loaded_data->time, time_of_first_snapshot + i);
+        mj_deleteData(loaded_data);
+    }
 }
