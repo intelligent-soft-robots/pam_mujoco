@@ -95,9 +95,7 @@ target_include_directories(
 target_link_libraries(mj_state_tools
     fmt::fmt
     cereal::cereal
-    o80::o80
-    mujoco_interface::mujoco_interface
-    EGL GL GLU glut
+    ${PROJECT_NAME}
 )
 list(APPEND all_targets mj_state_tools)
 

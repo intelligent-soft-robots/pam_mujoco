@@ -145,22 +145,30 @@ private:
  * @brief A "Controller" that monitors the Mujoco state and saves in case of
  *  NaN.
  *
- * Keeps copies of the Mujoco state of the last view time steps and writes them
+ * Keeps copies of the Mujoco states of the last view time steps and writes them
  * to files in case a NaN value is observed.
  */
+// FIXME: add unit tests
 class SaveNaNStateController : public ControllerBase, public MujocoStateSaver
 {
 public:
-    SaveNaNStateController(const std::string& mujoco_id)
-        : MujocoStateSaver(mujoco_id)
-    {
-    }
+
+    /**
+     * @param mujoco_id  Name prefix for the files if they are written.
+     * @param model  The mujoco model that is used (needed to initialise the
+     *  data buffer).
+     */
+    SaveNaNStateController(const std::string& mujoco_id, mjModel *model);
+
+    ~SaveNaNStateController();
 
     void apply(const mjModel* model, mjData* data) override;
 
 private:
+    static constexpr std::size_t BUFFER_SIZE_ = 5;
+
     std::string mujoco_id_;
-    RingBuffer<mjData, 5> buffer_;
+    RingBuffer<mjData*, BUFFER_SIZE_> buffer_;
 };
 
 }  // namespace pam_mujoco

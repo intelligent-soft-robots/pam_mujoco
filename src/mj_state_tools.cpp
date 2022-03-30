@@ -14,6 +14,7 @@
 
 namespace pam_mujoco
 {
+// FIXME: inconsistent name (data vs state)
 void copy_data(const mjModel* model, const mjData* from, mjData* to)
 {
     // Based on
@@ -284,16 +285,35 @@ void MujocoStateSaver::save(const mjModel* model, const mjData* data)
     index_++;
 }
 
+SaveNaNStateController::SaveNaNStateController(const std::string& mujoco_id,
+                                               mjModel* model)
+    : MujocoStateSaver(mujoco_id)
+{
+    // initialise data instances
+    for (size_t i = 0; i < buffer_.size(); ++i)
+    {
+        buffer_[i] = mj_makeData(model);
+    }
+}
+
+SaveNaNStateController::~SaveNaNStateController()
+{
+    for (size_t i = 0; i < buffer_.size(); ++i)
+    {
+        mj_deleteData(buffer_[i]);
+    }
+}
+
 void SaveNaNStateController::apply(const mjModel* model, mjData* data)
 {
-    copy_data(model, data, &buffer_.current());
+    copy_data(model, data, buffer_.current());
 
     if (has_nan(model, data))
     {
         // save all states from the buffer
-        for (const mjData& d : buffer_.get_all())
+        for (size_t i = 0; i < buffer_.size(); ++i)
         {
-            save(model, &d);
+            save(model, buffer_[i]);
         }
 
         // stop the program immediately in case of NaN

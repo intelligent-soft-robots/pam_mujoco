@@ -2147,7 +2147,7 @@ int main(int argc, const char** argv)
         std::string prefix =
             mjdata_nan_snapshot_path + "/" + mujoco_id + "_first";
         auto state_saver =
-            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix);
+            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix, m);
         pam_mujoco::Controllers::add(state_saver);
     }
 
@@ -2224,7 +2224,7 @@ int main(int argc, const char** argv)
         std::string prefix =
             mjdata_nan_snapshot_path + "/" + mujoco_id + "_last";
         auto state_saver =
-            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix);
+            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix, m);
         pam_mujoco::Controllers::add(state_saver);
     }
 
