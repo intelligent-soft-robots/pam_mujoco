@@ -163,10 +163,8 @@ public:
     /**
      * @param filename_prefix   Prefix for the files if they are written (can
      *  contain a path).
-     * @param model  The mujoco model that is used (needed to initialise the
-     *  data buffer).
      */
-    SaveNaNStateController(const std::string& filename_prefix, mjModel* model);
+    SaveNaNStateController(const std::string& filename_prefix);
 
     ~SaveNaNStateController();
 

@@ -2126,9 +2126,13 @@ int main(int argc, const char** argv)
     if (mjdata_nan_snapshot_path_cstr != nullptr)
     {
         mjdata_nan_snapshot_path = mjdata_nan_snapshot_path_cstr;
+    }
+    if (!mjdata_nan_snapshot_path.empty())
+    {
         std::cout << "Enable NaN Monitoring.\n"
                   << "Output dir for state snapshots: "
-                  << mjdata_nan_snapshot_path << std::endl;
+                  << mjdata_nan_snapshot_path << "\n"
+                  << std::endl;
     }
 
     // initialize everything
@@ -2147,7 +2151,7 @@ int main(int argc, const char** argv)
         std::string prefix =
             mjdata_nan_snapshot_path + "/" + mujoco_id + "_first";
         auto state_saver =
-            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix, m);
+            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix);
         pam_mujoco::Controllers::add(state_saver);
     }
 
@@ -2224,7 +2228,7 @@ int main(int argc, const char** argv)
         std::string prefix =
             mjdata_nan_snapshot_path + "/" + mujoco_id + "_last";
         auto state_saver =
-            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix, m);
+            std::make_shared<pam_mujoco::SaveNaNStateController>(prefix);
         pam_mujoco::Controllers::add(state_saver);
     }
 

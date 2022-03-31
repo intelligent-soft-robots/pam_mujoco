@@ -286,13 +286,13 @@ void MujocoStateSaver::save(const mjModel* model, const mjData* data)
 }
 
 SaveNaNStateController::SaveNaNStateController(
-    const std::string& filename_prefix, mjModel* model)
+    const std::string& filename_prefix)
     : MujocoStateSaver(filename_prefix)
 {
     // initialise data instances
     for (size_t i = 0; i < buffer_.size(); ++i)
     {
-        buffer_[i] = mj_makeData(model);
+        buffer_[i] = nullptr;
     }
 }
 
@@ -300,12 +300,21 @@ SaveNaNStateController::~SaveNaNStateController()
 {
     for (size_t i = 0; i < buffer_.size(); ++i)
     {
-        mj_deleteData(buffer_[i]);
+        if (buffer_[i] != nullptr)
+        {
+            mj_deleteData(buffer_[i]);
+        }
     }
 }
 
 void SaveNaNStateController::apply(const mjModel* model, mjData* data)
 {
+    // initialise if needed
+    if (buffer_.current() == nullptr)
+    {
+        buffer_.current() = mj_makeData(model);
+    }
+
     copy_data(model, data, buffer_.current());
 
     if (has_nan(model, data))

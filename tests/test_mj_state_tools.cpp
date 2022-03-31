@@ -223,7 +223,7 @@ TEST_F(TestMjStateTools, test_mujoco_state_saver)
 TEST_F(TestMjStateTools, test_save_nan_state_controller)
 {
     std::string prefix = tmp_dir_ / "test";
-    SaveNaNStateController ctrl(prefix, model_);
+    SaveNaNStateController ctrl(prefix);
 
     // Make sure the buffer size is as expected (in case it changes, the test
     // likely needs to be adapted).
