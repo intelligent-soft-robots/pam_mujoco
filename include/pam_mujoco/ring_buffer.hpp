@@ -16,10 +16,7 @@ class RingBuffer
 {
 public:
     //! @brief Get size of the buffer.
-    size_t size() const
-    {
-        return buffer_size;
-    }
+    size_t size() const;
 
     /**
      * @brief Move to the next element.
@@ -27,16 +24,10 @@ public:
      * Important: This invalidates the reference of a previous call to
      * current().
      */
-    void next()
-    {
-        index_ = (index_ + 1) % buffer_size;
-    }
+    void next();
 
     //! @brief Get writeable reference to the currently active element.
-    T& current()
-    {
-        return buffer_[index_];
-    }
+    T& current();
 
     /**
      * @brief Get writeable reference to i-th element of the buffer.
@@ -47,14 +38,13 @@ public:
      * No range check is performed, if ``i >= size()`` the behaviour is
      * undefined.
      */
-    T& operator[](std::size_t i)
-    {
-        std::size_t actual_i = (index_ + 1 + i) % buffer_size;
-        return buffer_[actual_i];
-    }
+    T& operator[](std::size_t i);
 
 private:
     std::array<T, buffer_size> buffer_;
     size_t index_ = 0;
 };
+
 }  // namespace pam_mujoco
+
+#include "ring_buffer.hxx"
