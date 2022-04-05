@@ -26,9 +26,12 @@ find_package(pam_interface REQUIRED)
 find_package(pybind11 REQUIRED)
 find_package(mujoco_interface REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system thread)
+find_package(glfw3 REQUIRED)
+find_package(GLEW REQUIRED)
 
 ament_export_dependencies(
   Boost
+  glfw3
   o80
   o80_example
   json_helper
@@ -41,10 +44,12 @@ ament_export_dependencies(
   mujoco_interface
   pybind11)
 
+
 # prepare to export all needed targets
 set(all_targets)
 set(all_target_exports)
 
+ADD_MUJOCO_LIBS() # from mujoco_libs.cmake, in the mujoco_interface package
 
 ###########
 # Library #
@@ -66,23 +71,23 @@ target_include_directories(
   ${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-  PAMY1_DEFAULT_CONFIG_FILE_PATH="${PAMY1_JSON_DEFAULT_CONFIG_FILE}"
-  PAMY2_DEFAULT_CONFIG_FILE_PATH="${PAMY2_JSON_DEFAULT_CONFIG_FILE}"
-)
 target_link_libraries(${PROJECT_NAME} context::context)
 target_link_libraries(${PROJECT_NAME} shared_memory::shared_memory)
 target_link_libraries(${PROJECT_NAME} pam_models::pam_models)
 target_link_libraries(${PROJECT_NAME} o80_pam::o80_pam)
 target_link_libraries(${PROJECT_NAME} mujoco_interface::mujoco_interface)
-foreach(mujoco_lib ${mujoco_libs})
-  target_link_libraries(${PROJECT_NAME} ${mujoco_lib_dir}/${mujoco_lib})
-endforeach(mujoco_lib)
+target_link_libraries(${PROJECT_NAME} GLEW::GLEW)
+LINK_AGAINST_MUJOCO(${PROJECT_NAME}) # from mujoco_libs.cmake, in the mujoco_interface package
 target_link_libraries(${PROJECT_NAME} stdc++fs)
 target_link_libraries(${PROJECT_NAME} EGL GL GLU glut)
 ament_export_interfaces(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
+
+
+##############
+# Executable #
+##############
 
 add_executable( launch_pam_mujoco
   src/pam_mujoco.cpp )
@@ -90,16 +95,10 @@ target_include_directories(
   launch_pam_mujoco PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
-target_link_libraries(launch_pam_mujoco shared_memory::shared_memory)
-target_link_libraries(launch_pam_mujoco mujoco_interface::mujoco_interface)
-target_link_libraries(launch_pam_mujoco o80::o80)
-target_link_libraries(launch_pam_mujoco context::context)
 target_link_libraries(launch_pam_mujoco ${PROJECT_NAME})
-foreach(mujoco_lib ${mujoco_libs})
-  target_link_libraries(launch_pam_mujoco ${mujoco_lib_dir}/${mujoco_lib})
-endforeach(mujoco_lib)
 target_link_libraries(launch_pam_mujoco stdc++fs)
-target_link_libraries(launch_pam_mujoco EGL GL GLU glut)
+target_link_libraries(launch_pam_mujoco EGL GL GLU glut glfw)
+
 list(APPEND all_targets launch_pam_mujoco)
 
 
@@ -136,6 +135,8 @@ ament_python_install_package(${PROJECT_NAME} PACKAGE_DIR python/${PROJECT_NAME})
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco COPYONLY)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/launch_pam_mujoco_xterm
+  ${CMAKE_INSTALL_PREFIX}/bin/launch_pam_mujoco_xterm COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_no_xterms
   ${CMAKE_INSTALL_PREFIX}/bin/pam_mujoco_no_xterms COPYONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/bin/pam_mujoco_stop
