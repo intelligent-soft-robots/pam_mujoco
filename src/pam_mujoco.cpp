@@ -1982,33 +1982,6 @@ void simulate(std::string mujoco_id, bool accelerated_time)
 //-------------------------------- init and main
 //----------------------------------------
 
-bool set_mujoco_key()
-{
-    // check if mjkey.txt already in current directory
-    std::experimental::filesystem::path key_path_1 =
-        std::experimental::filesystem::current_path();
-    key_path_1 /= "mjkey.txt";
-    if (std::experimental::filesystem::exists(key_path_1))
-    {
-        return true;
-    }
-
-    // not in current directory, checking if in /opt/mujoco
-    std::experimental::filesystem::path key_path_2 = "/opt/mujoco/mjkey.txt";
-    if (!std::experimental::filesystem::exists(key_path_2))
-    {
-        throw std::runtime_error(
-            "failed to find mujoco key in /opt/mujoco/mjkey.txt");
-    }
-
-    // copying from /opt/mujoco to current dir
-    std::experimental::filesystem::path from = key_path_2;
-    std::experimental::filesystem::path to =
-        std::experimental::filesystem::current_path();
-    std::experimental::filesystem::copy(from, to);
-    return true;
-}
-
 // initalize everything
 void init()
 {
@@ -2016,11 +1989,6 @@ void init()
     printf("MuJoCo Pro version %.2lf\n", 0.01 * mj_version());
     if (mjVERSION_HEADER != mj_version())
         mju_error("Headers and library have different versions");
-
-    // activate MuJoCo license
-    printf("\ncopying mujoco licence from /opt/mujoco/\n");
-    set_mujoco_key();
-    mj_activate("mjkey.txt");
 
     if (settings.graphics)
     {
