@@ -15,7 +15,7 @@ def _get_handle(
     mujoco_id, segment_id_robot, segment_id_ball, segment_id_goal, segment_id_hit_point
 ):
     robot = pam_mujoco.MujocoRobot(
-        segment_id_robot, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
+        True,segment_id_robot, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
     )
     ball = pam_mujoco.MujocoItem(
         segment_id_ball, control=pam_mujoco.MujocoItem.CONSTANT_CONTROL
@@ -26,9 +26,10 @@ def _get_handle(
     hit_point = pam_mujoco.MujocoItem(
         segment_id_hit_point, control=pam_mujoco.MujocoItem.CONSTANT_CONTROL
     )
+    table = pam_mujoco.MujocoTable("table")
     handle = pam_mujoco.MujocoHandle(
         mujoco_id,
-        table=True,
+        table=table,
         robot1=robot,
         balls=(ball,),
         goals=(goal,),
