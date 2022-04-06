@@ -73,7 +73,7 @@ def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, 
 
 def get_table_xml(model_name, name, position, size, color, xy_axes):
 
-    template_body = '<body pos = "$position$" name = "$name$" xyaxes="$xy_axes$">'
+    template_body = '<body pos = "$position$" name = "$name$" euler="$xy_axes$">'
     template_geom_plate = str(
         '<geom name="$name_plate_geom$" type="box"' + ' size="$size$" rgba="$color$" />'
     )
@@ -146,7 +146,7 @@ def get_robot_xml(
 
     if xy_axes is not None:
         template = str(
-            '<body name="$name$" pos="$position$" xyaxes="$xy_axes$">\n'
+            '<body name="$name$" pos="$position$" euler="$xy_axes$">\n'
             + '<include file="$filename$"/>\n'
             + "</body>\n"
         )
@@ -162,7 +162,7 @@ def get_robot_xml(
     nb_bodies = 25  # just from counting in the xml template file
 
     # as according to the template xml files
-    # in pam_mujoco/models/robot_templates/
+    # in pam_configuration/config/pam_mujoco/models/robot_templates/
     joint = name + "_joint_base_rotation"
     geom_racket = name + "_racket"
 
