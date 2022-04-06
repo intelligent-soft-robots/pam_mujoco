@@ -14,6 +14,7 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>Boost</depend>
+  <depend>glfw3</depend>
   <depend>real_time_tools</depend>
   <depend>o80</depend>
   <depend>o80_pam</depend>
