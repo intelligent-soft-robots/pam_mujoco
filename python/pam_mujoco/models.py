@@ -120,8 +120,8 @@ class Table:
 
 
 class Robot:
-    def __init__(self, pamy1, model_name, name, position, xy_axes, muscles):
-        self.pamy1 = pamy1
+    def __init__(self, robot_type, model_name, name, position, xy_axes, muscles):
+        self.robot_type = robot_type
         self.model_name = model_name
         self.name = name
         self.position = position
@@ -142,7 +142,7 @@ class Robot:
             self.position,
             self.xy_axes,
             self.muscles,
-            self.pamy1,
+            self.robot_type,
         )
         return (xml, joint, geom_racket, nb_bodies)
 
@@ -293,7 +293,7 @@ def model_factory(
         if robot:
             muscles = robot.control == MujocoRobot.PRESSURE_CONTROL
             instance = Robot(
-                robot.pamy1,
+                robot.robot_type,
                 model_name,
                 robot.segment_id,
                 robot.position,

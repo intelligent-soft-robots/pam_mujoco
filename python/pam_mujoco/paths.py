@@ -1,5 +1,6 @@
 import os
 import pam_configuration
+from .robot_type import RobotType
 
 _tmp_folder = "/tmp/"
 
@@ -19,11 +20,11 @@ def get_main_template_xml():
     return template
 
 
-def get_robot_templates_path(pamy1: bool = None) -> str:
+def get_robot_templates_path(robot_type: RobotType = None) -> str:
     root = get_models_path() + os.sep + "robot_templates"
-    if pamy1 is None:
+    if robot_type is None:
         return root
-    if pamy1:
+    if robot_type == RobotType.PAMY1:
         return root + os.sep + "pamy1"
     return root + os.sep + "pamy2"
 
@@ -38,30 +39,32 @@ def get_tmp_path(model_name):
     return path
 
 
-def get_robot_xml(filename: str, ir: str, pamy1: bool) -> str:
-    path = get_robot_templates_path(pamy1) + os.sep + filename + ".xml"
+def get_robot_xml(filename: str, ir: str, robot_type: RobotType) -> str:
+    path = get_robot_templates_path(robot_type) + os.sep + filename + ".xml"
     with open(path, "r") as f:
         template = f.read()
     template = template.replace("?id?", str(ir))
     return template
 
 
-def get_robot_body_xml(ir: str, muscles: bool, pamy1: bool) -> str:
+def get_robot_body_xml(ir: str, muscles: bool, robot_type: RobotType) -> str:
     if muscles:
-        return get_robot_xml("body_template", ir, pamy1)
-    return get_robot_xml("body_template_no_muscles", ir, pamy1)
+        return get_robot_xml("body_template", ir, robot_type)
+    return get_robot_xml("body_template_no_muscles", ir, robot_type)
 
 
 def get_robot_tendon_xml(ir):
-    return get_robot_xml("tendon_template", ir, pamy1=None)
+    return get_robot_xml("tendon_template", ir, robot_type=None)
 
 
 def get_robot_actuator_xml(ir):
-    return get_robot_xml("actuator_template", ir, pamy1=None)
+    return get_robot_xml("actuator_template", ir, robot_type=None)
 
 
-def write_robot_body_xml(model_name: str, ir: str, muscles: bool, pamy1: bool) -> str:
-    xml = get_robot_body_xml(ir, muscles, pamy1)
+def write_robot_body_xml(
+    model_name: str, ir: str, muscles: bool, robot_type: RobotType
+) -> str:
+    xml = get_robot_body_xml(ir, muscles, robot_type)
     filename = "robot_body_" + str(ir) + ".xml"
     with open(get_tmp_path(model_name) + os.sep + filename, "w+") as f:
         f.write(xml)
