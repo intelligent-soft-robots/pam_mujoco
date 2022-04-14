@@ -1,5 +1,6 @@
 import pam_models
 import pam_interface
+from .robot_type import RobotType
 
 
 class MujocoRobot:
@@ -13,18 +14,18 @@ class MujocoRobot:
 
     def __init__(
         self,
-        pamy1: bool,
+        robot_type: RobotType,
         segment_id,
         position=[0.0, 0.0, 1.21],
         orientation="0.0 0.0 0.0",
         control=NO_CONTROL,
         active_only_control=CONSTANT_CONTROL,
-        json_control_path=pam_interface.Pamy2DefaultConfiguration.get_path(),
+        json_control_path=pam_interface.Pamy2DefaultConfiguration.get_path(True),
         json_ago_hill_path=pam_models.get_default_config_path(),
         json_antago_hill_path=pam_models.get_default_config_path(),
     ):
 
-        self.pamy1 = pamy1
+        self.robot_type = robot_type
         self.segment_id = segment_id
         self.position = position
         self.orientation = orientation

@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 import numpy as np
 import itertools
+import pam_interface
 from . import paths
 
 
