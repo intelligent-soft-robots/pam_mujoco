@@ -1086,7 +1086,7 @@ void loadmodel(const std::string& snapshot_path)
     m = mnew;
     d = mj_makeData(m);
 
-    pam_mujoco::load_state(snapshot_path, m, d);
+    pam_mujoco::load_mjdata(snapshot_path, m, d);
 
     mj_forward(m, d);
 

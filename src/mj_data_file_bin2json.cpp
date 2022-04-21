@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     }
     std::string input_file = argv[1];
 
-    pam_mujoco::print_state_file(input_file);
+    pam_mujoco::print_mjdata_file(input_file);
 
     return 0;
 }

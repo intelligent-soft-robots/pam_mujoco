@@ -14,8 +14,7 @@
 
 namespace pam_mujoco
 {
-// FIXME: inconsistent name (data vs state)
-void copy_data(const mjModel* model, const mjData* from, mjData* to)
+void copy_mjdata(const mjModel* model, const mjData* from, mjData* to)
 {
     // Based on
     // https://mujoco.readthedocs.io/en/latest/programming.html#sistatecontrol
@@ -40,9 +39,9 @@ void copy_data(const mjModel* model, const mjData* from, mjData* to)
     mju_copy(to->ctrl, from->ctrl, model->nu);
 }
 
-void save_state(const mjModel* model,
-                const mjData* data,
-                const std::filesystem::path& filename)
+void save_mjdata(const mjModel* model,
+                 const mjData* data,
+                 const std::filesystem::path& filename)
 {
     // The following code snippet from the documentation shows what field needs
     // to be copied to copy a state from mjData src to dst.
@@ -133,9 +132,9 @@ void _assert_vector_length(const std::string& name,
     }
 }
 
-void load_state(const std::filesystem::path& filename,
-                const mjModel* model,
-                mjData* data)
+void load_mjdata(const std::filesystem::path& filename,
+                 const mjModel* model,
+                 mjData* data)
 {
     int file_format_version = 0;
 
@@ -198,7 +197,7 @@ void load_state(const std::filesystem::path& filename,
     }
 }
 
-void print_state_file(const std::filesystem::path& filename)
+void print_mjdata_file(const std::filesystem::path& filename)
 {
     int file_format_version = 0;
 
@@ -260,16 +259,16 @@ bool _has_nan(const mjtNum* array, size_t length)
     return false;
 }
 
-bool has_nan(const mjModel* model, const mjData* data)
+bool mjdata_has_nan(const mjModel* model, const mjData* data)
 {
     return _has_nan(data->qpos, model->nq) or _has_nan(data->qvel, model->nv);
 }
 
-void MujocoStateSaver::save(const mjModel* model, const mjData* data)
+void MujocoDataSaver::save(const mjModel* model, const mjData* data)
 {
     std::string path = fmt::format(FILENAME_FMT_, filename_prefix_, index_);
 
-    save_state(model, data, path);
+    save_mjdata(model, data, path);
 
     // only keep the newest files, so delete old ones
     if (index_ >= num_keep_files_)
@@ -285,9 +284,9 @@ void MujocoStateSaver::save(const mjModel* model, const mjData* data)
     index_++;
 }
 
-SaveNaNStateController::SaveNaNStateController(
+SaveNanMujocoDataController::SaveNanMujocoDataController(
     const std::string& filename_prefix)
-    : MujocoStateSaver(filename_prefix)
+    : MujocoDataSaver(filename_prefix)
 {
     // initialise data instances
     for (size_t i = 0; i < buffer_.size(); ++i)
@@ -296,7 +295,7 @@ SaveNaNStateController::SaveNaNStateController(
     }
 }
 
-SaveNaNStateController::~SaveNaNStateController()
+SaveNanMujocoDataController::~SaveNanMujocoDataController()
 {
     for (size_t i = 0; i < buffer_.size(); ++i)
     {
@@ -307,7 +306,7 @@ SaveNaNStateController::~SaveNaNStateController()
     }
 }
 
-void SaveNaNStateController::apply(const mjModel* model, mjData* data)
+void SaveNanMujocoDataController::apply(const mjModel* model, mjData* data)
 {
     // initialise if needed
     if (buffer_.current() == nullptr)
@@ -315,9 +314,9 @@ void SaveNaNStateController::apply(const mjModel* model, mjData* data)
         buffer_.current() = mj_makeData(model);
     }
 
-    copy_data(model, data, buffer_.current());
+    copy_mjdata(model, data, buffer_.current());
 
-    if (has_nan(model, data))
+    if (mjdata_has_nan(model, data))
     {
         std::cerr << "!!!!! Detected NaN. Save snapshots." << std::endl;
 

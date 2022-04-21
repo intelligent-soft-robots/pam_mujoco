@@ -140,7 +140,7 @@ TEST_F(TestMjStateTools, test_copy_data)
     // first the data object needs to be initialised based on the model
     mjData *data_cpy = mj_makeData(model_);
 
-    copy_data(model_, data_, data_cpy);
+    copy_mjdata(model_, data_, data_cpy);
     expect_data_eq(data_cpy, data_);
 
     // cleanup
@@ -149,12 +149,12 @@ TEST_F(TestMjStateTools, test_copy_data)
 
 TEST_F(TestMjStateTools, test_save_and_load)
 {
-    save_state(model_, data_, tmp_dir_ / "data.dat");
+    save_mjdata(model_, data_, tmp_dir_ / "data.dat");
 
     // first the data object needs to be initialised based on the model
     mjData *loaded_data = mj_makeData(model_);
 
-    load_state(tmp_dir_ / "data.dat", model_, loaded_data);
+    load_mjdata(tmp_dir_ / "data.dat", model_, loaded_data);
 
     expect_data_eq(loaded_data, data_);
 
@@ -164,26 +164,26 @@ TEST_F(TestMjStateTools, test_save_and_load)
 
 TEST_F(TestMjStateTools, test_has_nan_none)
 {
-    ASSERT_FALSE(has_nan(model_, data_));
+    ASSERT_FALSE(mjdata_has_nan(model_, data_));
 }
 
 TEST_F(TestMjStateTools, test_has_nan_in_qpos)
 {
     data_->qpos[0] = std::numeric_limits<float>::quiet_NaN();
-    ASSERT_TRUE(has_nan(model_, data_));
+    ASSERT_TRUE(mjdata_has_nan(model_, data_));
 }
 
 TEST_F(TestMjStateTools, test_has_nan_in_qvel)
 {
     data_->qvel[0] = std::numeric_limits<float>::quiet_NaN();
-    ASSERT_TRUE(has_nan(model_, data_));
+    ASSERT_TRUE(mjdata_has_nan(model_, data_));
 }
 
 TEST_F(TestMjStateTools, test_mujoco_state_saver)
 {
     const std::string prefix = (tmp_dir_ / "test").string();
     const size_t num_keep_files = 3;
-    MujocoStateSaver state_saver(prefix, num_keep_files);
+    MujocoDataSaver state_saver(prefix, num_keep_files);
 
     data_->time = 0;
     state_saver.save(model_, data_);
@@ -212,7 +212,7 @@ TEST_F(TestMjStateTools, test_mujoco_state_saver)
 
         // load the file and check the time stamp
         mjData *loaded_data = mj_makeData(model_);
-        load_state(filename, model_, loaded_data);
+        load_mjdata(filename, model_, loaded_data);
         EXPECT_EQ(loaded_data->time, i);
 
         // cleanup
@@ -223,11 +223,11 @@ TEST_F(TestMjStateTools, test_mujoco_state_saver)
 TEST_F(TestMjStateTools, test_save_nan_state_controller)
 {
     std::string prefix = tmp_dir_ / "test";
-    SaveNaNStateController ctrl(prefix);
+    SaveNanMujocoDataController ctrl(prefix);
 
     // Make sure the buffer size is as expected (in case it changes, the test
     // likely needs to be adapted).
-    ASSERT_EQ(SaveNaNStateController::BUFFER_SIZE_, 5u);
+    ASSERT_EQ(SaveNanMujocoDataController::BUFFER_SIZE_, 5u);
 
     // add a number of "good" states
     for (int i = 0; i < 7; i++)
@@ -249,7 +249,7 @@ TEST_F(TestMjStateTools, test_save_nan_state_controller)
 
         // load the file and check the time stamp
         mjData *loaded_data = mj_makeData(model_);
-        load_state(filename, model_, loaded_data);
+        load_mjdata(filename, model_, loaded_data);
         EXPECT_EQ(loaded_data->time, time_of_first_snapshot + i);
         mj_deleteData(loaded_data);
     }
