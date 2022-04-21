@@ -13,11 +13,11 @@
 #include "uitools.h"
 
 #include <chrono>
+#include <filesystem>
 #include <mutex>
+#include <string>
 #include <thread>
 
-#include <experimental/filesystem>
-#include <string>
 #include "o80/burster.hpp"
 #include "pam_mujoco/add_controllers.hpp"
 #include "pam_mujoco/burster_controller.hpp"
@@ -2130,9 +2130,15 @@ int main(int argc, const char** argv)
     if (!mjdata_nan_snapshot_path.empty())
     {
         std::cout << "Enable NaN Monitoring.\n"
-                  << "Output dir for state snapshots: "
-                  << mjdata_nan_snapshot_path << "\n"
-                  << std::endl;
+                  << "Output directory for state snapshots: "
+                  << mjdata_nan_snapshot_path << std::endl;
+        if (!std::filesystem::is_directory(mjdata_nan_snapshot_path))
+        {
+            std::cerr << "ERROR: Directory does not exist.  Abort.\n"
+                      << std::endl;
+            return 1;
+        }
+        std::cout << std::endl;
     }
 
     // initialize everything
