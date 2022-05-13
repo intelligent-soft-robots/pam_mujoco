@@ -4,7 +4,6 @@ namespace pam_mujoco
 {
 namespace internal
 {
-
 RecomputeStateConfig::RecomputeStateConfig()
 {
 }

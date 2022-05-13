@@ -2,7 +2,6 @@
 
 namespace pam_mujoco
 {
-
 ContactBall::ContactBall(std::string segment_id,
                          int index_qpos,
                          int index_qvel,
