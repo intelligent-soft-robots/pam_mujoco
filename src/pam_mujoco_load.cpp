@@ -1,32 +1,28 @@
-/*  Copyright © 2018, Roboti LLC
-
-    This file is licensed under the MuJoCo Resource License (the "License").
-    You may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        https://www.roboti.us/resourcelicense.txt
-*/
-
-#include "mjxmacro.h"
-#include "stdio.h"
-#include "string.h"
-#include "uitools.h"
-
-#include <chrono>
+/*
+ * Copyright © 2018, Roboti LLC
+ * Copyright © 2022, Max Planck Gesellschaft
+ *
+ * This file is licensed under the MuJoCo Resource License (the "License").
+ * You may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.roboti.us/resourcelicense.txt
+ */
 #include <filesystem>
 #include <mutex>
 #include <string>
-#include <thread>
 
-#include "o80/burster.hpp"
-#include "pam_mujoco/add_controllers.hpp"
-#include "pam_mujoco/burster_controller.hpp"
-#include "pam_mujoco/controllers.hpp"
-#include "pam_mujoco/listener.hpp"
-#include "pam_mujoco/mj_state_tools.hpp"
-#include "pam_mujoco/mujoco_config.hpp"
-#include "shared_memory/shared_memory.hpp"
-#include "signal_handler/signal_handler.hpp"
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
+
+#include <mjxmacro.h>
+#include <mujoco.h>
+#include <uitools.h>
+
+#include <signal_handler/signal_handler.hpp>
+
+#include <pam_mujoco/mj_state_tools.hpp>
 
 //-------------------------------- global
 //-----------------------------------------------
@@ -1050,7 +1046,7 @@ void drop(GLFWwindow* /*window*/, int count, const char** paths)
 }
 
 // load mjb or xml model
-void loadmodel(void)
+void loadmodel(const std::string& snapshot_path)
 {
     // clear request
     settings.loadrequest = 0;
@@ -1089,6 +1085,9 @@ void loadmodel(void)
     mj_deleteModel(m);
     m = mnew;
     d = mj_makeData(m);
+
+    pam_mujoco::load_mjdata(snapshot_path, m, d);
+
     mj_forward(m, d);
 
     if (settings.graphics)
@@ -1106,10 +1105,10 @@ void loadmodel(void)
         alignscale();
         mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
 
-        // set window title to model name
+        // set window title to snapshot file name
         if (window && m->names)
         {
-            glfwSetWindowTitle(window, settings.mujoco_id);
+            glfwSetWindowTitle(window, snapshot_path.c_str());
         }
 
         // set keyframe range and divisions
@@ -1800,186 +1799,6 @@ void render(GLFWwindow* window)
     }
 }
 
-void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
-{
-    // run only if model is present
-    if (m)
-    {
-        // running
-        if (settings.run)
-        {
-            // record cpu time at start of iteration
-            double tmstart = glfwGetTime();
-
-            if (!accelerated_time)
-            {
-                // out-of-sync (for any reason)
-                if (d->time < simsync || tmstart < cpusync || cpusync == 0 ||
-                    mju_abs((d->time - simsync) - (tmstart - cpusync)) >
-                        syncmisalign)
-                {
-                    // re-sync
-                    cpusync = tmstart;
-                    simsync = d->time;
-
-                    // clear old perturbations, apply new
-                    mju_zero(d->xfrc_applied, 6 * m->nbody);
-                    mjv_applyPerturbPose(
-                        m, d, &pert, 0);  // move mocap bodies only
-                    mjv_applyPerturbForce(m, d, &pert);
-
-                    // run single step, let next iteration deal with timing
-                    mj_step(m, d);
-                }
-
-                // in-sync
-                else
-                {
-                    // step while simtime lags behind cputime, and within
-                    // safefactor
-                    while ((d->time - simsync) < (glfwGetTime() - cpusync) &&
-                           (glfwGetTime() - tmstart) <
-                               refreshfactor / vmode.refreshRate)
-                    {
-                        // clear old perturbations, apply new
-                        mju_zero(d->xfrc_applied, 6 * m->nbody);
-                        mjv_applyPerturbPose(
-                            m, d, &pert, 0);  // move mocap bodies only
-                        mjv_applyPerturbForce(m, d, &pert);
-
-                        // run mj_step
-                        mjtNum prevtm = d->time;
-                        mj_step(m, d);
-
-                        // break on reset
-                        if (d->time < prevtm) break;
-                    }
-                }
-            }
-
-            else
-            {
-                mj_step(m, d);
-            }
-        }
-
-        // paused
-        else
-        {
-            // apply pose perturbation
-            mjv_applyPerturbPose(
-                m, d, &pert, 1);  // move mocap and dynamic bodies
-
-            // run mj_forward, to update rendering and joint sliders
-            mj_forward(m, d);
-        }
-    }
-}
-
-void reset()
-{
-    if (m)
-    {
-        mj_resetData(m, d);
-        mj_forward(m, d);
-        profilerupdate();
-        sensorupdate();
-    }
-}
-
-// simulate in background thread (while rendering in main thread)
-void simulate(std::string mujoco_id, bool accelerated_time)
-{
-    // cpu-sim syncronization point
-    double cpusync = 0;
-    mjtNum simsync = 0;
-
-    // to detect ctrl+c
-    signal_handler::SignalHandler::initialize();
-
-    pam_mujoco::Listener reset_listener(mujoco_id, "reset");
-    pam_mujoco::Listener pause_listener(mujoco_id, "pause");
-    pam_mujoco::Listener exit_listener(mujoco_id, "exit");
-
-    long int nb_steps = 0;
-    shared_memory::set<long int>(mujoco_id, "nbsteps", nb_steps);
-
-    // waiting for the graphics
-    while ((!settings.graphics_ready) && (!settings.exitrequest))
-    {
-        usleep(1000);
-    }
-
-    // run until asked to exit
-    while (!settings.exitrequest)
-    {
-        // exit because mujoco gui turned off
-        if (settings.exitrequest) break;
-
-        // exit because another process
-        // set the shared memory (mujoco_id,"exit") to True
-        if (exit_listener.is_on())
-        {
-            settings.exitrequest = 1;
-            break;
-        }
-
-        // exit because user pressed ctrl+c
-        if (signal_handler::SignalHandler::has_received_sigint())
-        {
-            settings.exitrequest = 1;
-            break;
-        }
-
-        // sleep for 1 ms or yield, to let main thread run
-        //  yield results in busy wait - which has better timing but kills
-        //  battery life
-
-        if (settings.run && settings.busywait)
-            std::this_thread::yield();
-        else if (!accelerated_time)
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
-        // start exclusive access
-        mtx.lock();
-
-        // resetting if requested to
-        if (reset_listener.do_once())
-        {
-            // resetting the mujoco simulation
-            reset();
-            // resetting the controllers
-            pam_mujoco::Controllers::reset_time();
-        }
-
-        // pausing if requested to
-        if (pause_listener.is_on())
-        {
-            settings.run = 0;
-        }
-        else
-        {
-            settings.run = 1;
-        }
-
-        do_simulate(accelerated_time, cpusync, simsync);
-
-        if (!settings.client_notified)
-        {
-            shared_memory::set<bool>(mujoco_id, "running", true);
-            std::cout << "\nrunning ...\n" << std::endl;
-            settings.client_notified = true;
-        }
-
-        // letting the world know which step number we are in
-        nb_steps++;
-        shared_memory::set<long int>(mujoco_id, "nbsteps", nb_steps);
-
-        // end exclusive access
-        mtx.unlock();
-    }
-}
-
 //-------------------------------- init and main
 //----------------------------------------
 
@@ -2075,175 +1894,27 @@ void init()
 // run event loop
 int main(int argc, const char** argv)
 {
-    if (argc != 2)
+    if (argc != 3)
     {
-        std::cerr << "launch_pam_mujoco: takes 1 argument (mujoco_id)"
-                  << std::endl;
+        std::cerr << "Invalid number of arguments" << std::endl;
+        std::cerr << "Usage: " << argv[0]
+                  << " <model_path> <data_snapshot_path>" << std::endl;
         return 1;
     }
 
-    std::string mujoco_id{argv[1]};
-    strcat(settings.mujoco_id, mujoco_id.c_str());
+    std::string model_path{argv[1]};
+    std::string snapshot_path{argv[2]};
 
-    std::cout << "\n**** PAM MUJOCO: " << mujoco_id << " ****\n" << std::endl;
-
-    std::cout << "clearing memory for mujoco_id: " << mujoco_id << "\n"
-              << std::endl;
-    shared_memory::clear_shared_memory(mujoco_id);
-
-    // optionally, a client can share with the controllers the current
-    // episode id (if it turns out the client deals with episodes)
-    shared_memory::set<long int>(mujoco_id, "episode", -1);
-
-    // indicating potiential clients that it is not running yet
-    shared_memory::set<bool>(mujoco_id, "running", false);
-
-    pam_mujoco::MujocoConfig config;
-    std::cout << "waiting for configuration ... \n" << std::endl;
-    bool exit_requested = pam_mujoco::wait_for_mujoco_config(mujoco_id, config);
-    if (exit_requested)
-    {
-        std::cout << "\npam_mujoco " << mujoco_id << " exiting\n";
-        return 0;
-    }
-    std::cout << config.to_string() << std::endl;
-
-    if (config.use_graphics)
-    {
-        settings.graphics = true;
-    }
-    else
-    {
-        settings.graphics = false;
-        settings.graphics_ready = true;
-    }
-
-    // Check if environment variable DBG_NAN_SNAPSHOT_DIR is set.  If yes
-    // enable mujoco state monitoring to detect NaN values and use the
-    // specified value as output directory for mjData snapshots.
-    std::string mjdata_nan_snapshot_path;
-    char* mjdata_nan_snapshot_path_cstr = std::getenv("DBG_NAN_SNAPSHOT_DIR");
-    if (mjdata_nan_snapshot_path_cstr != nullptr)
-    {
-        mjdata_nan_snapshot_path = mjdata_nan_snapshot_path_cstr;
-    }
-    if (!mjdata_nan_snapshot_path.empty())
-    {
-        std::cout << "Enable NaN Monitoring.\n"
-                  << "Output directory for state snapshots: "
-                  << mjdata_nan_snapshot_path << std::endl;
-        if (!std::filesystem::is_directory(mjdata_nan_snapshot_path))
-        {
-            std::cerr << "ERROR: Directory does not exist.  Abort.\n"
-                      << std::endl;
-            return 1;
-        }
-        std::cout << std::endl;
-    }
+    settings.graphics = true;
 
     // initialize everything
     init();
 
     // loading the model
-    mju_strncpy(filename, config.model_path, 1000);
+    mju_strncpy(filename, model_path.c_str(), 1000);
     std::cout << "\nloading model: " << filename << std::endl;
     settings.loadrequest = 2;
     std::cout << "model loaded" << std::endl;
-
-    // populating the controllers
-
-    if (!mjdata_nan_snapshot_path.empty())
-    {
-        std::string prefix =
-            mjdata_nan_snapshot_path + "/" + mujoco_id + "_first";
-        auto state_saver =
-            std::make_shared<pam_mujoco::SaveNanMujocoDataController>(prefix);
-        pam_mujoco::Controllers::add(state_saver);
-    }
-
-    if (config.burst_mode)
-    {
-        std::cout << "\nadding burster: " << mujoco_id << std::endl;
-        auto burster =
-            std::make_shared<pam_mujoco::BursterController>(mujoco_id);
-        pam_mujoco::Controllers::add(burster);
-    }
-
-    for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mic.to_string() << std::endl;
-        pam_mujoco::add_item_control(config, mic);
-    }
-
-    for (const pam_mujoco::MujocoItemsControl<3>& mic : config.item_3_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mic.to_string() << std::endl;
-        pam_mujoco::add_3_items_control(config, mic);
-    }
-
-    for (const pam_mujoco::MujocoItemsControl<10>& mic :
-         config.item_10_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mic.to_string() << std::endl;
-        pam_mujoco::add_10_items_control(config, mic);
-    }
-
-    for (const pam_mujoco::MujocoItemsControl<20>& mic :
-         config.item_20_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mic.to_string() << std::endl;
-        pam_mujoco::add_20_items_control(config, mic);
-    }
-
-    for (const pam_mujoco::MujocoItemsControl<50>& mic :
-         config.item_50_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mic.to_string() << std::endl;
-        pam_mujoco::add_50_items_control(config, mic);
-    }
-
-    for (const pam_mujoco::MujocoItemsControl<100>& mic :
-         config.item_100_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mic.to_string() << std::endl;
-        pam_mujoco::add_100_items_control(config, mic);
-    }
-
-    for (const pam_mujoco::MujocoRobotJointControl& mrc : config.joint_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mrc.to_string() << std::endl;
-        pam_mujoco::add_joints_control(mrc);
-    }
-    for (const pam_mujoco::MujocoRobotPressureControl& mpc :
-         config.pressure_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mpc.to_string() << std::endl;
-        pam_mujoco::add_pressures_control(mpc);
-    }
-
-    if (!mjdata_nan_snapshot_path.empty())
-    {
-        std::string prefix =
-            mjdata_nan_snapshot_path + "/" + mujoco_id + "_last";
-        auto state_saver =
-            std::make_shared<pam_mujoco::SaveNanMujocoDataController>(prefix);
-        pam_mujoco::Controllers::add(state_saver);
-    }
-
-    mjcb_control = pam_mujoco::Controllers::apply;
-    mjcb_act_bias = pam_mujoco::Controllers::get_bias;
-
-    // start simulation thread
-    std::cout << "\nstarting simulation thread" << std::endl;
-    std::thread simthread(simulate, mujoco_id, config.accelerated_time);
 
     // event loop
     while (true)
@@ -2253,7 +1924,7 @@ int main(int argc, const char** argv)
 
         // load model (not on first pass, to show "loading" label)
         if (settings.loadrequest == 1)
-            loadmodel();
+            loadmodel(snapshot_path);
         else if (settings.loadrequest > 1)
             settings.loadrequest = 1;
 
@@ -2276,7 +1947,6 @@ int main(int argc, const char** argv)
 
     // stop simulation thread
     settings.exitrequest = 1;
-    simthread.join();
 
     // delete everything we allocated
     if (settings.graphics) uiClearCallback(window);
@@ -2287,8 +1957,6 @@ int main(int argc, const char** argv)
 
     // deactive MuJoCo
     mj_deactivate();
-
-    std::cout << "\npam_mujoco " << mujoco_id << " exiting\n";
 
 // terminate GLFW (crashes with Linux NVidia drivers)
 #if defined(__APPLE__) || defined(_WIN32)

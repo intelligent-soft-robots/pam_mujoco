@@ -28,6 +28,7 @@ find_package(mujoco_interface REQUIRED)
 find_package(Boost REQUIRED COMPONENTS filesystem system thread)
 find_package(glfw3 REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(fmt REQUIRED)
 
 ament_export_dependencies(
   Boost
@@ -85,6 +86,20 @@ list(APPEND all_targets ${PROJECT_NAME})
 list(APPEND all_target_exports export_${PROJECT_NAME})
 
 
+add_library(mj_state_tools src/mj_state_tools.cpp)
+target_include_directories(
+  mj_state_tools
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  )
+target_link_libraries(mj_state_tools
+    fmt::fmt
+    cereal::cereal
+    ${PROJECT_NAME}
+)
+list(APPEND all_targets mj_state_tools)
+
+
 ##############
 # Executable #
 ##############
@@ -96,10 +111,35 @@ target_include_directories(
   ${mujoco_include_dir}
   $<INSTALL_INTERFACE:include>)
 target_link_libraries(launch_pam_mujoco ${PROJECT_NAME})
+target_link_libraries(launch_pam_mujoco mj_state_tools)
 target_link_libraries(launch_pam_mujoco stdc++fs)
 target_link_libraries(launch_pam_mujoco EGL GL GLU glut glfw)
 
 list(APPEND all_targets launch_pam_mujoco)
+
+
+add_executable(pam_mujoco_load_snapshot
+  src/pam_mujoco_load.cpp
+)
+target_include_directories(pam_mujoco_load_snapshot
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+target_link_libraries(pam_mujoco_load_snapshot ${PROJECT_NAME})
+target_link_libraries(pam_mujoco_load_snapshot mj_state_tools)
+list(APPEND all_targets pam_mujoco_load_snapshot)
+
+
+add_executable(mj_data_file_bin2json
+  src/mj_data_file_bin2json.cpp
+)
+target_include_directories(
+  mj_data_file_bin2json
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(mj_data_file_bin2json mj_state_tools)
+list(APPEND all_targets mj_data_file_bin2json)
+
 
 
 ###################
@@ -174,9 +214,26 @@ ament_package()
 # Unit tests #
 ##############
 
-# ignored for now
-#if(BUILD_TESTING)
-#  find_package(ament_cmake_gtest REQUIRED)
-#  ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
-#  target_link_libraries(test_${PROJECT_NAME}_cpp ${PROJECT_NAME})
-#endif()
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+
+  # ignored for now
+  # ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
+  # target_link_libraries(test_${PROJECT_NAME}_cpp ${PROJECT_NAME})
+
+  ament_add_gtest(test_ring_buffer tests/main.cpp tests/test_ring_buffer.cpp)
+  target_include_directories(
+      test_ring_buffer
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+
+  ament_add_gtest(test_mj_state_tools tests/main.cpp tests/test_mj_state_tools.cpp)
+  target_include_directories(
+      test_mj_state_tools PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+  target_link_libraries(test_mj_state_tools mj_state_tools)
+
+endif()
