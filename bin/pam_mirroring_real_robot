@@ -15,6 +15,14 @@ def configure():
         "pam mirroring: having an instance of pam_mujoco mirroring another robot"
     )
     config.add_option(
+        "robot_type",
+        str(pam_mujoco.RobotType.PAMY2),
+        "type of the robot, pamy1 ({}) or pamy2 ({})".format(
+            str(pam_mujoco.RobotType.PAMY1), str(pam_mujoco.RobotType.PAMY2)
+        ),
+        str,
+    )
+    config.add_option(
         "segment_id_real_robot",
         o80_pam.segment_ids.robot,
         "segment_id of the robot that should be mirrored",
@@ -36,11 +44,29 @@ def configure():
 
     change_all = False
     config.dialog(change_all, sys.argv[1:])
+
+    if config.robot_type not in [
+        str(pam_mujoco.RobotType.PAMY1),
+        str(pam_mujoco.RobotType.PAMY2),
+    ]:
+        print(
+            "\nERROR:only values accepted for robot type: {} or {}\n".format(
+                str(pam_mujoco.RobotType.PAMY1), str(pam_mujoco.RobotType.PAMY2)
+            )
+        )
+        return configure()
+
+    if config.robot_type == str(pam_mujoco.RobotType.PAMY1):
+        config.robot_type = pam_mujoco.RobotType.PAMY1
+    if config.robot_type == str(pam_mujoco.RobotType.PAMY2):
+        config.robot_type = pam_mujoco.RobotType.PAMY2
+
     print()
     return config
 
 
 def configure_simulation(
+    robot_type,
     mujoco_id=MUJOCO_ID_MIRRORING,
     segment_id=SEGMENT_ID_ROBOT_MIRROR,
     graphics=True,
@@ -51,7 +77,7 @@ def configure_simulation(
     burst_mode = False
 
     robot = pam_mujoco.MujocoRobot(
-        segment_id, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
+        robot_type, segment_id, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
     )
 
     if use_ball:
@@ -126,7 +152,7 @@ def run():
     )
 
     mirroring_handle = configure_simulation(
-        mujoco_id=config.mujoco_id_mirroring, use_ball=use_ball
+        config.robot_type, mujoco_id=config.mujoco_id_mirroring, use_ball=use_ball
     )
     joints = mirroring_handle.interfaces[SEGMENT_ID_ROBOT_MIRROR]
     if use_ball:
