@@ -1,4 +1,5 @@
-import time, threading
+import time
+import threading
 import o80_pam
 from collections.abc import Iterable
 

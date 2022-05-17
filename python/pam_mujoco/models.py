@@ -1,9 +1,5 @@
-import os
-import itertools
-import numpy as np
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
-from .mujoco_item import MujocoItem
 from . import xml_templates
 from . import paths
 

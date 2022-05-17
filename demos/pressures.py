@@ -3,7 +3,6 @@ import o80
 import o80_pam
 import pam_mujoco
 import pam_models
-import numpy as np
 import multiprocessing
 
 segment_id = "pressure_control"
@@ -33,6 +32,7 @@ pam_model_config = [
     a_init,
     l_MTC_change_init,
 ]
+
 
 # running the mujoco thread
 def execute_mujoco(pam_model_config, robot, mujoco_id, model_name):

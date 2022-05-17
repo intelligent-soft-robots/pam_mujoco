@@ -13,6 +13,7 @@ model_name = "pamy"
 items = pam_mujoco.model_factory(model_name, table=True, robot1=True)
 robot = items["robot"]
 
+
 # running the mujoco thread
 def execute_mujoco(segment_id, mujoco_id, model_name, robot):
     # init mujoco

@@ -4,9 +4,7 @@ import context
 import o80_pam
 import o80
 import pam_mujoco
-import numpy as np
 import multiprocessing
-import matplotlib
 import matplotlib.pyplot as plt
 
 # In this demo, we play a recorded ball trajectory.
@@ -38,6 +36,7 @@ table = items["table"]
 
 # getting path to the generated mujoco xml model
 model_path = items["path"]
+
 
 # running mujoco thread
 def execute_mujoco(mujoco_id, model_path, balls, table):

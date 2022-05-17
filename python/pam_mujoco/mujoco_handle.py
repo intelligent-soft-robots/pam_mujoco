@@ -1,4 +1,9 @@
-import time, logging, shared_memory, o80, o80_pam, pam_mujoco_wrp
+import time
+import logging
+import shared_memory
+import o80
+import o80_pam
+import pam_mujoco_wrp
 from functools import partial
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
@@ -155,7 +160,8 @@ class MujocoHandle:
         balls: list = [],  # list of mujoco_item.MujocoItem
         goals: list = [],  # list of mujoco_item.MujocoItem
         hit_points: list = [],
-        combined: MujocoItems = None,  # list of mujoco_item.MujocoItems (with 's' at the end)
+        # list of mujoco_item.MujocoItems (with 's' at the end)
+        combined: MujocoItems = None,
         read_only: bool = False,
     ):
 
@@ -170,7 +176,7 @@ class MujocoHandle:
                 raise ValueError(
                     "pam_mujoco.mujoco_item.MujocoItems supports "
                     "a limited set of size ({}). "
-                    "{} provived".format(
+                    "{} provided".format(
                         ", ".format(
                             [str(a) for a in combined.accepted_sizes], combined.size
                         )
@@ -362,11 +368,11 @@ class MujocoHandle:
                 robots.append(r)
             try:
                 robot1 = robots[0]
-            except:
+            except Exception:
                 robot1 = None
             try:
                 robot2 = robots[1]
-            except:
+            except Exception:
                 robot2 = None
 
             class _Combined:
