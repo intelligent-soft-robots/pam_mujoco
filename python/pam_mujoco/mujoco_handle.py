@@ -177,9 +177,8 @@ class MujocoHandle:
                     "pam_mujoco.mujoco_item.MujocoItems supports "
                     "a limited set of size ({}). "
                     "{} provided".format(
-                        ", ".format(
-                            [str(a) for a in combined.accepted_sizes], combined.size
-                        )
+                        ", ".join([str(a) for a in combined.accepted_sizes]),
+                        combined.size,
                     )
                 )
 
