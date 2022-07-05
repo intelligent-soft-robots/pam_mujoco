@@ -1,5 +1,4 @@
 import time
-import context
 import o80
 import o80_pam
 import pam_mujoco
@@ -12,6 +11,7 @@ items = pam_mujoco.model_factory("contacts", table=True, robot1=True)
 ball = items["ball"]
 table = items["table"]
 robot = items["robot"]
+
 
 # running mujoco thread
 def execute_mujoco(ball, table, robot, mujoco_id, model_name):

@@ -1,9 +1,7 @@
 import time
-import context
 import o80
 import o80_pam
 import pam_mujoco
-import numpy as np
 import multiprocessing
 
 segment_id = "play_trajectory"
@@ -17,6 +15,7 @@ items = pam_mujoco.model_factory(model_name, table=True, hit_point=True)
 ball = items["ball"]
 table = items["table"]
 hit_point = items["hit_point"]
+
 
 # running mujoco thread
 def execute_mujoco(mujoco_id, model_name, ball, hit_point, table):

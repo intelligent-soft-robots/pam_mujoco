@@ -14,7 +14,7 @@ class mujoco_ids:
                 time.sleep(0.01)
                 try:
                     started = pam_mujoco.has_mujoco_started(mujoco_id)
-                except Exception as e:
+                except Exception:
                     started = False
         except KeyboardInterrupt:
             return False

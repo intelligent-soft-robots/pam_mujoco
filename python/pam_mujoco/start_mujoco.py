@@ -1,6 +1,7 @@
 import multiprocessing
+import time
+
 import pam_mujoco
-import o80_pam
 import pam_models
 import pam_interface
 
@@ -200,7 +201,7 @@ def ball_and_robot(
         try:
             while not pam_mujoco.is_stop_requested(mujoco_id):
                 time.sleep(0.01)
-        except:
+        except Exception:
             pass
 
     # starting mujoco

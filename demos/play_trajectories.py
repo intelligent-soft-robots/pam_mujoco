@@ -3,7 +3,6 @@ import context
 import o80
 import o80_pam
 import pam_mujoco
-import numpy as np
 import multiprocessing
 
 mujoco_id = "mj"
@@ -22,6 +21,7 @@ items = pam_mujoco.model_factory(
 
 # getting the balls
 balls = items["balls"]
+
 
 # running mujoco thread
 def execute_mujoco(segment_ids, mujoco_id, model_name, balls):
