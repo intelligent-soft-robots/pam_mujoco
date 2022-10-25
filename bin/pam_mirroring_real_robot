@@ -4,9 +4,11 @@ import sys, time, logging
 import signal_handler, o80, o80_pam, pam_mujoco, context
 from pam_mujoco import mirroring
 from lightargs import BrightArgs, Set, Range, Positive, FileExists
+import tennicam_client
 
 
 SEGMENT_ID_ROBOT_MIRROR = "simulated_robot"
+SEGMENT_ID_TENNICAM = "tennicam_client"
 MUJOCO_ID_MIRRORING = "mirroring"
 
 
@@ -34,9 +36,18 @@ def configure():
         "mujoco_id of the pam_mujoco instance that will mirror the other robot",
         str,
     )
+    config.add_option(
+        "segment_id_tennicam",
+        SEGMENT_ID_TENNICAM,
+        "set to 'None' if you do not want to mirror the tennicam ball",
+        str,
+    )
     config.add_option("frequency", 300, "mirroring frequency", float, [Positive()])
     config.add_option(
-        "shoot_ball", False, "if True, balls will be shot toward the racket", bool
+        "shoot_ball",
+        False,
+        "if True, virtual balls will be shot toward the racket",
+        bool,
     )
     config.add_option(
         "ball_period", 5, "period at which balls will be shot", int, [Positive()]
@@ -56,6 +67,15 @@ def configure():
         )
         return configure()
 
+    if config.segment_id_tennicam == "None":
+        config.segment_id_tennicam = None
+    else:
+        if config.shoot_ball:
+            print(
+                "Error: can not both shoot virtuals balls and mirror tennicam, please disable one of them"
+            )
+            return configure()
+
     if config.robot_type == str(pam_mujoco.RobotType.PAMY1):
         config.robot_type = pam_mujoco.RobotType.PAMY1
     if config.robot_type == str(pam_mujoco.RobotType.PAMY2):
@@ -71,6 +91,7 @@ def configure_simulation(
     segment_id=SEGMENT_ID_ROBOT_MIRROR,
     graphics=True,
     use_ball=False,
+    segment_id_tennicam=None,
 ):
 
     accelerated_time = False
@@ -80,17 +101,24 @@ def configure_simulation(
         robot_type, segment_id, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
     )
 
+    table = None
+    balls = []
+
     if use_ball:
+        table = pam_mujoco.MujocoTable("table")
         ball = pam_mujoco.MujocoItem(
             "ball",
             control=pam_mujoco.MujocoItem.CONSTANT_CONTROL,
             contact_type=pam_mujoco.ContactTypes.racket1,
         )
         balls = (ball,)
+
+    if segment_id_tennicam:
+        ball = pam_mujoco.MujocoItem(
+            "ball", control=pam_mujoco.MujocoItem.CONSTANT_CONTROL, color=(0.8, 1, 0.8, 1)
+        )
         table = pam_mujoco.MujocoTable("table")
-    else:
-        balls = []
-        table = None
+        balls = (ball,)
 
     handle = pam_mujoco.MujocoHandle(
         mujoco_id,
@@ -123,11 +151,29 @@ class BallManager:
         self._handle.reset_contact("ball")
 
 
+class Tennicam:
+    def __init__(
+        self,
+        tennicam_segment_id,
+        handle,
+    ):
+        self._tennicam_frontend = tennicam_client.FrontEnd(tennicam_segment_id)
+        self._ball = handle.frontends["ball"]
+
+    def perform(self):
+        ball_zmq = self._tennicam_frontend.latest()
+        position = ball_zmq.get_position()
+        velocity = ball_zmq.get_velocity()
+        self._ball.add_command(position, velocity, o80.Mode.OVERWRITE)
+        self._ball.pulse()
+
+
 def run():
 
     config = configure()
     use_ball = config.shoot_ball
     ball_period = config.ball_period
+    segment_id_tennicam = config.segment_id_tennicam
 
     log_handler = logging.StreamHandler(sys.stdout)
     logging.basicConfig(
@@ -152,12 +198,19 @@ def run():
     )
 
     mirroring_handle = configure_simulation(
-        config.robot_type, mujoco_id=config.mujoco_id_mirroring, use_ball=use_ball
+        config.robot_type, mujoco_id=config.mujoco_id_mirroring, 
+        use_ball=use_ball, segment_id_tennicam=segment_id_tennicam
     )
     joints = mirroring_handle.interfaces[SEGMENT_ID_ROBOT_MIRROR]
+
     if use_ball:
-        logging.info("creating ball manager")
+        logging.info("creating ball manager (shooting virtual balls)")
         ball_manager = BallManager(mirroring_handle, ball_period)
+    elif segment_id_tennicam:
+        logging.info("creaing ball manager (tennicam mirroring)")
+        ball_manager = Tennicam(segment_id_tennicam, mirroring_handle)
+    else:
+        ball_manager = None
 
     logging.info("creating frequency manager")
     frequency_manager = o80.FrequencyManager(config.frequency)
@@ -169,15 +222,15 @@ def run():
         while not signal_handler.has_received_sigint():
             try:
                 _, __, joint_positions, joint_velocities = pressures.read()
-                print(
-                    "{:.2f} {:.2f} {:.2f} | {:.2f} {:.2f} {:.2f}".format(
-                        *joint_positions, *joint_velocities
-                    )
-                )
+                #print(
+                #    "{:.2f} {:.2f} {:.2f} | {:.2f} {:.2f} {:.2f}".format(
+                #        *joint_positions, *joint_velocities
+                #    )
+                #)
                 joints.set(
                     joint_positions, joint_velocities, duration_ms=None, wait=False
                 )
-                if use_ball:
+                if ball_manager:
                     ball_manager.perform()
             except Exception as e:
                 logging.info("exception: {}. keyboard interrupt ? ".format(e))
