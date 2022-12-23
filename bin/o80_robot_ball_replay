@@ -2,9 +2,11 @@
 
 """
 Display in a mujoco simulated environment the ball and the robot
-as logged in a o80_robot_ball_{x} file, i.e. a file
-generated via o80_robot_ball_logger.
-Two balls are displayed: the one mirroring the real ball (red),
+as stored in the ball_trajectories.hdf5 file
+(located in ~/.mpi-is/pam/context/ folder after installation).
+The hdf5 file is parsed via the ball_trajectories python API
+provided by the context package.
+Two balls are displayed: the one mirroring the real ball (orange),
 a second one (green) mirroring the real ball up to contact with the robot
 racket, then applying our custmor contact model.
 Required for this executable:
@@ -12,54 +14,30 @@ Required for this executable:
 """
 
 import sys
+import time
 import typing
 import pathlib
 import o80
 import signal_handler
 import o80_pam
 import pam_mujoco
+import lightargs
+import numpy as np
 from lightargs import BrightArgs, FileExists
+from context import ball_trajectories as bt
 
-DEFAULT_SAVE_FOLDER = pathlib.Path("/tmp")
-MUJOCO_ID = "robot_ball_replay"
-
-
-def _get_default_file(
-    directory: pathlib.Path, file_prefix="o80_robot_ball_*"
-) -> pathlib.Path:
-    """
-    Returns one of the file "/tmp/o80_robot_ball_*"
-    Return empty string if no such file.
-    """
-
-    for filename in directory.glob(file_prefix):
-        if filename.is_file():
-            return directory / filename
-
-    return ""
+MUJOCO_ID: str = "robot_ball_replay"
 
 
-def _configure() -> BrightArgs:
-    """
-    Configuration dialog
-    """
-
-    global DEFAULT_SAVE_FOLDER
-    config = BrightArgs("o80 robot ball replay")
-    config.add_option(
-        "filepath",
-        str(_get_default_file(DEFAULT_SAVE_FOLDER)),
-        "absolute path of the log file to replay",
-        str,
-        [FileExists()],
-    )
-    change_all = False
-    config.dialog(change_all, sys.argv[1:])
-    print()
-    return config
+def _contact_iteration(trajectory: bt.DurationTrajectory) -> typing.Optional[int]:
+    # returns the iteration corresponding to the ball hitting the racket
+    durations = trajectory[0]
+    positions = trajectory[1]
+    contact_iteration = np.argmin(positions[:, 1])
+    return contact_iteration
 
 
-def _get_handle() -> pam_mujoco.MujocoHandle:
+def _get_handle(robot_type: pam_mujoco.RobotType) -> pam_mujoco.MujocoHandle:
     """
     Configures mujoco to have a controllable ball
     and returns the handle
@@ -78,6 +56,7 @@ def _get_handle() -> pam_mujoco.MujocoHandle:
         color=(0, 1, 0, 1),
     )
     robot = pam_mujoco.MujocoRobot(
+        robot_type,
         "robot",
         control=pam_mujoco.MujocoRobot.JOINT_CONTROL,
         active_only_control=pam_mujoco.MujocoRobot.COMMAND_ACTIVE_CONTROL,
@@ -85,6 +64,8 @@ def _get_handle() -> pam_mujoco.MujocoHandle:
     table = pam_mujoco.MujocoTable("table")
     graphics = True
     accelerated_time = False
+    burst_mode = True
+
     handle = pam_mujoco.MujocoHandle(
         MUJOCO_ID,
         table=table,
@@ -92,112 +73,254 @@ def _get_handle() -> pam_mujoco.MujocoHandle:
         balls=(ball_real, ball_sim),
         graphics=graphics,
         accelerated_time=accelerated_time,
-        burst_mode=False,
+        burst_mode=burst_mode,
     )
     return handle
 
 
-def _add_ball_commands(
-    data: typing.Sequence[typing.Tuple], ball: o80_pam.MirrorFreeJointFrontEnd
-) -> None:
-    class _Data:
-        def __init__(self, d):
-            self.ball_id, self.stamp, self.position, self.velocity = d
-
-        def same(self, other):
-            return self.ball_id == other.ball_id
-
-        def duration(self, earlier):
-            return o80.Duration_us.nanoseconds(self.stamp - earlier.stamp)
-
-    previous = None
-
-    for d in data:
-        instance = _Data(d)
-        if previous is None:
-            previous = instance
-        if not instance.same(previous):
-            ball.add_command(
-                instance.position,
-                instance.velocity,
-                instance.duration(previous),
-                o80.Mode.QUEUE,
-            )
-            previous = instance
-
-
-def _add_robot_commands(
-    data: typing.Sequence[typing.Tuple], robot: o80_pam.MirrorRobotFrontEnd
-) -> None:
-    class _Data:
-        def __init__(self, d):
-            self.stamp, self.positions, self.velocities = d
-
-        def same(self, other):
-            return self.stamp == other.stamp
-
-        def duration(self, earlier):
-            return o80.Duration_us.nanoseconds(self.stamp - earlier.stamp)
-
-    previous = None
-
-    for d in data:
-        instance = _Data(d)
-        if previous is None:
-            previous = instance
-        if not instance.same(previous):
-            robot.add_command(
-                instance.positions,
-                instance.velocities,
-                instance.duration(previous),
-                o80.Mode.QUEUE,
-            )
-            previous = instance
-
-
-def _add_commands(
-    data: typing.Sequence[typing.Tuple[typing.Tuple, typing.Tuple]],
-    ball1: o80_pam.MirrorFreeJointFrontEnd,
-    ball2: o80_pam.MirrorFreeJointFrontEnd,
+def _replay_trajectory(
+    duration_trajectory: bt.DurationTrajectory,
+    ball_real: o80_pam.MirrorFreeJointFrontEnd,
+    ball_sim: o80_pam.MirrorFreeJointFrontEnd,
     robot: o80_pam.MirrorRobotFrontEnd,
+    handle: pam_mujoco.MujocoHandle,
+    ball_translation: typing.Tuple[float, float, float],
+    contact_iteration: typing.Optional[int],
+    stop_replay: int,
+    slow_motion: float,
+    mujoco_time_step: float = 0.002,
 ) -> None:
+    """
+    Replays the trajectories, with 2 balls: the "real" ball which
+    replays the recorded ball, and the "sim" ball which replays the
+    the recorded ball, up to the contact between the ball and the
+    racket (after which the custom contact model takes over).
+    It's possible to "stop" the sim ball to replay the trajectory before
+    the contact with the racket occurs, by setting the "stop_replay" argument
+    (the replay will stop 'stop_replay' iterations before contact, the mujoco
+    engine takes then over until contact)
+    """
 
-    d_ball = [d[0] for d in data]
-    d_robot = [d[1] for d in data]
+    durations = duration_trajectory[0]
+    positions = duration_trajectory[1]
+    velocities = duration_trajectory[2]
+    for ball in (ball_real, ball_sim):
+        t_init_pos = [p + t for p, t in zip(positions[0][:3], ball_translation)]
+        ball.add_command(
+            t_init_pos,
+            velocities[0][:3],
+            o80.Mode.OVERWRITE,
+        )
+    robot.add_command(
+        positions[0][3:],
+        velocities[0][3:],
+        o80.Mode.OVERWRITE,
+    )
 
-    _add_ball_commands(d_ball, ball1)
-    _add_ball_commands(d_ball, ball2)
-    _add_robot_commands(d_robot, robot)
+    up_to_iteration: int
+    if contact_iteration is None or stop_replay < 0:
+        up_to_iteration = len(durations)
+    else:
+        up_to_iteration = contact_iteration - stop_replay
+
+    def _p(l):
+        return " ".join([f"{a:.2f}" for a in l])
+
+    for iteration, (duration, position, velocity) in enumerate(
+        zip(durations, positions, velocities)
+    ):
+
+        t_position = [p + t for p, t in zip(position, ball_translation)]
+        if iteration < up_to_iteration:
+            ball_sim.add_command(
+                t_position[:3],
+                velocity[:3],
+                o80.Duration_us.nanoseconds(int(duration * 1e3)),
+                o80.Mode.QUEUE,
+            )
+        ball_real.add_command(
+            t_position[:3],
+            velocity[:3],
+            o80.Duration_us.nanoseconds(int(duration * 1e3)),
+            o80.Mode.QUEUE,
+        )
+        robot.add_command(
+            position[3:],
+            velocity[3:],
+            o80.Duration_us.nanoseconds(int(duration * 1e3)),
+            o80.Mode.QUEUE,
+        )
+    ball_sim.pulse()
+    ball_real.pulse()
+    robot.pulse()
+    duration = sum(durations) * 1e-6
+    nb_mujoco_iterations = int(duration / mujoco_time_step)
+    sleep_time = mujoco_time_step * slow_motion
+    for _ in range(nb_mujoco_iterations):
+        handle.burst(1)
+        time.sleep(sleep_time)
 
 
-def run(filepath: pathlib.Path):
+def _configure() -> BrightArgs:
+    """
+    Configuration dialog
+    """
+
+    global DEFAULT_SAVE_FOLDER
+    config = BrightArgs("o80 robot ball replay")
+    config.add_option(
+        "group",
+        "racket-hits",
+        "name of the group (in the hdf5 file) to replay",
+        str,
+    )
+    config.add_option(
+        "index",
+        -1,
+        "Index of the trajectory to replay. If negative, replay all trajectories one after another.",
+        int,
+    )
+    config.add_option(
+        "ball_translation",
+        "[0.,0.,0.]",
+        "translation of the balls",
+        str,
+    )
+    config.add_option(
+        "stop_replay",
+        -1,
+        str(
+            "if positive, number of iterations before the contact before which the replay should stop for "
+            "the simulated ball (trajectory then managed by mujoco until contact occurs). Set a negative number"
+            "to replay the full trajectory up to contact"
+        ),
+        int,
+    )
+    config.add_option(
+        "slow_motion",
+        1.0,
+        "1.0 for normal time, higher value for slower time, lower value for accelerated time",
+        float,
+    )
+    # to select the robot (Pamy1 or Pamy2)
+    config.add_option(
+        "robot_type",
+        "PAMY1",
+        "PAM1 or PAMY2",
+        str,
+        integrity_checks=(lightargs.Set("PAMY1", "PAMY2"),),
+    )
+    change_all = False
+    config.dialog(change_all, sys.argv[1:])
+    # robot type
+    if config.robot_type == "PAMY1":
+        robot_type = pam_mujoco.RobotType.PAMY1
+    else:
+        robot_type = pam_mujoco.RobotType.PAMY2
+    # ball translation
+    try:
+        ball_translation = eval(config.ball_translation)
+    except Exception as e:
+        raise Exception(f"failed to evaluate ball_translation: {e}")
+    print()
+    return (
+        config.group,
+        config.index,
+        robot_type,
+        ball_translation,
+        config.slow_motion,
+        config.stop_replay,
+    )
+
+
+def _run(
+    group: str,
+    index: int,
+    robot_type: pam_mujoco.RobotType,
+    ball_translation: typing.Tuple[float, float, float],
+    slow_motion: float,
+    stop_replay: int,
+) -> None:
     """
     Parse filepath and plays the corresponding
     ball trajectory in mujoco (via an o80 frontend)
     """
 
     # configuring and staring mujoco
-    handle = _get_handle()
+    handle = _get_handle(robot_type)
 
     # getting a frontend for balls control
     ball_real = handle.frontends["ball_real"]
     ball_sim = handle.frontends["ball_sim"]
+    handle.reset_contact("ball_sim")
 
     # getting a frontend for robot control
     robot = handle.frontends["robot"]
 
     # parsing file
-    data = list(o80_pam.robot_ball_parser.parse(filepath))
+    with bt.RecordedBallTrajectories() as records:
+        # the user entered a non-negative index:
+        # playing only the corresponding trajectory
+        if index >= 0:
+            stamped_trajectory = records.get_stamped_trajectory(group, index)
+            trajectory = bt.to_duration_trajectory(stamped_trajectory)
+            contact_iteration = _contact_iteration(trajectory)
+            _replay_trajectory(
+                trajectory,
+                ball_real,
+                ball_sim,
+                robot,
+                handle,
+                ball_translation,
+                contact_iteration,
+                stop_replay,
+                slow_motion,
+            )
 
-    # loading all commands in the frontends
-    _add_commands(data, ball_real, ball_sim, robot)
-
-    # sending commands to pam mujoco
-    ball_real.pulse()
-    ball_sim.pulse()
-    robot.pulse_and_wait()
+        # the user entered a negative index,
+        # i.e. playing all trajectories of the group
+        else:
+            stamped_trajectories: typing.Dict[
+                int, bt.StampedTrajectory
+            ] = records.get_stamped_trajectories(group)
+            trajectories = {
+                index: bt.to_duration_trajectory(t)
+                for index, t in stamped_trajectories.items()
+            }
+            contact_iterations: typing.Dict[int, typing.Optional[int]] = {
+                index: _contact_iteration(trajectory)
+                for index, trajectory in trajectories.items()
+            }
+            indexes = sorted(trajectories.keys())
+            for index in indexes:
+                print(f"-- playing trajectory index {index}")
+                handle.reset_contact("ball_sim")
+                _replay_trajectory(
+                    trajectories[index],
+                    ball_real,
+                    ball_sim,
+                    robot,
+                    handle,
+                    ball_translation,
+                    contact_iterations[index],
+                    stop_replay,
+                    slow_motion,
+                )
 
 
 if __name__ == "__main__":
-    config = _configure()
-    run(pathlib.Path(config.filepath))
+    try:
+        (
+            group,
+            index,
+            robot_type,
+            ball_translation,
+            slow_motion,
+            stop_replay,
+        ) = _configure()
+        _run(group, index, robot_type, ball_translation, slow_motion, stop_replay)
+    except Exception as e:
+        import traceback
+
+        print(traceback.format_exc())
+        print(f"\nfailed with error: {e}\n")
