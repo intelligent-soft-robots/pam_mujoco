@@ -36,6 +36,7 @@ public:
     std::array<double, 3> ball_position;
     std::array<double, 3> ball_velocity;
     double time_stamp;
+    double velocity_time_stamp;
 };
 
 /**
