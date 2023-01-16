@@ -4,8 +4,28 @@ namespace pam_mujoco
 {
 namespace internal
 {
-ContactStates::ContactStates() : time_stamp(-1)
+ContactStates::ContactStates() : time_stamp(-1), velocity_time_stamp(-1)
 {
+}
+
+bool should_update_velocity(internal::ContactStates& previous_state,
+                            mjtNum* m,
+                            double time,
+                            double time_threshold = 0.1,
+                            double position_threshold = 0.0000001)
+{
+    for (size_t i = 0; i < 3; i++)
+    {
+        if (abs(previous_state.contactee_position[i] - m[i])>position_threshold)
+        {
+            return true;
+        }
+    }
+    if ((time - previous_state.velocity_time_stamp) >= time_threshold)
+    {
+        return true;
+    }
+    return false;
 }
 
 /**
@@ -34,15 +54,31 @@ void save_state(const mjData* d,
         double delta_time = d->time - get_states.time_stamp;
         if (delta_time != 0)
         {
-            for (size_t i = 0; i < 3; i++)
+            // ! this is quite hacky.
+            // When running learning_table_tennis_from_scratch, the positions of
+            // the robot joints are updated at a lower frequency: during the
+            // intermediate iterations, this thread "sees" an immobile racket,
+            // i.e. a velocity of zero, which is incorrect.
+            // "should_update_velocity" returns true only if the racket moved,
+            // or if a time threshold passed.
+            if (should_update_velocity(
+                    get_states,
+                    &(d->geom_xpos[index_geom_contactee * 3]),
+                    d->time))
             {
-                get_states.contactee_velocity[i] =
-                    (d->geom_xpos[index_geom_contactee * 3 + i] -
-                     get_states.contactee_position[i]) /
-                    delta_time;
+                double dt = d->time - get_states.velocity_time_stamp;
+                for (size_t i = 0; i < 3; i++)
+                {
+                    get_states.contactee_velocity[i] =
+                        (d->geom_xpos[index_geom_contactee * 3 + i] -
+                         get_states.contactee_position[i]) /
+                        dt;
+                }
+                get_states.velocity_time_stamp = d->time;
             }
         }
     }
+
     // rest is just copied from d to get_states
     for (size_t i = 0; i < 3; i++)
     {
