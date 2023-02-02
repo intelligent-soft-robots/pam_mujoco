@@ -3,7 +3,6 @@ import pam_mujoco
 
 
 class mujoco_ids:
-
     robot = "pam_robot_mujoco"
 
     @classmethod

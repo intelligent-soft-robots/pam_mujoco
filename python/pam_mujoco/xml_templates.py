@@ -13,7 +13,6 @@ def _str(a):
 
 
 def _from_template(template, locals_):
-
     # not great: are listed here all the items to be replaced
     # according to all the get_xxx_xml functions below
     items = [
@@ -49,7 +48,6 @@ def _from_template(template, locals_):
 
 
 def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, mass):
-
     template = str(
         '<body pos="$position$" name="$name$">\n'
         + '<geom name="$name_geom$" type="$geom_type$" '
@@ -72,7 +70,6 @@ def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, 
 
 
 def get_table_xml(model_name, name, position, size, color, xy_axes):
-
     template_body = '<body pos = "$position$" name = "$name$" euler="$xy_axes$">'
     template_geom_plate = str(
         '<geom name="$name_plate_geom$" type="box"' + ' size="$size$" rgba="$color$" />'
@@ -115,7 +112,6 @@ def get_table_xml(model_name, name, position, size, color, xy_axes):
 
 
 def get_goal_xml(model_name, name, position, radius1, radius2, color1, color2):
-
     template = str(
         '<body pos = "$position$" name="$name$">\n'
         + '<geom name="$name_inner$" type="cylinder" '
@@ -138,7 +134,6 @@ def get_goal_xml(model_name, name, position, radius1, radius2, color1, color2):
 def get_robot_xml(
     model_name: str, name: str, position: str, xy_axes: str, muscles: bool, pamy1: bool
 ):
-
     # using the robot template xml file in pam_mujoco/models/robot_templates
     # to generate robot description xml file that will be included in the main
     # xml file
@@ -170,7 +165,6 @@ def get_robot_xml(
 
 
 def get_contacts_xml(robots, balls, tables, solrefs, gaps):
-
     template = '<pair geom1="$geom1$" geom2="$geom2$" $attrs$ />'
 
     def get_attrs(geom1, geom2):
