@@ -16,7 +16,8 @@ bool should_update_velocity(internal::ContactStates& previous_state,
 {
     for (size_t i = 0; i < 3; i++)
     {
-        if (abs(previous_state.contactee_position[i] - m[i])>position_threshold)
+        if (abs(previous_state.contactee_position[i] - m[i]) >
+            position_threshold)
         {
             return true;
         }
