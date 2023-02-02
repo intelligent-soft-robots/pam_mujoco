@@ -42,7 +42,6 @@ def _get_mujoco_items_control(
     hit_points: list,
     robot_geom: str,
 ):
-
     class_name = "".join(["Mujoco", str(mujoco_items.size), "ItemsControl"])
     class_ = getattr(pam_mujoco_wrp, class_name)
 
@@ -98,7 +97,6 @@ def _get_mujoco_item_control(
     mujoco_item: MujocoItem,
     model_item: dict,
 ) -> pam_mujoco_wrp.MujocoItemControl:
-
     if mujoco_item.control == MujocoItem.NO_CONTROL:
         return None
 
@@ -124,7 +122,6 @@ def _get_mujoco_item_control(
 
 
 def _get_mujoco_robot_control(mujoco_robot: MujocoRobot, model_item: dict):
-
     active_only = mujoco_robot.active_only_control == MujocoRobot.COMMAND_ACTIVE_CONTROL
 
     if mujoco_robot.control == MujocoRobot.JOINT_CONTROL:
@@ -164,11 +161,9 @@ class MujocoHandle:
         combined: MujocoItems = None,
         read_only: bool = False,
     ):
-
         self._mujoco_id = mujoco_id
 
         if not read_only:
-
             # combined (instance of mujoco_item.MujocoItems)
             # supports only a limited set of size (see source of MujocoItems)
             self.combined = combined
@@ -275,7 +270,6 @@ class MujocoHandle:
                 config.add_control(mujoco_item_control)
 
             if combined:
-
                 logging.info("creating item controls for combined items")
 
                 mujoco_combined_items_control = _get_mujoco_items_control(
@@ -335,7 +329,6 @@ class MujocoHandle:
         # so we read it from the shared memory
 
         if read_only:
-
             config = pam_mujoco_wrp.get_mujoco_config(mujoco_id)
             balls, goals, hit_points = [], [], []
             for item in config.item_controls:
@@ -383,7 +376,7 @@ class MujocoHandle:
                 (nb_balls, "item_{}_controls".format(nb_balls))
                 for nb_balls in (3, 10, 20, 50, 100)
             ]
-            for (nb_balls, attr) in item_controls_attrs:
+            for nb_balls, attr in item_controls_attrs:
                 mujoco_items_control_instance = getattr(config, attr)
                 if mujoco_items_control_instance:
                     combined = _Combined

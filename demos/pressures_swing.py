@@ -69,7 +69,6 @@ frontend = o80_pam.FrontEnd(segment_id)
 
 
 def go_to_posture(posture, duration_ms):
-
     for dof, (ago, antago) in posture.items():
         frontend.add_command(
             dof,

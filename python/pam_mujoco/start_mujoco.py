@@ -42,7 +42,6 @@ def pseudo_real_robot(
     extended_graphics=False,
     realtime=True,
 ):
-
     # creating the xml mujoco model
     items = pam_mujoco.model_factory(segment_id, robot1=True)
     robot = items["robot"]
@@ -54,7 +53,6 @@ def pseudo_real_robot(
 
     # function running mujoco
     def _execute_mujoco(mujoco_id, segment_id, pam_model_config):
-
         model_name = segment_id
 
         # init mujoco
@@ -99,7 +97,6 @@ def ball_and_robot(
     segment_id_goal=None,
     segment_id_hit_point=None,
 ):
-
     # creating the xml mujoco model
     use_goal = True if segment_id_goal is not None else False
     use_hit_point = True if segment_id_hit_point is not None else False
@@ -126,7 +123,6 @@ def ball_and_robot(
     }
 
     def _execute_mujoco(mujoco_id, ball, robot, goal, hit_point, segment_ids):
-
         model_name = segment_ids["robot"]
 
         # init mujoco

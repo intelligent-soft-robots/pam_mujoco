@@ -161,7 +161,6 @@ def _add_commands(
     ball2: o80_pam.MirrorFreeJointFrontEnd,
     robot: o80_pam.MirrorRobotFrontEnd,
 ) -> None:
-
     d_ball = [d[0] for d in data]
     d_robot = [d[1] for d in data]
 

@@ -81,7 +81,6 @@ def go_to(ago_pressure, antago_pressure, duration, dofs=[0, 1, 2, 3]):
 
 
 for _ in range(50):
-
     go_to(20000, 20000, 1000)
     for dof in range(4):
         print("moving dof:", dof)

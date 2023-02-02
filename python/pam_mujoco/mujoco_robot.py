@@ -4,7 +4,6 @@ from .robot_type import RobotType
 
 
 class MujocoRobot:
-
     NO_CONTROL = 0
     JOINT_CONTROL = 1
     PRESSURE_CONTROL = 2
@@ -24,7 +23,6 @@ class MujocoRobot:
         json_ago_hill_path=pam_models.get_default_config_path(),
         json_antago_hill_path=pam_models.get_default_config_path(),
     ):
-
         self.robot_type = robot_type
         self.segment_id = segment_id
         self.position = position

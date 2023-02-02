@@ -15,7 +15,7 @@ def _get_handle(
     mujoco_id, segment_id_robot, segment_id_ball, segment_id_goal, segment_id_hit_point
 ):
     robot = pam_mujoco.MujocoRobot(
-        True,segment_id_robot, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
+        True, segment_id_robot, control=pam_mujoco.MujocoRobot.JOINT_CONTROL
     )
     ball = pam_mujoco.MujocoItem(
         segment_id_ball, control=pam_mujoco.MujocoItem.CONSTANT_CONTROL
@@ -39,7 +39,6 @@ def _get_handle(
 
 
 def _execute_visualization(config):
-
     handle_to = _get_handle(
         config.mujoco_id_to,
         config.mujoco_id_to + config.segment_id_robot,
@@ -144,7 +143,6 @@ def _configure():
 
 
 def execute():
-
     config = _configure()
 
     if config is None:
@@ -157,5 +155,4 @@ def execute():
 
 
 if __name__ == "__main__":
-
     execute()

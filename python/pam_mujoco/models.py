@@ -144,7 +144,6 @@ class Robot:
 
 
 def defaults_solrefs():
-
     return {
         "ball": {
             "racket": (-0.1, -0.1),
@@ -157,7 +156,6 @@ def defaults_solrefs():
 
 
 def defaults_gaps():
-
     return {"ball": {"floor": 0.0, "table": 0.0}}
 
 
@@ -173,7 +171,6 @@ def generate_model(
     gaps=defaults_gaps(),
     muscles=False,
 ):
-
     template = paths.get_main_template_xml()
     template = template.replace("$timestep$", str(time_step))
     template = template.replace("$models_path$", paths.get_models_path())
@@ -269,7 +266,6 @@ def model_factory(
     robot1: MujocoRobot = None,
     robot2: MujocoRobot = None,
 ):
-
     r = {}
 
     tables = []
