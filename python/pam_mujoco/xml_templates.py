@@ -1,7 +1,9 @@
 from collections.abc import Iterable
 import numpy as np
 import itertools
+
 from . import paths
+from .robot_type import RobotType
 
 
 def _str(a):
@@ -132,7 +134,12 @@ def get_goal_xml(model_name, name, position, radius1, radius2, color1, color2):
 
 
 def get_robot_xml(
-    model_name: str, name: str, position: str, xy_axes: str, muscles: bool, pamy1: bool
+    model_name: str,
+    name: str,
+    position: str,
+    xy_axes: str,
+    muscles: bool,
+    pamy1: RobotType,
 ):
     # using the robot template xml file in pam_mujoco/models/robot_templates
     # to generate robot description xml file that will be included in the main

@@ -1,0 +1,15 @@
+[[tool.mypy.overrides]]
+module = [
+    "context",
+    "lightargs",
+    "matplotlib.*",
+    "o80",
+    "o80_pam",
+    "pam_configuration",
+    "pam_interface",
+    "pam_models",
+    "pam_mujoco_wrp",
+    "shared_memory",
+    "signal_handler",
+]
+ignore_missing_imports = true
