@@ -1,14 +1,23 @@
 import time
 import logging
+from functools import partial
+from typing import Protocol, Optional, Union, cast
+
 import shared_memory
 import o80
 import o80_pam
 import pam_mujoco_wrp
-from functools import partial
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
 from .mujoco_item import MujocoItem, MujocoItems
 from . import models
+
+
+class ModelItemLike(Protocol):
+    joint: str
+    index_qpos: int
+    index_qvel: int
+    geom: str
 
 
 class NoSuchFrontend(Exception):
@@ -95,7 +104,7 @@ def _get_mujoco_items_control(
 def _get_mujoco_item_control(
     mujoco_item_type: pam_mujoco_wrp.MujocoItemTypes,
     mujoco_item: MujocoItem,
-    model_item: dict,
+    model_item: ModelItemLike,
 ) -> pam_mujoco_wrp.MujocoItemControl:
     if mujoco_item.control == MujocoItem.NO_CONTROL:
         return None
@@ -121,7 +130,13 @@ def _get_mujoco_item_control(
     )
 
 
-def _get_mujoco_robot_control(mujoco_robot: MujocoRobot, model_item: dict):
+def _get_mujoco_robot_control(
+    mujoco_robot: MujocoRobot, model_item: models.Robot
+) -> Union[
+    pam_mujoco_wrp.MujocoRobotJointControl,
+    pam_mujoco_wrp.MujocoRobotPressureControl,
+    None,
+]:
     active_only = mujoco_robot.active_only_control == MujocoRobot.COMMAND_ACTIVE_CONTROL
 
     if mujoco_robot.control == MujocoRobot.JOINT_CONTROL:
@@ -151,16 +166,16 @@ class MujocoHandle:
         accelerated_time: bool = False,
         graphics: bool = True,
         time_step: float = 0.002,
-        table: MujocoTable = None,
-        robot1: MujocoRobot = None,
-        robot2: MujocoRobot = None,
+        table: Optional[MujocoTable] = None,
+        robot1: Optional[MujocoRobot] = None,
+        robot2: Optional[MujocoRobot] = None,
         balls: list = [],  # list of mujoco_item.MujocoItem
         goals: list = [],  # list of mujoco_item.MujocoItem
         hit_points: list = [],
         # list of mujoco_item.MujocoItems (with 's' at the end)
-        combined: MujocoItems = None,
+        combined: Optional[MujocoItems] = None,
         read_only: bool = False,
-    ):
+    ) -> None:
         self._mujoco_id = mujoco_id
 
         if not read_only:
@@ -346,14 +361,16 @@ class MujocoHandle:
             robots = []
             for joint_robot in config.joint_controls:
                 r = MujocoRobot(
-                    True,  # has no effect, because no xml config file is written
+                    # robot type has no effect, because no xml config file is written
+                    True,  # type: ignore
                     joint_robot.segment_id,
                     control=MujocoRobot.JOINT_CONTROL,
                 )
                 robots.append(r)
             for pressure_robot in config.pressure_controls:
                 r = MujocoRobot(
-                    True,  # has no effect, because no xml config file is written
+                    # robot type has no effect, because no xml config file is written
+                    True,  # type: ignore
                     joint_robot.segment_id,
                     control=MujocoRobot.PRESSURE_CONTROL,
                 )
@@ -379,7 +396,7 @@ class MujocoHandle:
             for nb_balls, attr in item_controls_attrs:
                 mujoco_items_control_instance = getattr(config, attr)
                 if mujoco_items_control_instance:
-                    combined = _Combined
+                    combined = cast(MujocoItems, _Combined())
                     combined.size = nb_balls
                     combined.segment_id = mujoco_items_control_instance[0].segment_id
                     break

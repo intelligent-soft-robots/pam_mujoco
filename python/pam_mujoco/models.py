@@ -1,3 +1,5 @@
+from typing import Optional
+
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
 from . import xml_templates
@@ -259,22 +261,22 @@ def generate_model(
 def model_factory(
     model_name: str,
     time_step: float = 0.002,
-    table: MujocoTable = None,
+    table: Optional[MujocoTable] = None,
     balls: list = [],
     goals: list = [],
     hit_points: list = [],
-    robot1: MujocoRobot = None,
-    robot2: MujocoRobot = None,
+    robot1: Optional[MujocoRobot] = None,
+    robot2: Optional[MujocoRobot] = None,
 ):
-    r = {}
+    r: dict = {}
 
     tables = []
     if table is not None:
-        table = Table(
+        _table = Table(
             model_name, table.segment_id, table.position, table.size, table.orientation
         )
-        tables.append(table)
-        r["table"] = table
+        tables.append(_table)
+        r["table"] = _table
     else:
         r["table"] = None
 

@@ -132,6 +132,7 @@ def go_to_pressure_posture(
     parallel_burst=None,
     bursts_per_iter=10,
 ):
+    mirrorings: Iterable
     if not isinstance(o80_mirroring, Iterable):
         mirrorings = [o80_mirroring]
     else:
@@ -223,6 +224,7 @@ def go_to_position_posture(
     pam_config,
     accelerated_time,
 ):
+    mirrorings: Iterable
     if not isinstance(o80_mirroring, Iterable):
         mirrorings = [o80_mirroring]
     else:

@@ -1,4 +1,6 @@
 import os
+from typing import Optional
+
 import pam_configuration
 from .robot_type import RobotType
 
@@ -20,7 +22,7 @@ def get_main_template_xml():
     return template
 
 
-def get_robot_templates_path(robot_type: RobotType = None) -> str:
+def get_robot_templates_path(robot_type: Optional[RobotType] = None) -> str:
     root = get_models_path() + os.sep + "robot_templates"
     if robot_type is None:
         return root
