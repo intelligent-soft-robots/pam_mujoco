@@ -3,6 +3,7 @@ import typing as t
 from collections.abc import Iterable
 
 import numpy as np
+from scipy.spatial.transform import Rotation
 
 from . import paths
 from .robot_type import RobotType
@@ -35,6 +36,12 @@ def _from_template(template: str, /, **kwargs) -> str:
     result = template.format(**values)
 
     return result
+
+
+def _mujoco_quaternion(rotation: Rotation) -> np.ndarray:
+    """Convert a Rotation object to a MuJoCo-compatible quaternion (w, x, y, z)."""
+    # roll moves the `w` from the last position to the first
+    return np.roll(rotation.as_quat(), 1)
 
 
 def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, mass):

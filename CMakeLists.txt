@@ -216,6 +216,7 @@ ament_package()
 
 if(BUILD_TESTING)
   find_package(ament_cmake_gtest REQUIRED)
+  find_package(ament_cmake_pytest REQUIRED)
 
   # ignored for now
   # ament_add_gtest(test_${PROJECT_NAME}_cpp tests/main.cpp tests/unittests.cpp)
@@ -235,5 +236,7 @@ if(BUILD_TESTING)
       $<INSTALL_INTERFACE:include>
   )
   target_link_libraries(test_mj_state_tools mj_state_tools)
+
+  ament_add_pytest_test(test_xml_templates tests/test_xml_templates.py)
 
 endif()
