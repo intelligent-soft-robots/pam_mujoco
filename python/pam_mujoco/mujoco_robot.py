@@ -15,14 +15,21 @@ class MujocoRobot:
         self,
         robot_type: RobotType,
         segment_id,
-        position=[0.0, 0.0, 1.21],
+        position=(0.0, 0.0, 1.21),
         orientation="0.0 0.0 0.0",
         control=NO_CONTROL,
         active_only_control=CONSTANT_CONTROL,
-        json_control_path=pam_interface.Pamy2DefaultConfiguration.get_path(True),
-        json_ago_hill_path=pam_models.get_default_config_path(),
-        json_antago_hill_path=pam_models.get_default_config_path(),
-    ):
+        json_control_path=None,
+        json_ago_hill_path=None,
+        json_antago_hill_path=None,
+    ) -> None:
+        if json_control_path is None:
+            json_control_path = pam_interface.Pamy2DefaultConfiguration.get_path(True)
+        if json_ago_hill_path is None:
+            json_ago_hill_path = pam_models.get_default_config_path()
+        if json_antago_hill_path is None:
+            json_antago_hill_path = pam_models.get_default_config_path()
+
         self.robot_type = robot_type
         self.segment_id = segment_id
         self.position = position
