@@ -132,7 +132,7 @@ def get_robot_xml(
     model_name: str,
     name: str,
     position: t.Union[str, t.Iterable[float]],
-    orientation: t.Union[str, t.Iterable[float]],
+    orientation: t.Optional[Rotation],
     muscles: bool,
     robot_type: RobotType,
 ) -> t.Tuple[str, str, str, int]:
@@ -143,10 +143,10 @@ def get_robot_xml(
 
     optional = {}
     if orientation is not None:
-        optional["orientation"] = orientation
+        optional["mujoco_quat"] = _mujoco_quaternion(orientation)
 
         template = """
-            <body name="{name}" pos="{position}" euler="{orientation}">
+            <body name="{name}" pos="{position}" quat="{mujoco_quat}">
               <include file="{filename}"/>
             </body>
         """

@@ -1,5 +1,7 @@
 import typing as t
 
+from scipy.spatial.transform import Rotation
+
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
 from .robot_type import RobotType
@@ -125,7 +127,7 @@ class Robot:
         model_name: str,
         name: str,
         position: t.Sequence[float],
-        orientation: str,
+        orientation: Rotation,
         muscles: bool,
     ) -> None:
         self.robot_type = robot_type

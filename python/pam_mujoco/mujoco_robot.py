@@ -1,6 +1,8 @@
 import pathlib
 import typing as t
 
+from scipy.spatial.transform import Rotation
+
 import pam_models
 import pam_interface
 from .robot_type import RobotType
@@ -19,13 +21,15 @@ class MujocoRobot:
         robot_type: RobotType,
         segment_id: str,
         position: t.Sequence[float] = (0.0, 0.0, 1.21),
-        orientation: str = "0.0 0.0 0.0",
+        orientation: t.Optional[Rotation] = None,
         control: int = NO_CONTROL,
         active_only_control: int = CONSTANT_CONTROL,
         json_control_path: t.Optional[pathlib.Path] = None,
         json_ago_hill_path: t.Optional[pathlib.Path] = None,
         json_antago_hill_path: t.Optional[pathlib.Path] = None,
     ) -> None:
+        if orientation is None:
+            orientation = Rotation.identity()
         if json_control_path is None:
             json_control_path = pathlib.Path(
                 pam_interface.Pamy2DefaultConfiguration.get_path(True)
