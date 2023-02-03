@@ -1,6 +1,8 @@
-from collections.abc import Iterable
-import numpy as np
 import itertools
+import typing as t
+from collections.abc import Iterable
+
+import numpy as np
 
 from . import paths
 from .robot_type import RobotType
@@ -14,57 +16,43 @@ def _str(a):
     return str(a)
 
 
-def _from_template(template, locals_):
-    # not great: are listed here all the items to be replaced
-    # according to all the get_xxx_xml functions below
-    items = [
-        "position",
-        "color",
-        "name",
-        "size",
-        "mass",
-        "name_geom",
-        "name_joint",
-        "geom_type",  # get_free_joint_body_xml
-        "radius1",
-        "radius2",
-        "color1",
-        "color2",  # get_goal_xml
-        "index",
-        "name_plate",
-        "name_net",
-        "name_net_geom",
-        "name_plate_geom",  # get_table_xml
-        "name_inner",
-        "name_outer",
-        "filename",
-        "xy_axes",
-    ]  # get_robot_xml
+def _from_template(template: str, /, **kwargs) -> str:
+    """Replace variables in template based on given keyword arguments.
 
-    template_ = template
+    Iterable values are converted to a string "v1 v2 v3 ...", all other values are
+    converted using ``str()``.
 
-    for item in [item for item in items if item in locals_.keys()]:
-        template_ = template_.replace("$" + item + "$", _str(locals_[item]))
+    Args:
+        template: A template with variables that are compatible with `str.format()`
+            (i.e. something like "value='{foo}'").
+        **kwargs: Value for the template variables.  Names need to match with the ones
+            used in the template.
 
-    return template_
+    Returns:
+        Template string with all variables replaced with actual values.
+    """
+    values = {k: _str(v) for k, v in kwargs.items()}
+    result = template.format(**values)
+
+    return result
 
 
 def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, mass):
     template = str(
-        '<body pos="$position$" name="$name$">\n'
-        + '<geom name="$name_geom$" type="$geom_type$" '
+        '<body pos="{position}" name="{name}">\n'
+        + '<geom name="{name_geom}" type="{geom_type}" '
     )
     if mass > 0:
-        template += 'size="$size$" rgba="$color$" pos="$position$" mass="$mass$"/>\n'
+        template += 'size="{size}" rgba="{color}" pos="{position}" mass="{mass}"/>\n'
     else:
-        template += 'size="$size$" rgba="$color$" pos="$position$" />\n'
+        template += 'size="{size}" rgba="{color}" pos="{position}" />\n'
 
-    template += str('<joint type="free" name="$name_joint$"/>\n' + "</body>\n")
+    template += str('<joint type="free" name="{name_joint}"/>\n' + "</body>\n")
 
     name_geom = name + "_geom"
     name_joint = name + "_joint"
 
-    xml = _from_template(template, locals())
+    xml = _from_template(template, **locals())
 
     nb_bodies = 1
 
@@ -72,17 +60,17 @@ def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, 
 
 
 def get_table_xml(model_name, name, position, size, color, xy_axes):
-    template_body = '<body pos = "$position$" name = "$name$" euler="$xy_axes$">'
+    template_body = '<body pos = "{position}" name = "{name}" euler="{xy_axes}">'
     template_geom_plate = str(
-        '<geom name="$name_plate_geom$" type="box"' + ' size="$size$" rgba="$color$" />'
+        '<geom name="{name_plate_geom}" type="box"' + ' size="{size}" rgba="{color}" />'
     )
 
     template_geom_leg = str(
-        '<geom name="leg_$index$" pos= "$position$"'
+        '<geom name="leg_{index}" pos= "{position}"'
         + ' type="box" size="0.02 0.02 0.38" rgba="0.1 0.1 0.1 1.0"/>'
     )
     template_geom_net = str(
-        '<geom name="$name_net_geom$" pos = "0.0 0.0 0.07625"'
+        '<geom name="{name_net_geom}" pos = "0.0 0.0 0.07625"'
         + ' type="box" size="0.7825 0.02 0.07625" rgba="0.1 0.1 0.1 0.4"/>'
     )
 
@@ -90,9 +78,9 @@ def get_table_xml(model_name, name, position, size, color, xy_axes):
     name_net_geom = name + "_net"
 
     xml = [
-        _from_template(template_body, locals()),
-        _from_template(template_geom_plate, locals()),
-        _from_template(template_geom_net, locals()),
+        _from_template(template_body, **locals()),
+        _from_template(template_geom_plate, **locals()),
+        _from_template(template_geom_net, **locals()),
     ]
 
     # computing the positions of the legs
@@ -103,7 +91,7 @@ def get_table_xml(model_name, name, position, size, color, xy_axes):
     legs = np.append(legs, legs_z, axis=1)
 
     for index, position in enumerate(legs):
-        xml_leg = _from_template(template_geom_leg, locals())
+        xml_leg = _from_template(template_geom_leg, **locals())
         xml.append(xml_leg)
 
     xml.append("</body>\n")
@@ -115,18 +103,18 @@ def get_table_xml(model_name, name, position, size, color, xy_axes):
 
 def get_goal_xml(model_name, name, position, radius1, radius2, color1, color2):
     template = str(
-        '<body pos = "$position$" name="$name$">\n'
-        + '<geom name="$name_inner$" type="cylinder" '
-        + ' pos="0 0 0" size="$radius1$ 0.0005" rgba="$color1$"/>\n'
-        + '<geom name="$name_outer$" type="cylinder" pos="0 0 0" '
-        + 'size="$radius2$ 0.0004" rgba="$color2$"/>\n'
+        '<body pos = "{position}" name="{name}">\n'
+        + '<geom name="{name_inner}" type="cylinder" '
+        + ' pos="0 0 0" size="{radius1} 0.0005" rgba="{color1}"/>\n'
+        + '<geom name="{name_outer}" type="cylinder" pos="0 0 0" '
+        + 'size="{radius2} 0.0004" rgba="{color2}"/>\n'
         + "</body>\n"
     )
 
     name_inner = name + "_inner"
     name_outer = name + "_outer"
 
-    xml = _from_template(template, locals())
+    xml = _from_template(template, **locals())
 
     nb_bodies = 1
 
@@ -136,30 +124,35 @@ def get_goal_xml(model_name, name, position, radius1, radius2, color1, color2):
 def get_robot_xml(
     model_name: str,
     name: str,
-    position: str,
-    xy_axes: str,
+    position: t.Union[str, t.Iterable[float]],
+    orientation: t.Union[str, t.Iterable[float]],
     muscles: bool,
-    pamy1: RobotType,
-):
+    robot_type: RobotType,
+) -> t.Tuple[str, str, str, int]:
     # using the robot template xml file in pam_mujoco/models/robot_templates
     # to generate robot description xml file that will be included in the main
     # xml file
-    filename = paths.write_robot_body_xml(model_name, name, muscles, pamy1)
+    filename = paths.write_robot_body_xml(model_name, name, muscles, robot_type)
 
-    if xy_axes is not None:
-        template = str(
-            '<body name="$name$" pos="$position$" euler="$xy_axes$">\n'
-            + '<include file="$filename$"/>\n'
-            + "</body>\n"
-        )
+    optional = {}
+    if orientation is not None:
+        optional["orientation"] = orientation
+
+        template = """
+            <body name="{name}" pos="{position}" euler="{orientation}">
+              <include file="{filename}"/>
+            </body>
+        """
     else:
-        template = str(
-            '<body name="$name$" pos="$position$">\n'
-            + '<include file="$filename$"/>\n'
-            + "</body>\n"
-        )
+        template = """
+            <body name="{name}" pos="{position}">
+              <include file="{filename}"/>
+            </body>
+        """
 
-    xml = _from_template(template, locals())
+    xml = _from_template(
+        template, name=name, position=position, filename=filename, **optional
+    )
 
     nb_bodies = 25  # just from counting in the xml template file
 
@@ -172,7 +165,7 @@ def get_robot_xml(
 
 
 def get_contacts_xml(robots, balls, tables, solrefs, gaps):
-    template = '<pair geom1="$geom1$" geom2="$geom2$" $attrs$ />'
+    template = '<pair geom1="{geom1}" geom2="{geom2}" {attrs} />'
 
     def get_attrs(geom1, geom2):
         damping = None
@@ -192,9 +185,9 @@ def get_contacts_xml(robots, balls, tables, solrefs, gaps):
         return r
 
     def get_xml(geom1, geom2, type1, type2):
-        c = template.replace("$geom1$", geom1)
-        c = c.replace("$geom2$", geom2)
-        c = c.replace("$attrs$", get_attrs(type1, type2))
+        c = template.replace("{geom1}", geom1)
+        c = c.replace("{geom2}", geom2)
+        c = c.replace("{attrs}", get_attrs(type1, type2))
         return c
 
     contacts = []
