@@ -1,7 +1,8 @@
-from typing import Optional
+import typing as t
 
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
+from .robot_type import RobotType
 from . import xml_templates
 from . import paths
 
@@ -118,34 +119,43 @@ class Table:
 
 
 class Robot:
-    def __init__(self, robot_type, model_name, name, position, xy_axes, muscles):
+    def __init__(
+        self,
+        robot_type: RobotType,
+        model_name: str,
+        name: str,
+        position: t.Sequence[float],
+        orientation: str,
+        muscles: bool,
+    ) -> None:
         self.robot_type = robot_type
         self.model_name = model_name
         self.name = name
         self.position = position
-        self.xy_axes = xy_axes
+        self.orientation = orientation
         self.muscles = muscles
+
         # will be filled by the "generate_model"
         # function (in this file)
-        self.geom_racket = None
-        self.geom_net = None
-        self.joint = None
+        self.geom_racket: t.Optional[str] = None
+        self.geom_net = None  # TODO unused?
+        self.joint: t.Optional[str] = None
         self.index_qpos = -1
         self.index_qvel = -1
 
-    def get_xml(self):
+    def get_xml(self) -> t.Tuple[str, str, str, int]:
         (xml, joint, geom_racket, nb_bodies) = xml_templates.get_robot_xml(
             self.model_name,
             self.name,
             self.position,
-            self.xy_axes,
+            self.orientation,
             self.muscles,
             self.robot_type,
         )
         return (xml, joint, geom_racket, nb_bodies)
 
 
-def defaults_solrefs():
+def defaults_solrefs() -> t.Dict[str, t.Dict[str, t.Tuple[float, float]]]:
     return {
         "ball": {
             "racket": (-0.1, -0.1),
@@ -157,22 +167,22 @@ def defaults_solrefs():
     }
 
 
-def defaults_gaps():
+def defaults_gaps() -> t.Dict[str, t.Dict[str, float]]:
     return {"ball": {"floor": 0.0, "table": 0.0}}
 
 
 def generate_model(
-    model_name,
-    time_step=0.002,
-    robots=[],
-    balls=[],
-    tables=[],
-    goals=[],
-    hit_points=[],
-    solrefs=defaults_solrefs(),
-    gaps=defaults_gaps(),
-    muscles=False,
-):
+    model_name: str,
+    time_step: float = 0.002,
+    robots: t.Sequence[Robot] = [],
+    balls: t.Sequence[Ball] = [],
+    tables: t.Sequence[Table] = [],
+    goals: t.Sequence[Goal] = [],
+    hit_points: t.Sequence[HitPoint] = [],
+    solrefs: t.Dict[str, t.Dict[str, t.Tuple[float, float]]] = defaults_solrefs(),
+    gaps: t.Dict[str, t.Dict[str, float]] = defaults_gaps(),
+    muscles: bool = False,
+) -> str:
     template = paths.get_main_template_xml()
     template = template.replace("$timestep$", str(time_step))
     template = template.replace("$models_path$", paths.get_models_path())
@@ -261,13 +271,13 @@ def generate_model(
 def model_factory(
     model_name: str,
     time_step: float = 0.002,
-    table: Optional[MujocoTable] = None,
+    table: t.Optional[MujocoTable] = None,
     balls: list = [],
     goals: list = [],
     hit_points: list = [],
-    robot1: Optional[MujocoRobot] = None,
-    robot2: Optional[MujocoRobot] = None,
-):
+    robot1: t.Optional[MujocoRobot] = None,
+    robot2: t.Optional[MujocoRobot] = None,
+) -> dict:
     r: dict = {}
 
     tables = []
