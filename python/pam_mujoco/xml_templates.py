@@ -9,7 +9,7 @@ from . import paths
 from .robot_type import RobotType
 
 
-def _str(a):
+def _str(a: t.Any) -> str:
     if isinstance(a, str):
         return a
     if isinstance(a, Iterable):
@@ -17,7 +17,7 @@ def _str(a):
     return str(a)
 
 
-def _from_template(template: str, /, **kwargs) -> str:
+def _from_template(template: str, /, **kwargs: t.Any) -> str:
     """Replace variables in template based on given keyword arguments.
 
     Iterable values are converted to a string "v1 v2 v3 ...", all other values are
@@ -66,28 +66,40 @@ def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, 
     return xml, name_geom, name_joint, nb_bodies
 
 
-def get_table_xml(model_name, name, position, size, color, xy_axes):
-    template_body = '<body pos = "{position}" name = "{name}" euler="{xy_axes}">'
-    template_geom_plate = str(
-        '<geom name="{name_plate_geom}" type="box"' + ' size="{size}" rgba="{color}" />'
-    )
+def get_table_xml(
+    model_name: str,
+    name: str,
+    position: t.Union[str, t.Iterable[float]],
+    size: t.Sequence[float],
+    color: t.Tuple[float, float, float, float],
+    orientation: Rotation,
+) -> t.Tuple[str, str, str, int]:
+    mujoco_quat = _mujoco_quaternion(orientation)
 
-    template_geom_leg = str(
-        '<geom name="leg_{index}" pos= "{position}"'
-        + ' type="box" size="0.02 0.02 0.38" rgba="0.1 0.1 0.1 1.0"/>'
+    template_body = '<body pos="{position}" name="{name}" quat="{mujoco_quat}">'
+    template_geom_plate = (
+        '<geom name="{name_plate_geom}" type="box" size="{size}" rgba="{color}" />'
     )
-    template_geom_net = str(
-        '<geom name="{name_net_geom}" pos = "0.0 0.0 0.07625"'
-        + ' type="box" size="0.7825 0.02 0.07625" rgba="0.1 0.1 0.1 0.4"/>'
+    template_geom_net = (
+        '<geom name="{name_net_geom}" pos="0.0 0.0 0.07625" type="box"'
+        ' size="0.7825 0.02 0.07625" rgba="0.1 0.1 0.1 0.4"/>'
+    )
+    template_geom_leg = (
+        '<geom name="leg_{index}" pos="{position}" type="box" size="0.02 0.02 0.38"'
+        ' rgba="0.1 0.1 0.1 1.0"/>'
     )
 
     name_plate_geom = name + "_plate"
     name_net_geom = name + "_net"
 
     xml = [
-        _from_template(template_body, **locals()),
-        _from_template(template_geom_plate, **locals()),
-        _from_template(template_geom_net, **locals()),
+        _from_template(
+            template_body, name=name, position=position, mujoco_quat=mujoco_quat
+        ),
+        _from_template(
+            template_geom_plate, name_plate_geom=name_plate_geom, size=size, color=color
+        ),
+        _from_template(template_geom_net, name_net_geom=name_net_geom),
     ]
 
     # computing the positions of the legs
@@ -98,7 +110,7 @@ def get_table_xml(model_name, name, position, size, color, xy_axes):
     legs = np.append(legs, legs_z, axis=1)
 
     for index, position in enumerate(legs):
-        xml_leg = _from_template(template_geom_leg, **locals())
+        xml_leg = _from_template(template_geom_leg, index=index, position=position)
         xml.append(xml_leg)
 
     xml.append("</body>\n")

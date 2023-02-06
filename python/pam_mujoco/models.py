@@ -95,27 +95,33 @@ class Ball:
 
 class Table:
     def __init__(
-        self, model_name, name, position, size, xy_axes, color=[0.05, 0.3, 0.23, 1.0]
-    ):
+        self,
+        model_name: str,
+        name: str,
+        position: t.Sequence[float],
+        size: t.Sequence[float],
+        orientation: Rotation,
+        color: t.Tuple[float, float, float, float] = (0.05, 0.3, 0.23, 1.0),
+    ) -> None:
         self.model_name = model_name
         self.name = name
         self.position = position
         self.size = size
         self.color = color
-        self.xy_axes = xy_axes
-        # will be filled by the "generate_model"
-        # function (in this file)
-        self.geom_plate = None
-        self.geom_net = None
+        self.orientation = orientation
 
-    def get_xml(self):
+        # will be filled by the "generate_model" function (in this file)
+        self.geom_plate: t.Optional[str] = None
+        self.geom_net: t.Optional[str] = None
+
+    def get_xml(self) -> t.Tuple[str, str, str, int]:
         (xml, name_plate_geom, name_net_geom, nb_bodies) = xml_templates.get_table_xml(
             self.name,
             self.model_name,
             self.position,
             self.size,
             self.color,
-            self.xy_axes,
+            self.orientation,
         )
         return (xml, name_plate_geom, name_net_geom, nb_bodies)
 
