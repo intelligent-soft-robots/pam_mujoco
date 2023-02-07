@@ -65,7 +65,6 @@ class ParallelBurst:
 # (pseudo) real robot, using incremental steps to avoid
 # simulation unstabilities
 def align_robots(o80_pressures, o80_mirroring, step=0.01, bursts_per_step=10):
-
     if not isinstance(o80_mirroring, Iterable):
         mirrorings = [o80_mirroring]
     else:
@@ -87,13 +86,11 @@ def align_robots(o80_pressures, o80_mirroring, step=0.01, bursts_per_step=10):
             return False, current
 
     def _align(target_positions, target_velocities, mirroring, bursts_per_step):
-
         positions, velocities = mirroring.get()
 
         over = [False] * len(target_positions)
 
         while not all(over):
-
             p = list(map(_one_step, zip(target_positions, positions)))
             v = list(map(_one_step, zip(target_velocities, velocities)))
 
@@ -135,7 +132,7 @@ def go_to_pressure_posture(
     parallel_burst=None,
     bursts_per_iter=10,
 ):
-
+    mirrorings: Iterable
     if not isinstance(o80_mirroring, Iterable):
         mirrorings = [o80_mirroring]
     else:
@@ -227,7 +224,7 @@ def go_to_position_posture(
     pam_config,
     accelerated_time,
 ):
-
+    mirrorings: Iterable
     if not isinstance(o80_mirroring, Iterable):
         mirrorings = [o80_mirroring]
     else:

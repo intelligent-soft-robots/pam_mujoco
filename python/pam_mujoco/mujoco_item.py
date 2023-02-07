@@ -1,5 +1,4 @@
 class MujocoItem:
-
     NO_CONTROL = 0
     CONSTANT_CONTROL = 1
     COMMAND_ACTIVE_CONTROL = 2
@@ -12,7 +11,6 @@ class MujocoItem:
 
 
 class MujocoItems:
-
     # only these templates exists
     # for the moment
     # in /include/mujoco_config.hpp
@@ -20,7 +18,6 @@ class MujocoItems:
     accepted_sizes = (3, 10, 20, 50, 100)
 
     def __init__(self, segment_id):
-
         self.items = {"balls": [], "goals": [], "hit_points": []}
         self.segment_id = segment_id
         self.contact_type = None
@@ -43,7 +40,6 @@ class MujocoItems:
         return r
 
     def _add(self, item: MujocoItem, category):
-
         for other in self.all_items():
             if other.control != item.control:
                 raise ValueError(

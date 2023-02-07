@@ -11,11 +11,13 @@ ContactStates::ContactStates() : time_stamp(-1), velocity_time_stamp(-1)
 bool should_update_velocity(internal::ContactStates& previous_state,
                             mjtNum* m,
                             double time,
-                            double time_threshold = 0.1)
+                            double time_threshold = 0.1,
+                            double position_threshold = 0.0000001)
 {
     for (size_t i = 0; i < 3; i++)
     {
-        if (previous_state.contactee_position[i] != m[i])
+        if (abs(previous_state.contactee_position[i] - m[i]) >
+            position_threshold)
         {
             return true;
         }

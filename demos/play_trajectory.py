@@ -75,7 +75,6 @@ pam_mujoco.wait_for_mujoco(mujoco_id, -1)
 
 # playing 3 trajectories
 for run in range(3):
-
     # initializing o80 frontend for sending ball/hit_point position/velocity
     # to mujoco thread
     frontend_ball1 = o80_pam.BallFrontEnd("ball1")

@@ -93,7 +93,6 @@ def configure_simulation(
     use_ball=False,
     segment_id_tennicam=None,
 ):
-
     accelerated_time = False
     burst_mode = False
 
@@ -115,7 +114,9 @@ def configure_simulation(
 
     if segment_id_tennicam:
         ball = pam_mujoco.MujocoItem(
-            "ball", control=pam_mujoco.MujocoItem.CONSTANT_CONTROL, color=(0.8, 1, 0.8, 1)
+            "ball",
+            control=pam_mujoco.MujocoItem.CONSTANT_CONTROL,
+            color=(0.8, 1, 0.8, 1),
         )
         table = pam_mujoco.MujocoTable("table")
         balls = (ball,)
@@ -169,7 +170,6 @@ class Tennicam:
 
 
 def run():
-
     config = configure()
     use_ball = config.shoot_ball
     ball_period = config.ball_period
@@ -198,8 +198,10 @@ def run():
     )
 
     mirroring_handle = configure_simulation(
-        config.robot_type, mujoco_id=config.mujoco_id_mirroring, 
-        use_ball=use_ball, segment_id_tennicam=segment_id_tennicam
+        config.robot_type,
+        mujoco_id=config.mujoco_id_mirroring,
+        use_ball=use_ball,
+        segment_id_tennicam=segment_id_tennicam,
     )
     joints = mirroring_handle.interfaces[SEGMENT_ID_ROBOT_MIRROR]
 
@@ -222,11 +224,11 @@ def run():
         while not signal_handler.has_received_sigint():
             try:
                 _, __, joint_positions, joint_velocities = pressures.read()
-                #print(
+                # print(
                 #    "{:.2f} {:.2f} {:.2f} | {:.2f} {:.2f} {:.2f}".format(
                 #        *joint_positions, *joint_velocities
                 #    )
-                #)
+                # )
                 joints.set(
                     joint_positions, joint_velocities, duration_ms=None, wait=False
                 )
@@ -244,5 +246,4 @@ def run():
 
 
 if __name__ == "__main__":
-
     run()

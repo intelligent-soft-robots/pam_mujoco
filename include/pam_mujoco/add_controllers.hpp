@@ -52,14 +52,17 @@ void add_contact_free_joint(std::string segment_id,
                             ContactItems contact_item);
 
 void add_table_contact_free_joint(std::string segment_id,
+				  std::string joint,
                                   std::string geom,
                                   std::string contactee_geom);
 
 void add_robot1_contact_free_joint(std::string segment_id,
+				   std::string joint,
                                    std::string geom,
                                    std::string contactee_geom);
 
 void add_robot2_contact_free_joint(std::string segment_id,
+				   std::string joint,
                                    std::string geom,
                                    std::string contactee_geom);
 

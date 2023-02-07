@@ -65,14 +65,10 @@ MujocoItemControl::MujocoItemControl()
 MujocoItemControl::MujocoItemControl(MujocoItemTypes _type,
                                      std::string _segment_id,
                                      std::string _joint,
-                                     int _index_qpos,
-                                     int _index_qvel,
                                      std::string _geometry,
                                      bool _active_only,
                                      ContactTypes _contact_type)
     : type{_type},
-      index_qpos{_index_qpos},
-      index_qvel{_index_qvel},
       active_only{_active_only},
       contact_type{_contact_type}
 {

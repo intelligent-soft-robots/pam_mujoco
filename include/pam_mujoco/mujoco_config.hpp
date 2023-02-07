@@ -86,8 +86,6 @@ public:
     MujocoItemControl(MujocoItemTypes _type,
                       std::string _segment_id,
                       std::string _joint,
-                      int _index_qpos,
-                      int _index_qvel,
                       std::string _geometry,
                       bool _active_only,
                       ContactTypes _contact_type);
@@ -102,8 +100,6 @@ public:
         archive(type,
                 segment_id,
                 joint,
-                index_qpos,
-                index_qvel,
                 geometry,
                 active_only,
                 contact_type);
@@ -113,8 +109,6 @@ public:
     MujocoItemTypes type;
     char segment_id[200];
     char joint[200];
-    int index_qpos;
-    int index_qvel;
     char geometry[100];
     bool active_only;
     ContactTypes contact_type;
@@ -128,8 +122,6 @@ public:
     MujocoItemsControl(std::array<MujocoItemTypes, NB_ITEMS> _type,
                        std::string _segment_id,
                        std::array<std::string, NB_ITEMS> _joint,
-                       std::array<int, NB_ITEMS> _index_qpos,
-                       std::array<int, NB_ITEMS> _index_qvel,
                        std::array<std::string, NB_ITEMS> _geometry,
                        std::string _robot_geom,
                        bool _active_only,
@@ -145,8 +137,6 @@ public:
         archive(type,
                 segment_id,
                 joint,
-                index_qpos,
-                index_qvel,
                 geometry,
                 robot_geom,
                 active_only,
@@ -157,8 +147,6 @@ public:
     std::array<MujocoItemTypes, NB_ITEMS> type;
     char segment_id[200];
     std::array<char[200], NB_ITEMS> joint;
-    std::array<int, NB_ITEMS> index_qpos;
-    std::array<int, NB_ITEMS> index_qvel;
     std::array<char[100], NB_ITEMS> geometry;
     char robot_geom[200];
     bool active_only;

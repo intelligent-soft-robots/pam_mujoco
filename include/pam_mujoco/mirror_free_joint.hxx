@@ -36,7 +36,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(std::string segment_id)
 template <int QUEUE_SIZE>
 void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
 {
-  if (index_qpos_<0)
+    if (index_qpos_<0)
     {
       index_qpos_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];
       index_qvel_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];

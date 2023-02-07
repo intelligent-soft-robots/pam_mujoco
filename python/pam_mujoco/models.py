@@ -1,5 +1,10 @@
+import typing as t
+
+from scipy.spatial.transform import Rotation
+
 from .mujoco_robot import MujocoRobot
 from .mujoco_table import MujocoTable
+from .robot_type import RobotType
 from . import xml_templates
 from . import paths
 
@@ -22,11 +27,9 @@ class HitPoint:
         # function (in this file)
         self.geom = None
         self.joint = None
-        self.index_qpos = -1
-        self.index_qvel = -1
 
     def get_xml(self):
-        (xml, name_geom, name_joint, nb_bodies) = xml_templates.get_free_joint_body_xml(
+        (xml, name_geom, name_joint) = xml_templates.get_free_joint_body_xml(
             self.model_name,
             self.name,
             "cylinder",
@@ -35,7 +38,7 @@ class HitPoint:
             self.color,
             0,
         )
-        return (xml, name_geom, name_joint, nb_bodies)
+        return (xml, name_geom, name_joint)
 
 
 class Goal(HitPoint):
@@ -72,11 +75,9 @@ class Ball:
         # function (in this file)
         self.geom = None
         self.joint = None
-        self.index_qpos = -1
-        self.index_qvel = -1
 
     def get_xml(self):
-        (xml, name_geom, name_joint, nb_bodies) = xml_templates.get_free_joint_body_xml(
+        (xml, name_geom, name_joint) = xml_templates.get_free_joint_body_xml(
             self.model_name,
             self.name,
             "sphere",
@@ -85,66 +86,78 @@ class Ball:
             self.color,
             self.mass,
         )
-        return (xml, name_geom, name_joint, nb_bodies)
+        return (xml, name_geom, name_joint)
 
 
 class Table:
     def __init__(
-        self, model_name, name, position, size, xy_axes, color=[0.05, 0.3, 0.23, 1.0]
-    ):
+        self,
+        model_name: str,
+        name: str,
+        position: t.Sequence[float],
+        size: t.Sequence[float],
+        orientation: Rotation,
+        color: t.Tuple[float, float, float, float] = (0.05, 0.3, 0.23, 1.0),
+    ) -> None:
         self.model_name = model_name
         self.name = name
         self.position = position
         self.size = size
         self.color = color
-        self.xy_axes = xy_axes
-        # will be filled by the "generate_model"
-        # function (in this file)
-        self.geom_plate = None
-        self.geom_net = None
+        self.orientation = orientation
 
-    def get_xml(self):
-        (xml, name_plate_geom, name_net_geom, nb_bodies) = xml_templates.get_table_xml(
-            self.name,
+        # will be filled by the "generate_model" function (in this file)
+        self.geom_plate: t.Optional[str] = None
+        self.geom_net: t.Optional[str] = None
+
+    def get_xml(self) -> t.Tuple[str, str, str, int]:
+        (xml, name_plate_geom, name_net_geom) = xml_templates.get_table_xml(
             self.model_name,
+            self.name,
             self.position,
             self.size,
             self.color,
-            self.xy_axes,
+            self.orientation,
         )
-        return (xml, name_plate_geom, name_net_geom, nb_bodies)
+        return (xml, name_plate_geom, name_net_geom)
 
 
 class Robot:
-    def __init__(self, robot_type, model_name, name, position, xy_axes, muscles):
+    def __init__(
+        self,
+        robot_type: RobotType,
+        model_name: str,
+        name: str,
+        position: t.Sequence[float],
+        orientation: Rotation,
+        muscles: bool,
+    ) -> None:
         self.robot_type = robot_type
         self.model_name = model_name
         self.name = name
         self.position = position
-        self.xy_axes = xy_axes
+        self.orientation = orientation
         self.muscles = muscles
+
         # will be filled by the "generate_model"
         # function (in this file)
-        self.geom_racket = None
-        self.geom_net = None
-        self.joint = None
-        self.index_qpos = -1
-        self.index_qvel = -1
+        self.geom_racket: t.Optional[str] = None
+        self.joint: t.Optional[str] = None
 
-    def get_xml(self):
-        (xml, joint, geom_racket, nb_bodies) = xml_templates.get_robot_xml(
+
+    def get_xml(self) -> t.Tuple[str, str, str, int]:
+        (xml, joint, geom_racket) = xml_templates.get_robot_xml(
             self.model_name,
             self.name,
             self.position,
-            self.xy_axes,
+            self.orientation,
             self.muscles,
             self.robot_type,
         )
-        return (xml, joint, geom_racket, nb_bodies)
+        return (xml, joint, geom_racket)
 
 
-def defaults_solrefs():
-
+def defaults_solrefs() -> t.Dict[str, t.Dict[str, t.Tuple[float, float]]]:
     return {
         "ball": {
             "racket": (-0.1, -0.1),
@@ -156,84 +169,62 @@ def defaults_solrefs():
     }
 
 
-def defaults_gaps():
-
+def defaults_gaps() -> t.Dict[str, t.Dict[str, float]]:
     return {"ball": {"floor": 0.0, "table": 0.0}}
 
 
 def generate_model(
-    model_name,
-    time_step=0.002,
-    robots=[],
-    balls=[],
-    tables=[],
-    goals=[],
-    hit_points=[],
-    solrefs=defaults_solrefs(),
-    gaps=defaults_gaps(),
-    muscles=False,
-):
-
+    model_name: str,
+    time_step: float = 0.002,
+    robots: t.Sequence[Robot] = [],
+    balls: t.Sequence[Ball] = [],
+    tables: t.Sequence[Table] = [],
+    goals: t.Sequence[Goal] = [],
+    hit_points: t.Sequence[HitPoint] = [],
+    solrefs: t.Dict[str, t.Dict[str, t.Tuple[float, float]]] = defaults_solrefs(),
+    gaps: t.Dict[str, t.Dict[str, float]] = defaults_gaps(),
+    muscles: bool = False,
+) -> str:
     template = paths.get_main_template_xml()
     template = template.replace("$timestep$", str(time_step))
     template = template.replace("$models_path$", paths.get_models_path())
 
     bodies = []
-    index_qpos = 0
-    index_qvel = 0
 
     # ball: instance of Ball (in this file)
     for ball in balls:
-        xml, geom, joint, nb_bodies = ball.get_xml()
+        xml, geom, joint = ball.get_xml()
         bodies.append(xml)
-        ball.index_qpos = index_qpos
-        ball.index_qvel = index_qvel
         ball.geom = geom
         ball.joint = joint
-        index_qpos += 7
-        index_qvel += 6
 
     # hit_point, instance of HitPoint
     for hit_point in hit_points:
-        xml, geom, joint, nb_bodies = hit_point.get_xml()
+        xml, geom, joint = hit_point.get_xml()
         bodies.append(xml)
-        hit_point.index_qpos = index_qpos
-        hit_point.index_qvel = index_qvel
         hit_point.geom = geom
         hit_point.joint = joint
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
 
     # goal, instance of Goal
     for goal in goals:
-        xml, geom, joint, nb_bodies = goal.get_xml()
+        xml, geom, joint = goal.get_xml()
         bodies.append(xml)
-        goal.index_qpos = index_qpos
-        goal.index_qvel = index_qvel
         goal.geom = geom
         goal.joint = joint
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
 
     # ...
     for table in tables:
-        (xml, name_plate_geom, name_net_geom, nb_bodies) = table.get_xml()
+        (xml, name_plate_geom, name_net_geom) = table.get_xml()
         bodies.append(xml)
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
         table.geom_plate = name_plate_geom
         table.geom_net = name_net_geom
 
     # ...
     for robot in robots:
-        (xml, joint, geom_racket, nb_bodies) = robot.get_xml()
+        (xml, joint, geom_racket) = robot.get_xml()
         bodies.append(xml)
         robot.geom_racket = geom_racket
-        robot.index_qpos = index_qpos
-        robot.index_qvel = index_qvel
         robot.joint = joint
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
 
     template = template.replace("<!-- bodies -->", "\n".join(bodies))
 
@@ -262,23 +253,22 @@ def generate_model(
 def model_factory(
     model_name: str,
     time_step: float = 0.002,
-    table: MujocoTable = None,
+    table: t.Optional[MujocoTable] = None,
     balls: list = [],
     goals: list = [],
     hit_points: list = [],
-    robot1: MujocoRobot = None,
-    robot2: MujocoRobot = None,
-):
-
-    r = {}
+    robot1: t.Optional[MujocoRobot] = None,
+    robot2: t.Optional[MujocoRobot] = None,
+) -> dict:
+    r: dict = {}
 
     tables = []
     if table is not None:
-        table = Table(
+        _table = Table(
             model_name, table.segment_id, table.position, table.size, table.orientation
         )
-        tables.append(table)
-        r["table"] = table
+        tables.append(_table)
+        r["table"] = _table
     else:
         r["table"] = None
 
