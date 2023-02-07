@@ -116,8 +116,8 @@ class Table:
 
     def get_xml(self) -> t.Tuple[str, str, str, int]:
         (xml, name_plate_geom, name_net_geom, nb_bodies) = xml_templates.get_table_xml(
-            self.name,
             self.model_name,
+            self.name,
             self.position,
             self.size,
             self.color,
