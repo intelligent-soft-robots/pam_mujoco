@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Optional, Union
 
 import pam_configuration
 from .robot_type import RobotType
@@ -15,7 +15,7 @@ def get_models_path() -> str:
     return abs_path
 
 
-def get_main_template_xml():
+def get_main_template_xml() -> str:
     path = get_models_path() + os.sep + "template.xml"
     with open(path, "r") as f:
         template = f.read()
@@ -31,7 +31,7 @@ def get_robot_templates_path(robot_type: Optional[RobotType] = None) -> str:
     return root + os.sep + "pamy2"
 
 
-def get_tmp_path(model_name):
+def get_tmp_path(model_name: Union[str, os.PathLike]) -> str:
     global _tmp_folder
     path = os.path.join(_tmp_folder, model_name)
     try:
@@ -41,7 +41,7 @@ def get_tmp_path(model_name):
     return path
 
 
-def get_robot_xml(filename: str, ir: str, robot_type: RobotType) -> str:
+def get_robot_xml(filename: str, ir: str, robot_type: Optional[RobotType]) -> str:
     path = get_robot_templates_path(robot_type) + os.sep + filename + ".xml"
     with open(path, "r") as f:
         template = f.read()
@@ -55,16 +55,16 @@ def get_robot_body_xml(ir: str, muscles: bool, robot_type: RobotType) -> str:
     return get_robot_xml("body_template_no_muscles", ir, robot_type)
 
 
-def get_robot_tendon_xml(ir):
+def get_robot_tendon_xml(ir: str) -> str:
     return get_robot_xml("tendon_template", ir, robot_type=None)
 
 
-def get_robot_actuator_xml(ir):
+def get_robot_actuator_xml(ir: str) -> str:
     return get_robot_xml("actuator_template", ir, robot_type=None)
 
 
 def write_robot_body_xml(
-    model_name: str, ir: str, muscles: bool, robot_type: RobotType
+    model_name: Union[str, os.PathLike], ir: str, muscles: bool, robot_type: RobotType
 ) -> str:
     xml = get_robot_body_xml(ir, muscles, robot_type)
     filename = "robot_body_" + str(ir) + ".xml"
@@ -73,7 +73,7 @@ def write_robot_body_xml(
     return filename
 
 
-def write_robot_actuator_xml(model_name, ir):
+def write_robot_actuator_xml(model_name: Union[str, os.PathLike], ir: str) -> str:
     xml = get_robot_actuator_xml(ir)
     filename = "robot_actuator_" + str(ir) + ".xml"
     with open(get_tmp_path(model_name) + os.sep + filename, "w+") as f:
@@ -81,11 +81,11 @@ def write_robot_actuator_xml(model_name, ir):
     return filename
 
 
-def get_model_path(model_name):
+def get_model_path(model_name: str) -> str:
     return get_tmp_path(model_name) + os.sep + model_name + ".xml"
 
 
-def write_model_xml(model_name, xml_content):
+def write_model_xml(model_name: str, xml_content: str) -> str:
     path = get_model_path(model_name)
     with open(path, "w+") as f:
         f.write(xml_content)
