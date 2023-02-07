@@ -8,11 +8,8 @@ void add_mirror_free_joints(std::string mujoco_id,
 {
     pam_mujoco::MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::clear(segment_id);
     typedef pam_mujoco::MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS> mfj;
-    std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(mujoco_id,
-                                                           segment_id,
-                                                           joints,
-                                                           robot_joint_base,
-                                                           active_only);
+    std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(
+        mujoco_id, segment_id, joints, robot_joint_base, active_only);
     pam_mujoco::Controllers::add(mirroring);
 }
 

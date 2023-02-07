@@ -3,7 +3,7 @@
 namespace pam_mujoco
 {
 ContactBall::ContactBall(std::string segment_id,
-			 std::string joint,
+                         std::string joint,
                          std::string geom,
                          std::string geom_contactee,
                          ContactItems contact_item)

@@ -31,7 +31,7 @@ class ContactBall : public ControllerBase
 {
 public:
     ContactBall(std::string segment_id_,
-		std::string joint,
+                std::string joint,
                 std::string geom,
                 std::string geom_contactee,
                 ContactItems contact_item);

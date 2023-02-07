@@ -97,12 +97,7 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(type,
-                segment_id,
-                joint,
-                geometry,
-                active_only,
-                contact_type);
+        archive(type, segment_id, joint, geometry, active_only, contact_type);
     }
 
 public:

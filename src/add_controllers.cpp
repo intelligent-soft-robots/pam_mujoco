@@ -19,8 +19,8 @@ void add_mirror_free_joint(std::string segment_id,
 {
     pam_mujoco::MirrorFreeJoint<QUEUE_SIZE>::clear(segment_id);
     typedef pam_mujoco::MirrorFreeJoint<QUEUE_SIZE> mfj;
-    std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(
-        segment_id, joint, active_only);
+    std::shared_ptr<mfj> mirroring =
+        std::make_shared<mfj>(segment_id, joint, active_only);
     pam_mujoco::Controllers::add(mirroring);
 }
 
@@ -31,10 +31,8 @@ void add_mirror_until_contact_free_joint(std::string segment_id,
 {
     pam_mujoco::MirrorFreeJoint<QUEUE_SIZE>::clear(segment_id);
     typedef pam_mujoco::MirrorFreeJoint<QUEUE_SIZE> mfj;
-    std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(segment_id,
-                                                           joint,
-                                                           contact_segment_id,
-                                                           active_only);
+    std::shared_ptr<mfj> mirroring = std::make_shared<mfj>(
+        segment_id, joint, contact_segment_id, active_only);
     pam_mujoco::Controllers::add(mirroring);
 }
 
@@ -63,50 +61,41 @@ void add_4dofs_pressure_controller(
 }
 
 void add_contact_free_joint(std::string segment_id,
-			    std::string joint,
+                            std::string joint,
                             std::string geom,
                             std::string contactee_geom,
                             ContactItems contact_item)
 {
     std::shared_ptr<ContactBall> cb = std::make_shared<ContactBall>(
-		    segment_id, joint, geom, contactee_geom, contact_item);
+        segment_id, joint, geom, contactee_geom, contact_item);
     pam_mujoco::Controllers::add(cb);
 }
 
 void add_table_contact_free_joint(std::string segment_id,
-				  std::string joint,
+                                  std::string joint,
                                   std::string geom,
                                   std::string contactee_geom)
 {
-    add_contact_free_joint(segment_id,
-			   joint,
-                           geom,
-                           contactee_geom,
-                           ContactItems::Table);
+    add_contact_free_joint(
+        segment_id, joint, geom, contactee_geom, ContactItems::Table);
 }
 
 void add_robot1_contact_free_joint(std::string segment_id,
-				   std::string joint,
+                                   std::string joint,
                                    std::string geom,
                                    std::string contactee_geom)
 {
-    add_contact_free_joint(segment_id,
-			   joint,
-                           geom,
-                           contactee_geom,
-                           ContactItems::Robot1);
+    add_contact_free_joint(
+        segment_id, joint, geom, contactee_geom, ContactItems::Robot1);
 }
 
 void add_robot2_contact_free_joint(std::string segment_id,
-				   std::string joint,
+                                   std::string joint,
                                    std::string geom,
                                    std::string contactee_geom)
 {
-    add_contact_free_joint(segment_id,
-			   joint,
-                           geom,
-                           contactee_geom,
-                           ContactItems::Robot2);
+    add_contact_free_joint(
+        segment_id, joint, geom, contactee_geom, ContactItems::Robot2);
 }
 
 void add_joints_control(MujocoRobotJointControl mrc)
@@ -183,7 +172,7 @@ void add_items_control(const MujocoConfig& config,
                                          std::to_string(item);
                     add_table_contact_free_joint(
                         contact_segment_id,
-			std::string(mic.joint[item]),
+                        std::string(mic.joint[item]),
                         std::string(mic.geometry[item]),
                         std::string(config.table_geometry));
                 }
@@ -194,7 +183,7 @@ void add_items_control(const MujocoConfig& config,
                                          std::to_string(item);
                     add_robot1_contact_free_joint(
                         contact_segment_id,
-			std::string(mic.joint[item]),
+                        std::string(mic.joint[item]),
                         std::string(mic.geometry[item]),
                         std::string(config.racket1_geometry));
                 }
@@ -205,7 +194,7 @@ void add_items_control(const MujocoConfig& config,
                                          std::to_string(item);
                     add_robot1_contact_free_joint(
                         contact_segment_id,
-			std::string(mic.joint[item]),
+                        std::string(mic.joint[item]),
                         std::string(mic.geometry[item]),
                         std::string(config.racket2_geometry));
                 }
@@ -276,7 +265,7 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
                     std::string(mic.segment_id) + std::string("_table");
                 add_table_contact_free_joint(
                     contact_segment_id,
-		    std::string(mic.joint),
+                    std::string(mic.joint),
                     std::string(mic.geometry),
                     std::string(config.table_geometry));
             }
@@ -286,7 +275,7 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
                     std::string(mic.segment_id) + std::string("_racket1");
                 add_robot1_contact_free_joint(
                     contact_segment_id,
-		    std::string(mic.joint),
+                    std::string(mic.joint),
                     std::string(mic.geometry),
                     std::string(config.racket1_geometry));
             }
@@ -296,7 +285,7 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
                     std::string(mic.segment_id) + std::string("_racket2");
                 add_robot1_contact_free_joint(
                     contact_segment_id,
-		    std::string(mic.joint),
+                    std::string(mic.joint),
                     std::string(mic.geometry),
                     std::string(config.racket2_geometry));
             }
