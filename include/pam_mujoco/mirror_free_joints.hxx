@@ -5,22 +5,22 @@ MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
     std::string mujoco_id,
     std::string segment_id,
     std::array<std::string, NB_ITEMS> joint,
-    std::array<int, NB_ITEMS> index_qpos,
-    std::array<int, NB_ITEMS> index_qvel,
     std::string geom_robot,
     bool active_only)
     : mujoco_id_{mujoco_id},
       segment_id_{segment_id},
       backend_{segment_id},
       joint_(joint),
-      index_qpos_(index_qpos),
-      index_qvel_(index_qvel),
+      //index_qpos_(index_qpos),
+      //index_qvel_(index_qvel),
       geom_robot_(geom_robot),
       index_robot_geom_{-1},
       active_only_(active_only)
 {
     contact_interrupt_.fill(false);
     interrupted_.fill(false);
+    index_qpos_.fill(-1);
+    index_qvel_.fill(-1);
 }
 
 template <int QUEUE_SIZE, int NB_ITEMS>
@@ -28,16 +28,12 @@ MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints(
     std::string mujoco_id,
     std::string segment_id,
     std::array<std::string, NB_ITEMS> joint,
-    std::array<int, NB_ITEMS> index_qpos,
-    std::array<int, NB_ITEMS> index_qvel,
     std::string geom_robot,
     std::array<std::string, NB_ITEMS> interrupt_segment_id,
     bool active_only)
     : MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::MirrorFreeJoints{mujoco_id,
                                                                segment_id,
                                                                joint,
-                                                               index_qpos,
-                                                               index_qvel,
                                                                geom_robot,
                                                                active_only}
 {
@@ -60,6 +56,11 @@ void MirrorFreeJoints<QUEUE_SIZE, NB_ITEMS>::apply(const mjModel* m, mjData* d)
     if (index_robot_geom_ < 0)
     {
         index_robot_geom_ = mj_name2id(m, mjOBJ_GEOM, geom_robot_.c_str());
+	for(int item=0; item<NB_ITEMS; item++)
+	  {
+	    index_qpos_[item] = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, joint_[item].c_str())];
+	    index_qvel_[item] = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, joint_[item].c_str())];
+	  }
     }
 
     // reading contacts from shared_memory (see contact_ball.hpp, to

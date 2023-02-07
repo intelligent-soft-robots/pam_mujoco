@@ -24,13 +24,9 @@ private:
 public:
     MirrorFreeJoint(std::string segment_id,
                     std::string joint,
-                    int index_qpos,
-                    int index_qvel,
                     bool active_only = true);
     MirrorFreeJoint(std::string segment_id,
                     std::string joint,
-                    int index_qpos,
-                    int index_qvel,
                     std::string interrupt_segment_id,
                     bool active_only = true);
     void set_contact_interrupt(std::string segment_id);

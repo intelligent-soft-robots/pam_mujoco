@@ -31,8 +31,7 @@ class ContactBall : public ControllerBase
 {
 public:
     ContactBall(std::string segment_id_,
-                int index_qpos,
-                int index_qvel,
+		std::string joint,
                 std::string geom,
                 std::string geom_contactee,
                 ContactItems contact_item);
@@ -51,6 +50,7 @@ private:
     internal::RecomputeStateConfig config_;
     context::ContactInformation contact_information_;
     internal::ContactStates previous_;
+    std::string joint_;
     int index_qpos_;
     int index_qvel_;
     std::string geom_;

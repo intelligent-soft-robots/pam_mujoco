@@ -3,15 +3,15 @@
 namespace pam_mujoco
 {
 ContactBall::ContactBall(std::string segment_id,
-                         int index_qpos,
-                         int index_qvel,
+			 std::string joint,
                          std::string geom,
                          std::string geom_contactee,
                          ContactItems contact_item)
     : segment_id_{segment_id},
       config_{internal::get_recompute_state_config(contact_item)},
-      index_qpos_{index_qpos},
-      index_qvel_{index_qvel},
+      joint_(joint),
+      index_qpos_{-1},
+      index_qvel_{-1},
       geom_{geom},
       geom_contactee_{geom_contactee},
       index_geom_{-1},
@@ -190,6 +190,8 @@ void ContactBall::init(const mjModel* m)
         // init does something only at first call
         return;
     }
+    index_qpos_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];
+    index_qvel_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];
     index_geom_ = mj_name2id(m, mjOBJ_GEOM, geom_.c_str());
     index_geom_contactee_ = mj_name2id(m, mjOBJ_GEOM, geom_contactee_.c_str());
 }
