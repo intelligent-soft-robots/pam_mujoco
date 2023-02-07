@@ -138,7 +138,6 @@ class Robot:
         # will be filled by the "generate_model"
         # function (in this file)
         self.geom_racket: t.Optional[str] = None
-        self.geom_net = None  # TODO unused?
         self.joint: t.Optional[str] = None
         self.index_qpos = -1
         self.index_qvel = -1
