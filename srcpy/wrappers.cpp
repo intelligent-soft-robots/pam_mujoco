@@ -218,17 +218,21 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     m.def("set_mujoco_config", &pam_mujoco::set_mujoco_config);
     m.def("wait_for_mujoco", &pam_mujoco::_wait_for_mujoco);
 
-    m.def("get_mujoco_config", [](std::string mujoco_id) {
-        pam_mujoco::MujocoConfig config;
-        pam_mujoco::get_mujoco_config(mujoco_id, config);
-        return config;
-    });
+    m.def("get_mujoco_config",
+          [](std::string mujoco_id)
+          {
+              pam_mujoco::MujocoConfig config;
+              pam_mujoco::get_mujoco_config(mujoco_id, config);
+              return config;
+          });
 
-    m.def("get_contact", [](std::string segment_id) {
-        context::ContactInformation ci;
-        shared_memory::deserialize(segment_id, segment_id, ci);
-        return ci;
-    });
+    m.def("get_contact",
+          [](std::string segment_id)
+          {
+              context::ContactInformation ci;
+              shared_memory::deserialize(segment_id, segment_id, ci);
+              return ci;
+          });
 
     m.def("reset_contact", &pam_mujoco::reset_contact);
     m.def("activate_contact", &pam_mujoco::activate_contact);
