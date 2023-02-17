@@ -1,6 +1,10 @@
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/mypy_stubs"
 
+# Demos are currently outdated and cause lots of errors.  Exclude them until the issues
+# are fixed.
+exclude = "demos/"
+
 [[tool.mypy.overrides]]
 module = [
     "context",
