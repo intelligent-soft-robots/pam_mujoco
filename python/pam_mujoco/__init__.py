@@ -1,6 +1,9 @@
 from .segment_ids import segment_ids
 from .mujoco_ids import mujoco_ids
 from .mujoco_handle import ModelItemLike, NoSuchFrontend, MujocoHandle
+from .mujoco_item import MujocoItem, MujocoItems
+from .mujoco_robot import MujocoRobot
+from .mujoco_table import MujocoTable
 
 # import list below is auto-generated with print(",\n".join(dir(pam_mujoco_wrp)))
 from pam_mujoco_wrp import (
