@@ -61,6 +61,8 @@ private:
     double mujoco_detected_dist_;
     bool in_contact_;
     int nb_of_iterations_since_last_contact_;
+    int steps_contact_remaining_ = -1;
+    int steps_overwrite_remaining_ = -1;
     double overwrite_ball_position_[3];
     double overwrite_ball_velocity_[3];
 };

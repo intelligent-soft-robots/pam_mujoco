@@ -170,8 +170,14 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
     // exiting
     if (delta_t_after_impact < 0)
     {
+        printf("contact not this time step, delta_t_after_impact = %f\n", delta_t_after_impact);
         return false;
     }
+
+    printf("pre contact: ball velocity: %f, %f, %f\n", pre_contact.ball_velocity[0], pre_contact.ball_velocity[1], pre_contact.ball_velocity[2]);
+    printf("pre contact: contactee velocity: %f, %f, %f\n", pre_contact.contactee_velocity[0], pre_contact.contactee_velocity[1], pre_contact.contactee_velocity[2]);
+    printf("pre contact relative: ball velocity: %f, %f, %f\n", pre_contact_relative.ball_velocity[0], pre_contact_relative.ball_velocity[1], pre_contact_relative.ball_velocity[2]);
+    printf("pre contact relative: contactee velocity: %f, %f, %f\n", pre_contact_relative.contactee_velocity[0], pre_contact_relative.contactee_velocity[1], pre_contact_relative.contactee_velocity[2]);
 
     // post-contact in relative frame
     internal::ContactStates post_contact_relative;
@@ -201,6 +207,10 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
     // final result in absolute frame
     internal::ContactStates absolute = in_absolute_frame(
         rotation_negative, post_contact_relative, pre_contact);
+
+    printf("post contact relative: ball velocity: %f, %f, %f\n", post_contact_relative.ball_velocity[0], post_contact_relative.ball_velocity[1], post_contact_relative.ball_velocity[2]);
+    printf("absolute: ball velocity: %f, %f, %f\n", absolute.ball_velocity[0], absolute.ball_velocity[1], absolute.ball_velocity[2]);
+
 
     // copying/returning final result
     for (size_t i = 0; i < 3; i++)
