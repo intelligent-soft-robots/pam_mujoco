@@ -73,7 +73,6 @@ void save_state(const mjData* d,
                 int index_geom_contactee,
                 internal::ContactStates& get_states)
 {
-    bool print_v = false;
     // velocity of contactee computed with finite differences
     if (get_states.time_stamp < 0)
     {
@@ -99,7 +98,6 @@ void save_state(const mjData* d,
                     index_geom_contactee,
                     d->time))
             {
-                // print_v = true;
                 double dt = d->time - get_states.velocity_time_stamp;
                 for (size_t i = 0; i < 3; i++)
                 {
@@ -128,17 +126,6 @@ void save_state(const mjData* d,
         }
     }    
     
-    
-
-    if(print_v)
-    {
-        printf("[%.5f, %.5f, %.5f, %.5f],\n", d->time, get_states.contactee_velocity[0], get_states.contactee_velocity[1], get_states.contactee_velocity[2]);
-        printf("[%.5f, %.5f, %.5f],\n", d->time, get_states.ball_position[0], get_states.ball_position[1], get_states.ball_position[2]);
-        
-        // print joint positions
-        int idx_joints = 21;
-        printf("[%.5f, %.5f, %.5f, %.5f, %.5f],\n", d->time, d->qpos[0+idx_joints], d->qpos[1+idx_joints], d->qpos[2+idx_joints], d->qpos[3+idx_joints]);
-    }
 }
 
 }  // namespace internal

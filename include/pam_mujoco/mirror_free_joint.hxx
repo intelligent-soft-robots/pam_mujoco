@@ -37,7 +37,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(std::string segment_id)
     segment_id_contact_ = segment_id;
 }
 
-
+// only overwrite if new ball state
 template <int QUEUE_SIZE>
 bool MirrorFreeJoint<QUEUE_SIZE>::same(const States& s1, const States& s2) const
 {
@@ -117,10 +117,9 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
 
     bool overwrite = (((!interrupted_) || contact_disabled) && active);
 
-
+    // only overwrite if new ball state
     if (overwrite && same(set_states_, previous_set_states_))
     {
-        
         if (must_update_counter_ > 0)
         {
             overwrite = true;
@@ -130,7 +129,6 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
         {
             overwrite = false;
         }
-        
     }
     else{
         must_update_counter_ = 4;

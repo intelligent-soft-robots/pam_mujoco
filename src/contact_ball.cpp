@@ -88,16 +88,15 @@ bool ContactBall::update(const mjModel* m, mjData* d)
     bool in_contact =
         internal::is_in_contact(m, d, index_geom_, index_geom_contactee_);
 
+    // check if contact detected
     if (in_contact)
     {
         steps_contact_remaining_ = 200;
-        printf("contact detected\n");
     }
         
-
+    // contact lost, but still looking
     if (steps_contact_remaining_ > 0 and !in_contact)
     {
-        printf("contact lost, but still looking\n");
         steps_contact_remaining_--;
         in_contact = true;
     }
@@ -117,36 +116,7 @@ bool ContactBall::update(const mjModel* m, mjData* d)
             mju_dist3(previous_.ball_position.data(),
                       previous_.contactee_position.data());
 
-        double d_ball_contactee_current = std::sqrt(
-            std::pow(d->qpos[index_qpos_ + 0] - d->geom_xpos[index_geom_contactee_ * 3 + 0], 2) +
-            std::pow(d->qpos[index_qpos_ + 1] - d->geom_xpos[index_geom_contactee_ * 3 + 1], 2) +
-            std::pow(d->qpos[index_qpos_ + 2] - d->geom_xpos[index_geom_contactee_ * 3 + 2], 2));
-
-
-        // printing contact information
-        if (d_ball_contactee_current < 0.10)
-        {
-            double d_ball_contactee_xz = std::sqrt(
-            std::pow(previous_.ball_position[0] - previous_.contactee_position[0], 2) +
-            std::pow(previous_.ball_position[2] - previous_.contactee_position[2], 2));
-
-            double d_ball_contactee_y = previous_.ball_position[1] - previous_.contactee_position[1];
-
-            printf("previous d_ball_contactee: %.4f d_ball_contactee_xz: %.4f, d_ball_contactee_y: %.4f, ball pos: %.4f, racket pos: %.4f\n",
-                d_ball_contactee, d_ball_contactee_xz, d_ball_contactee_y, previous_.ball_position[1], previous_.contactee_position[1]);
-
-
-            double d_ball_contactee_xz_current = std::sqrt(
-            std::pow(d->qpos[index_qpos_ + 0] - d->geom_xpos[index_geom_contactee_ * 3 + 0], 2) +
-            std::pow(d->qpos[index_qpos_ + 2] - d->geom_xpos[index_geom_contactee_ * 3 + 2], 2));
-
-            double d_ball_contactee_y_current = d->qpos[index_qpos_ + 1] - d->geom_xpos[index_geom_contactee_ * 3 + 1];
-
-            printf("current d_ball_contactee: %.4f d_ball_contactee_xz: %.4f, d_ball_contactee_y: %.4f, ball pos: %.4f, racket pos: %.4f\n",
-                d_ball_contactee, d_ball_contactee_xz_current, d_ball_contactee_y_current, d->qpos[index_qpos_ + 1], d->geom_xpos[index_geom_contactee_ * 3 + 1]);
-        }
-
-        // previous contactee_velocity all close to zero, don't consider contact
+        // edge case: previous contactee_velocity all close to zero, don't consider contact
         if (previous_.contactee_velocity[0] < 0.01 and previous_.contactee_velocity[1] < 0.01 and previous_.contactee_velocity[2] < 0.01)
         {
             return false;
@@ -155,7 +125,7 @@ bool ContactBall::update(const mjModel* m, mjData* d)
         // updating contact_information with this distance. register_distance
         // will check wether or not this is the smallest distance ever observed,
         // and if so, save it as minimal distance
-        contact_information_.register_distance(d_ball_contactee_current);
+        contact_information_.register_distance(d_ball_contactee);
         return false;
     }
 
@@ -181,8 +151,6 @@ bool ContactBall::update(const mjModel* m, mjData* d)
         // failed to applie the custom model because
         // the ball and the contactee were too close.
         // we postpone to next iteration ...
-        // internal::save_state(
-        //     d, index_qpos_, index_qvel_, index_geom_contactee_, previous_);
         return false;
     }
 
@@ -191,7 +159,6 @@ bool ContactBall::update(const mjModel* m, mjData* d)
     nb_of_iterations_since_last_contact_ = 0;
     // informing the outside world about the contact
     // (via shared memory)
-    printf("register contact\n");
     steps_contact_remaining_ = -1;
     contact_information_.register_contact(current.ball_position, d->time);
     shared_memory::serialize(segment_id_, segment_id_, contact_information_);
@@ -204,7 +171,7 @@ void ContactBall::apply(const mjModel* m, mjData* d)
     if (d->time < 0.02)
         return;
     
-    // check if ball position and velocity are close to zero
+    // edge case: check if ball position and velocity are close to zero
     if (std::abs(d->qvel[index_qvel_]) < 0.01 &&
         std::abs(d->qvel[index_qvel_ + 1]) < 0.01 &&
         std::abs(d->qvel[index_qvel_ + 2]) < 0.01 &&
@@ -215,7 +182,6 @@ void ContactBall::apply(const mjModel* m, mjData* d)
         printf("ignoring ball at 0\n");
         return;
     }
-
 
 
     // checking if it is a new mujoco iteration
@@ -267,20 +233,12 @@ void ContactBall::apply(const mjModel* m, mjData* d)
     // so overwritting mujoco data
     // with custom contact model data
 
-    printf("before overwrite ball pos %.4f, %.4f, %.4f vel: %.4f, %.4f, %.4f \n",
-        d->qpos[index_qpos_], d->qpos[index_qpos_ + 1], d->qpos[index_qpos_ + 2],
-        d->qvel[index_qvel_], d->qvel[index_qvel_ + 1], d->qvel[index_qvel_ + 2]);
-
-
-    // check if ball new conditions are plausible (weird bug)
+    // edge case: check if ball new conditions are plausible
     if (abs(overwrite_ball_position_[0]) > 10 || abs(overwrite_ball_position_[1]) > 10 || abs(overwrite_ball_position_[2]) > 10
-        || abs(overwrite_ball_velocity_[0]) > 50 || abs(overwrite_ball_velocity_[1]) > 50 || abs(overwrite_ball_velocity_[2]) > 50
+        || abs(overwrite_ball_velocity_[0]) > 100 || abs(overwrite_ball_velocity_[1]) > 100 || abs(overwrite_ball_velocity_[2]) > 100
         || (abs(overwrite_ball_velocity_[0]) < 0.01 && abs(overwrite_ball_velocity_[1]) < 0.01 && abs(overwrite_ball_velocity_[2]) < 0.01))
     {
         printf("contact model problem, not overwriting\n");
-        printf("calculated ball pos %.4f, %.4f, %.4f vel: %.4f, %.4f, %.4f \n",
-            overwrite_ball_position_[0], overwrite_ball_position_[1], overwrite_ball_position_[2],
-            overwrite_ball_velocity_[0], overwrite_ball_velocity_[1], overwrite_ball_velocity_[2]);
         return;
     }
     else
@@ -292,10 +250,6 @@ void ContactBall::apply(const mjModel* m, mjData* d)
         }
     }
     
-    printf("after overwrite ball pos %.4f, %.4f, %.4f vel: %.4f, %.4f, %.4f \n",
-        d->qpos[index_qpos_], d->qpos[index_qpos_ + 1], d->qpos[index_qpos_ + 2],
-        d->qvel[index_qvel_], d->qvel[index_qvel_ + 1], d->qvel[index_qvel_ + 2]);
-
 }
 
 void ContactBall::init(const mjModel* m)

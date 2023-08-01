@@ -34,7 +34,7 @@ public:
                     std::string interrupt_segment_id,
                     bool active_only = true);
     void set_contact_interrupt(std::string segment_id);
-    bool same(const States& s1, const States& s2) const;
+    bool same(const States& s1, const States& s2) const;    // only overwrite if new ball state
     void apply(const mjModel* m, mjData* d);
 
 public:
@@ -51,8 +51,8 @@ private:
     bool active_only_;
     States read_states_;
     States set_states_;
-    States previous_set_states_;
-    int must_update_counter_ = -1;
+    States previous_set_states_;    // only overwrite if new ball state
+    int must_update_counter_ = -1;      // only overwrite if new ball state
     std::string segment_id_contact_;
    
 };
