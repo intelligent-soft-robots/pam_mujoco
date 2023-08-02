@@ -21,11 +21,12 @@ bool MirrorRobot<QUEUE_SIZE, NB_DOFS>::same(const States& s1,
     {
         o80::State2d t1 = s1.get(dof);
         o80::State2d t2 = s2.get(dof);
-        if (t1.get<0>() != t2.get<0>())
+        // only overwrite if new robot state (compare numbers, instead of t1.get<0>() != t2.get<0>() as previously)
+        if (std::abs(t1.get<0>() - t2.get<0>()) > 1e-5)
         {
             return false;
         }
-        if (t1.get<1>() != t2.get<1>())
+        if (std::abs(t1.get<0>() - t2.get<0>()) > 1e-5)
         {
             return false;
         }
@@ -57,7 +58,9 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
             m, mjOBJ_JOINT, robot_joint_base_.c_str())];
         index_geom_ = mj_name2id(m, mjOBJ_GEOM, robot_racket_.c_str());
     }
+
     bool set_to_mujoco = false;
+
     if (this->must_update(d))
     {
         // must_update means mujoco time stamp (d->time)
@@ -81,22 +84,41 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
         set_states_ =
             backend_.pulse(this->get_time_stamp(), read_states_, robot_fk_);
 
-        // updating mujoco only if there is a change of desired state
+        // updating mujoco if there is a change of desired state
         if (!same(set_states_, previous_set_states_))
         {
             // there is a new mujoco iteration, and set_states_
             // has also been updated, so mujoco has to mirror this
-            set_to_mujoco = true;
+            must_update_counter_ = 4;   // update for 4 steps to make sure update is not overwritten by mujoco
             previous_set_states_ = set_states_;
         }
+
+        // update mujoco if all velocities are zero, hacky and doesn't always work, necessary because overwrite happens only if new robot state
+        if (must_update_counter_ < 1)
+        {
+            bool all_velocities_zero = true;
+            for (std::size_t dof = 0; dof < NB_DOFS; dof++)
+            {
+                o80::State2d state = set_states_.get(dof);
+                if (abs(state.get<1>()) > 0.01)
+                {
+                    all_velocities_zero = false;
+                }
+            }
+            if (all_velocities_zero)
+            {
+                must_update_counter_ = 4;
+            }
+        }
     }
-    else
+
+    if (must_update_counter_ > 0)
     {
-        // still working on previous iteration, so mujoco
-        // needs update, possibly resetting the same values
-        // again
+        must_update_counter_--;
         set_to_mujoco = true;
     }
+    
+
     if (set_to_mujoco)
     {
         for (std::size_t dof = 0; dof < NB_DOFS; dof++)

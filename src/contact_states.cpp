@@ -34,27 +34,54 @@ void ContactStates::print()
   print_array(std::string("ball position"), ball_position);
     print_array(std::string("ball velocity"), ball_velocity);
 }
-  
+
 bool should_update_velocity(internal::ContactStates& previous_state,
                             mjtNum* m,
+                            const mjData* d,
+                            int index_geom_contactee,
                             double time,
                             double time_threshold = 0.1,
-                            double position_threshold = 0.0000001)
+                            double position_threshold = 0.0000001,
+                            double max_acc = 200.0)
 {
+
+    if ((time - previous_state.velocity_time_stamp) >= time_threshold)
+    {
+        return true;
+        
+    }
+
+    std::array<double, 3> new_velocities;
+    double dt = time - previous_state.velocity_time_stamp;
+    for (size_t i = 0; i < 3; i++)
+                {
+                    new_velocities[i] =
+                        (d->geom_xpos[index_geom_contactee * 3 + i] -
+                         previous_state.contactee_position[i]) /
+                        dt;
+                }
+
+
     for (size_t i = 0; i < 3; i++)
     {
-        if (abs(previous_state.contactee_position[i] - m[i]) >
-            position_threshold)
+        if (abs(previous_state.contactee_velocity[i] - new_velocities[i]) / dt > max_acc)
+        {
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        if (abs(previous_state.contactee_position[i] - m[i])>position_threshold)
         {
             return true;
         }
     }
-    if ((time - previous_state.velocity_time_stamp) >= time_threshold)
-    {
-        return true;
-    }
+
     return false;
+    
 }
+  
 
 /**
  * extract information from d to update the instance
@@ -77,6 +104,7 @@ void save_state(const mjData* d,
     if (get_states.time_stamp < 0)
     {
         for (size_t i = 0; i < 3; i++) get_states.contactee_velocity[i] = 0;
+        get_states.time_stamp = d->time;
     }
     else
     {
@@ -93,6 +121,8 @@ void save_state(const mjData* d,
             if (should_update_velocity(
                     get_states,
                     &(d->geom_xpos[index_geom_contactee * 3]),
+                    d,
+                    index_geom_contactee,
                     d->time))
             {
                 double dt = d->time - get_states.velocity_time_stamp;
@@ -104,33 +134,34 @@ void save_state(const mjData* d,
                         dt;
                 }
                 get_states.velocity_time_stamp = d->time;
+
+                // rest is just copied from d to get_states
+		if (index_robot_qpos >= 0)
+		{
+		  for (size_t i = 0; i < 4; i++)
+		  {
+		    get_states.robot_joint_positions[i] = d->qpos[index_robot_qpos + i];
+		  }
+		}
+                for (size_t i = 0; i < 3; i++)
+                {
+                    get_states.ball_position[i] = d->qpos[index_qpos + i];
+                    get_states.ball_velocity[i] = d->qvel[index_qvel + i];
+                    get_states.contactee_position[i] =
+                        d->geom_xpos[index_geom_contactee * 3 + i];
+                }
+                for (size_t i = 0; i < 9; i++)
+                {
+                    get_states.contactee_orientation[i] =
+                        d->geom_xmat[index_geom_contactee * 9 + i];
+                }
             }
+            get_states.time_stamp = d->time;
         }
-    }
-
-    // rest is just copied from d to get_states
-    if (index_robot_qpos >= 0)
-    {
-      for (size_t i = 0; i < 4; i++)
-	{
-	  get_states.robot_joint_positions[i] = d->qpos[index_robot_qpos + i];
-	}
-    }
-    for (size_t i = 0; i < 3; i++)
-    {
-        get_states.ball_position[i] = d->qpos[index_qpos + i];
-        get_states.ball_velocity[i] = d->qvel[index_qvel + i];
-        get_states.contactee_position[i] =
-            d->geom_xpos[index_geom_contactee * 3 + i];
-    }
-    for (size_t i = 0; i < 9; i++)
-    {
-        get_states.contactee_orientation[i] =
-            d->geom_xmat[index_geom_contactee * 9 + i];
-    }
-    get_states.time_stamp = d->time;
+    }    
+    
 }
-
-}  // namespace internal
-
-}  // namespace pam_mujoco
+  
+}
+  
+}

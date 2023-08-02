@@ -45,6 +45,8 @@ void printxd(P p, V v)
 
 bool ContactBall::update(const mjModel* m, mjData* d)
 {
+
+
     // check if receiving from outside a request for reset
     // (e.g. a new episode starts)
     bool must_reset;
@@ -89,6 +91,19 @@ bool ContactBall::update(const mjModel* m, mjData* d)
     bool in_contact =
         internal::is_in_contact(m, d, index_geom_, index_geom_contactee_);
 
+    // check if contact detected
+    if (in_contact)
+    {
+        steps_contact_remaining_ = 200;
+    }
+        
+    // contact lost, but still looking
+    if (steps_contact_remaining_ > 0 and !in_contact)
+    {
+        steps_contact_remaining_--;
+        in_contact = true;
+    }
+
     // no, so exiting
     if (!in_contact)
     {
@@ -103,12 +118,21 @@ bool ContactBall::update(const mjModel* m, mjData* d)
         double d_ball_contactee =
             mju_dist3(previous_.ball_position.data(),
                       previous_.contactee_position.data());
+
+        // edge case: previous contactee_velocity all close to zero, don't consider contact
+        if (previous_.contactee_velocity[0] < 0.01 and previous_.contactee_velocity[1] < 0.01 and previous_.contactee_velocity[2] < 0.01)
+        {
+            return false;
+        }
+
         // updating contact_information with this distance. register_distance
         // will check wether or not this is the smallest distance ever observed,
         // and if so, save it as minimal distance
         contact_information_.register_distance(d_ball_contactee);
         return false;
     }
+
+    
 
     // there is a contact: applying the custom contact model
     // first, converting data encapsulated by "d"
@@ -141,6 +165,7 @@ bool ContactBall::update(const mjModel* m, mjData* d)
     nb_of_iterations_since_last_contact_ = 0;
     // informing the outside world about the contact
     // (via shared memory)
+    steps_contact_remaining_ = -1;
     contact_information_.register_contact(current.ball_position, d->time);
     shared_memory::serialize(segment_id_, segment_id_, contact_information_);
     return true;
@@ -148,6 +173,23 @@ bool ContactBall::update(const mjModel* m, mjData* d)
 
 void ContactBall::apply(const mjModel* m, mjData* d)
 {
+    // check if the simulation is running
+    if (d->time < 0.02)
+        return;
+    
+    // edge case: check if ball position and velocity are close to zero
+    if (std::abs(d->qvel[index_qvel_]) < 0.01 &&
+        std::abs(d->qvel[index_qvel_ + 1]) < 0.01 &&
+        std::abs(d->qvel[index_qvel_ + 2]) < 0.01 &&
+        std::abs(d->qpos[index_qpos_]) < 0.01 &&
+        std::abs(d->qpos[index_qpos_ + 1]) < 0.01 &&
+        std::abs(d->qpos[index_qpos_ + 2]) < 0.01)
+    {
+        printf("ignoring ball at 0\n");
+        return;
+    }
+
+
     // checking if it is a new mujoco iteration
     if (this->must_update(d))
     {
@@ -155,7 +197,7 @@ void ContactBall::apply(const mjModel* m, mjData* d)
         // based on the model and the configuration string
         // (has effect only at first call)
         init(m);
-
+    }
         // updating the variables:
         // - contact_information_ // information about contacts, for the
         // external
@@ -164,27 +206,56 @@ void ContactBall::apply(const mjModel* m, mjData* d)
         // model
         // - overwrite_ball_velocity_ // velocity as computed by custom contact
         // model
-        in_contact_ = update(m, d);
 
-        // sharing contact information with the world
-        shared_memory::serialize(
-            segment_id_, segment_id_, contact_information_);
-    }
+    
+    in_contact_ = update(m, d);
+
+    // sharing contact information with the world
+    shared_memory::serialize(
+        segment_id_, segment_id_, contact_information_);
+    
 
     // no contact, so nothing to do
     if (!in_contact_)
     {
-        return;
+        if (steps_overwrite_remaining_ <= 0)
+        {
+            return;
+        }
+        else
+        {
+            steps_overwrite_remaining_--;
+        }
     }
+    else
+    {
+        steps_overwrite_remaining_ = 4;
+    }
+    
+
+    
 
     // we reach here only if in contact,
     // so overwritting mujoco data
     // with custom contact model data
-    for (int dim = 0; dim < 3; dim++)
+
+    // edge case: check if ball new conditions are plausible
+    if (abs(overwrite_ball_position_[0]) > 10 || abs(overwrite_ball_position_[1]) > 10 || abs(overwrite_ball_position_[2]) > 10
+        || abs(overwrite_ball_velocity_[0]) > 100 || abs(overwrite_ball_velocity_[1]) > 100 || abs(overwrite_ball_velocity_[2]) > 100
+        || (abs(overwrite_ball_velocity_[0]) < 0.01 && abs(overwrite_ball_velocity_[1]) < 0.01 && abs(overwrite_ball_velocity_[2]) < 0.01))
     {
-        (&(d->qpos[index_qpos_]))[dim] = overwrite_ball_position_[dim];
-        (&(d->qvel[index_qvel_]))[dim] = overwrite_ball_velocity_[dim];
+        printf("contact model problem, not overwriting\n");
+        return;
     }
+    else
+    {
+        for (int dim = 0; dim < 3; dim++)
+        {
+            (&(d->qpos[index_qpos_]))[dim] = overwrite_ball_position_[dim];
+            (&(d->qvel[index_qvel_]))[dim] = overwrite_ball_velocity_[dim];
+        }
+    }
+    
 }
 
 void ContactBall::init(const mjModel* m)
