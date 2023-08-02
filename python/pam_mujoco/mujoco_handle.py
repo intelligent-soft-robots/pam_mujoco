@@ -38,7 +38,9 @@ class NoSuchFrontend(Exception):
         if not self._mujoco_handle:
             valid_ids = ""
         else:
-            valid_ids = ", valid ids: {}".format(self._mujoco_handle.frontends.keys())
+            valid_ids = ", valid ids: {}".format(
+                self._mujoco_handle.frontends.keys()
+            )
         return "no frontend corresponding to segment id {}{}".format(
             self._segment_id, valid_ids
         )
@@ -137,7 +139,9 @@ def _get_mujoco_robot_control(
     pam_mujoco_wrp.MujocoRobotPressureControl,
     None,
 ]:
-    active_only = mujoco_robot.active_only_control == MujocoRobot.COMMAND_ACTIVE_CONTROL
+    active_only = (
+        mujoco_robot.active_only_control == MujocoRobot.COMMAND_ACTIVE_CONTROL
+    )
 
     if mujoco_robot.control == MujocoRobot.JOINT_CONTROL:
         return pam_mujoco_wrp.MujocoRobotJointControl(
@@ -194,12 +198,16 @@ class MujocoHandle:
 
             # creating the mujoco xml model file
 
-            logging.info("creating the xml model file for {}".format(mujoco_id))
+            logging.info(
+                "creating the xml model file for {}".format(mujoco_id)
+            )
 
             if combined:
                 all_balls = list(balls) + combined.items["balls"]
                 all_goals = list(goals) + combined.items["goals"]
-                all_hit_points = list(hit_points) + combined.items["hit_points"]
+                all_hit_points = (
+                    list(hit_points) + combined.items["hit_points"]
+                )
             else:
                 all_balls = balls
                 all_goals = goals
@@ -218,7 +226,9 @@ class MujocoHandle:
 
             # creating the mujoco config
 
-            logging.info("creating mujoco configuration for {}".format(mujoco_id))
+            logging.info(
+                "creating mujoco configuration for {}".format(mujoco_id)
+            )
 
             config = pam_mujoco_wrp.MujocoConfig(mujoco_id)
             config.set_burst_mode(burst_mode)
@@ -228,9 +238,11 @@ class MujocoHandle:
 
             if items["robot1"]:
                 config.set_racket_robot1(items["robot1"].geom_racket)
+                config.set_robot1_base(items["robot1"].joint)
 
             if items["robot2"]:
                 config.set_racket_robot2(items["robot2"].geom_racket)
+                config.set_robot2_base(items["robot2"].joint)
 
             if items["table"]:
                 config.set_table(items["table"].geom_plate)
@@ -239,7 +251,8 @@ class MujocoHandle:
                 _get_mujoco_item_control, pam_mujoco_wrp.MujocoItemTypes.ball
             )
             _get_hit_point = partial(
-                _get_mujoco_item_control, pam_mujoco_wrp.MujocoItemTypes.hit_point
+                _get_mujoco_item_control,
+                pam_mujoco_wrp.MujocoItemTypes.hit_point,
             )
             _get_goal = partial(
                 _get_mujoco_item_control, pam_mujoco_wrp.MujocoItemTypes.goal
@@ -247,7 +260,9 @@ class MujocoHandle:
 
             mujoco_item_controls = []
             if balls:
-                logging.info("creating item controls for {} balls".format(len(balls)))
+                logging.info(
+                    "creating item controls for {} balls".format(len(balls))
+                )
                 mujoco_item_controls.extend(
                     [
                         _get_ball(mujoco_item, model_item)
@@ -259,7 +274,9 @@ class MujocoHandle:
 
             if hit_points:
                 logging.info(
-                    "creating item controls for {} hit points".format(len(hit_points))
+                    "creating item controls for {} hit points".format(
+                        len(hit_points)
+                    )
                 )
                 mujoco_item_controls.extend(
                     [
@@ -271,7 +288,9 @@ class MujocoHandle:
                 )
 
             if goals:
-                logging.info("creating item controls for {} goals".format(len(goals)))
+                logging.info(
+                    "creating item controls for {} goals".format(len(goals))
+                )
                 mujoco_item_controls.extend(
                     [
                         _get_goal(mujoco_item, model_item)
@@ -298,7 +317,9 @@ class MujocoHandle:
                 # function name, depending on the number of combined mujoco items.
                 # e.g. add_3_control or add_10_control, see
                 # include/mujoco_config.hpp and/or srcpy/wrappers.cpp
-                add_function_name = "_".join(["add", str(combined.size), "control"])
+                add_function_name = "_".join(
+                    ["add", str(combined.size), "control"]
+                )
 
                 # pointer to the function
                 add_function = getattr(config, add_function_name)
@@ -322,7 +343,9 @@ class MujocoHandle:
             # writing the mujoco config in the shared memory.
             # the mujoco executable is expected to read it and start
 
-            logging.info("sharing mujoco configuration for {}".format(mujoco_id))
+            logging.info(
+                "sharing mujoco configuration for {}".format(mujoco_id)
+            )
 
             pam_mujoco_wrp.set_mujoco_config(config)
 
@@ -398,7 +421,9 @@ class MujocoHandle:
                 if mujoco_items_control_instance:
                     combined = cast(MujocoItems, _Combined())
                     combined.size = nb_balls
-                    combined.segment_id = mujoco_items_control_instance[0].segment_id
+                    combined.segment_id = mujoco_items_control_instance[
+                        0
+                    ].segment_id
                     break
 
         # if bursting mode, creating a burster client
@@ -480,7 +505,9 @@ class MujocoHandle:
                     self.interfaces[robot.segment_id] = interface
 
         if combined:
-            self.frontends[combined.segment_id] = self.get_extra_balls_frontend(
+            self.frontends[
+                combined.segment_id
+            ] = self.get_extra_balls_frontend(
                 combined.segment_id, combined.size
             )
 
@@ -562,7 +589,9 @@ class MujocoHandle:
     def burst(self, nb_iterations=1):
         self._burster_client.burst(nb_iterations)
 
-    def sleep(self, duration: float, segment_id: str, time_step: float = 0.002):
+    def sleep(
+        self, duration: float, segment_id: str, time_step: float = 0.002
+    ):
         """
         Similar to time.sleep, except that it
         will also work in accelerated time.
@@ -579,7 +608,9 @@ class MujocoHandle:
         if segment_id not in self.frontends:
             raise NoSuchFrontend(segment_id, self)
         if time_step > duration:
-            raise ValueError(str("Can not sleep shorted than" "a mujoco time step"))
+            raise ValueError(
+                str("Can not sleep shorted than" "a mujoco time step")
+            )
         nb_iterations = int((duration / time_step) + 0.5)
         front = self.frontends[segment_id]
         target_iteration = front.latest().get_iteration() + nb_iterations

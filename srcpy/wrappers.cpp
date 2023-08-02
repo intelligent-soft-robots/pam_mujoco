@@ -181,6 +181,8 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def("set_accelerated_time",
              &pam_mujoco::MujocoConfig::set_accelerated_time)
         .def("set_graphics", &pam_mujoco::MujocoConfig::set_graphics)
+        .def("set_robot1_base", &pam_mujoco::MujocoConfig::set_robot1_base)
+        .def("set_robot2_base", &pam_mujoco::MujocoConfig::set_robot2_base)
         .def("set_racket_robot1", &pam_mujoco::MujocoConfig::set_racket_robot1)
         .def("set_racket_robot2", &pam_mujoco::MujocoConfig::set_racket_robot2)
         .def("set_table", &pam_mujoco::MujocoConfig::set_table)

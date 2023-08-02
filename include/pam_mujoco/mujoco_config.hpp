@@ -177,6 +177,8 @@ public:
     void set_model_path(std::string path);
     void set_graphics(bool use_graphics);
     std::string to_string() const;
+    void set_robot1_base(std::string robot1_base);
+    void set_robot2_base(std::string robot2_base);    
     void set_racket_robot1(std::string _racket1_geometry);
     void set_racket_robot2(std::string _racket2_geometry);
     void set_table(std::string _table_geometry);
@@ -209,6 +211,8 @@ public:
                 joint_controls,
                 pressure_controls,
                 table_geometry,
+		robot1_base,
+		robot2_base,
                 racket1_geometry,
                 racket2_geometry);
     }
@@ -228,6 +232,8 @@ public:
     std::vector<MujocoRobotJointControl> joint_controls;
     std::vector<MujocoRobotPressureControl> pressure_controls;
     char table_geometry[100];
+    char robot1_base[100];
+    char robot2_base[100];
     char racket1_geometry[100];
     char racket2_geometry[100];
 };

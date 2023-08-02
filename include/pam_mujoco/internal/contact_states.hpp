@@ -17,7 +17,8 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(contactee_position,
+        archive(robot_joint_positions,
+		contactee_position,
                 contactee_orientation,
                 contactee_velocity,
                 ball_position,
@@ -27,9 +28,11 @@ public:
 
 public:
     ContactStates();
-
+    void print();
+  
 public:
     // contactee: likely to be a racket or a table
+    std::array<double, 4> robot_joint_positions;
     std::array<double, 9> contactee_orientation;
     std::array<double, 3> contactee_position;
     std::array<double, 3> contactee_velocity;
@@ -50,6 +53,7 @@ public:
  * state).
  */
 void save_state(const mjData* d,
+		int index_robot_qpos,
                 int index_qpos,
                 int index_qvel,
                 int index_geom_contactee,

@@ -162,6 +162,14 @@ std::string MujocoConfig::to_string() const
     return ss.str();
 }
 
+void MujocoConfig::set_robot1_base(std::string rb1_base)
+{
+    strcpy(robot1_base, rb1_base.c_str());
+}
+void MujocoConfig::set_robot2_base(std::string rb2_base)
+{
+    strcpy(robot2_base, rb2_base.c_str());
+}
 void MujocoConfig::set_racket_robot1(std::string _racket1_geometry)
 {
     strcpy(racket1_geometry, _racket1_geometry.c_str());

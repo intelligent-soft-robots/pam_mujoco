@@ -6,12 +6,15 @@ ContactBall::ContactBall(std::string segment_id,
                          int index_qpos,
                          int index_qvel,
                          std::string geom,
+			 std::string robot_base,
                          std::string geom_contactee,
                          ContactItems contact_item)
     : segment_id_{segment_id},
       config_{internal::get_recompute_state_config(contact_item)},
       index_qpos_{index_qpos},
       index_qvel_{index_qvel},
+      robot_base_{robot_base},
+      index_robot_qpos_{-1},
       geom_{geom},
       geom_contactee_{geom_contactee},
       index_geom_{-1},
@@ -93,7 +96,7 @@ bool ContactBall::update(const mjModel* m, mjData* d)
         // it will be used if at the next iteration there
         // is a contact (to compute velocity)
         internal::save_state(
-            d, index_qpos_, index_qvel_, index_geom_contactee_, previous_);
+            d, index_robot_qpos_, index_qpos_, index_qvel_, index_geom_contactee_, previous_);
         // saving also the distance between the ball
         // and the contactee.
         // computing the distance between the 2 objects
@@ -112,7 +115,8 @@ bool ContactBall::update(const mjModel* m, mjData* d)
     // into an instance of ContactStates
     internal::ContactStates current;
     internal::save_state(
-        d, index_qpos_, index_qvel_, index_geom_contactee_, current);
+        d, index_robot_qpos_, index_qpos_, index_qvel_, index_geom_contactee_, current
+    );
 
     // the command below updates overwite_ball_position_
     // and overwrite_ball_velocity_ with the values
@@ -128,7 +132,7 @@ bool ContactBall::update(const mjModel* m, mjData* d)
         // the ball and the contactee were too close.
         // we postpone to next iteration ...
         internal::save_state(
-            d, index_qpos_, index_qvel_, index_geom_contactee_, previous_);
+            d, index_robot_qpos_, index_qpos_, index_qvel_, index_geom_contactee_, previous_);
         return false;
     }
 
@@ -185,6 +189,13 @@ void ContactBall::apply(const mjModel* m, mjData* d)
 
 void ContactBall::init(const mjModel* m)
 {
+
+    if (index_robot_qpos_ < 0 && robot_base_ != "")
+    {
+      index_robot_qpos_ = m->jnt_qposadr[mj_name2id(
+            m, mjOBJ_JOINT, robot_base_.c_str())];
+    }
+  
     if (index_geom_ >= 0)
     {
         // init does something only at first call

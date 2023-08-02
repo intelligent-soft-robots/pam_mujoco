@@ -34,6 +34,7 @@ public:
                 int index_qpos,
                 int index_qvel,
                 std::string geom,
+		std::string robot_base,
                 std::string geom_contactee,
                 ContactItems contact_item);
 
@@ -51,6 +52,8 @@ private:
     internal::RecomputeStateConfig config_;
     context::ContactInformation contact_information_;
     internal::ContactStates previous_;
+    std::string robot_base_;
+    int index_robot_qpos_;
     int index_qpos_;
     int index_qvel_;
     std::string geom_;
