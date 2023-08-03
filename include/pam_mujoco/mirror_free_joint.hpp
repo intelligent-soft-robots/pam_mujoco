@@ -15,11 +15,11 @@ class MirrorFreeJoint : public ControllerBase
 {
 private:
     typedef o80::BackEnd<QUEUE_SIZE,
-                         6,  // 6: 3d position and 3d velocity per ball
+                         9,  // 9: 3d position and 3d velocity per ball and 3d spin
                          o80::State1d,
                          o80::VoidExtendedState>
         Backend;
-    typedef o80::States<6, o80::State1d> States;
+    typedef o80::States<9, o80::State1d> States;
 
 public:
     MirrorFreeJoint(std::string segment_id,

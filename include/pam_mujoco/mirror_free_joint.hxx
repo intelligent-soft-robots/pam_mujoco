@@ -61,14 +61,22 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     (void)(m);
     if (this->must_update(d))
     {
+        // position
         read_states_.values[0].value = d->qpos[index_qpos_];
         read_states_.values[2].value = d->qpos[index_qpos_ + 1];
         read_states_.values[4].value = d->qpos[index_qpos_ + 2];
 
+	// velocity
         read_states_.values[1].value = d->qvel[index_qvel_];
         read_states_.values[3].value = d->qvel[index_qvel_ + 1];
         read_states_.values[5].value = d->qvel[index_qvel_ + 2];
 
+	// spin
+        read_states_.values[6].value = d->qvel[index_qvel_ + 3];
+        read_states_.values[7].value = d->qvel[index_qvel_ + 4];
+        read_states_.values[8].value = d->qvel[index_qvel_ + 5];
+
+	
         set_states_ =
             backend_.pulse(o80::TimePoint(static_cast<long int>(d->time * 1e9)),
                            read_states_,
