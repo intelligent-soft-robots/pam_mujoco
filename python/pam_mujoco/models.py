@@ -110,7 +110,7 @@ class Table:
         self.geom_plate: t.Optional[str] = None
         self.geom_net: t.Optional[str] = None
 
-    def get_xml(self) -> t.Tuple[str, str, str, int]:
+    def get_xml(self) -> t.Tuple[str, str, str]:
         (xml, name_plate_geom, name_net_geom) = xml_templates.get_table_xml(
             self.model_name,
             self.name,
@@ -143,7 +143,6 @@ class Robot:
         # function (in this file)
         self.geom_racket: t.Optional[str] = None
         self.joint: t.Optional[str] = None
-
 
     def get_xml(self) -> t.Tuple[str, str, str, int]:
         (xml, joint, geom_racket) = xml_templates.get_robot_xml(
