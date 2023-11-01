@@ -15,8 +15,6 @@ from . import models
 
 class ModelItemLike(Protocol):
     joint: str
-    index_qpos: int
-    index_qvel: int
     geom: str
 
 
@@ -77,8 +75,6 @@ def _get_mujoco_items_control(
 
     types = []
     joints = []
-    qpos = []
-    qvel = []
     geometries = []
 
     for model_type, model_item, item in zip(
@@ -86,16 +82,12 @@ def _get_mujoco_items_control(
     ):
         types.append(model_type)
         joints.append(model_item.joint)
-        qpos.append(model_item.index_qpos)
-        qvel.append(model_item.index_qvel)
         geometries.append(model_item.geom)
 
     return class_(
         types,
         mujoco_items.segment_id,
         joints,
-        qpos,
-        qvel,
         geometries,
         robot_geom,
         active_only,
@@ -124,8 +116,6 @@ def _get_mujoco_item_control(
         mujoco_item_type,
         mujoco_item.segment_id,
         model_item.joint,
-        model_item.index_qpos,
-        model_item.index_qvel,
         model_item.geom,
         active_only,
         mujoco_item.contact_type,

@@ -3,14 +3,12 @@
 template <int QUEUE_SIZE>
 MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
                                              std::string joint,
-                                             int index_qpos,
-                                             int index_qvel,
                                              bool active_only)
     : backend_{segment_id},
       segment_id_{segment_id},
       joint_(joint),
-      index_qpos_(index_qpos),
-      index_qvel_(index_qvel),
+      index_qpos_(-1),
+      index_qvel_(-1),
       contact_interrupt_(false),
       interrupted_(false),
       active_only_(active_only)
@@ -20,12 +18,10 @@ MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
 template <int QUEUE_SIZE>
 MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
                                              std::string joint,
-                                             int index_qpos,
-                                             int index_qvel,
                                              std::string interrupt_segment_id,
                                              bool active_only)
     : MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint{
-          segment_id, joint, index_qpos, index_qvel, active_only}
+          segment_id, joint, active_only}
 {
     set_contact_interrupt(interrupt_segment_id);
 }
@@ -58,6 +54,13 @@ bool MirrorFreeJoint<QUEUE_SIZE>::same(const States& s1, const States& s2) const
 template <int QUEUE_SIZE>
 void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
 {
+    if (index_qpos_ < 0)
+    {
+        index_qpos_ =
+            m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];
+        index_qvel_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];
+    }
+
     (void)(m);
     if (this->must_update(d))
     {
@@ -118,6 +121,11 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     bool overwrite = (((!interrupted_) || contact_disabled) && active);
 
     // only overwrite if new ball state
+    // (to let mujoco play its course between ball trajectory points)
+    // commented: this is redundant with the condition "if(active_only_)"
+    //            right above.
+
+    /*
     if (overwrite && same(set_states_, previous_set_states_))
     {
         if (must_update_counter_ > 0)
@@ -134,6 +142,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
         must_update_counter_ = 4;
     }
     previous_set_states_ = set_states_;
+    */
 
     if (overwrite)
     {
