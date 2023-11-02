@@ -21,7 +21,7 @@ enum ContactTypes
     racket1,
     racket2
 };
-
+    
 class MujocoRobotJointControl
 {
 public:
@@ -90,7 +90,10 @@ public:
                       int _index_qvel,
                       std::string _geometry,
                       bool _active_only,
-                      ContactTypes _contact_type);
+                      bool contact_robot1,
+                      bool contact_robot2,
+                      bool contact_table);
+    
 
 public:
     std::string to_string() const;
@@ -106,7 +109,9 @@ public:
                 index_qvel,
                 geometry,
                 active_only,
-                contact_type);
+                contact_robot1,
+                contact_robot2,
+                contact_table);
     }
 
 public:
@@ -117,7 +122,9 @@ public:
     int index_qvel;
     char geometry[100];
     bool active_only;
-    ContactTypes contact_type;
+    bool contact_robot1;
+    bool contact_robot2;
+    bool contact_table;
 };
 
 template <int NB_ITEMS>
@@ -133,7 +140,9 @@ public:
                        std::array<std::string, NB_ITEMS> _geometry,
                        std::string _robot_geom,
                        bool _active_only,
-                       ContactTypes _contact_type);
+                       bool contact_robot1,
+                       bool contact_robot2,
+                       bool contact_table);
 
 public:
     std::string to_string() const;
@@ -150,7 +159,9 @@ public:
                 geometry,
                 robot_geom,
                 active_only,
-                contact_type);
+                contact_robot1,
+                contact_robot2,
+                contact_table);
     }
 
 public:
@@ -162,7 +173,9 @@ public:
     std::array<char[100], NB_ITEMS> geometry;
     char robot_geom[200];
     bool active_only;
-    ContactTypes contact_type;
+    bool contact_robot1;
+    bool contact_robot2;
+    bool contact_table;
 };
 
 #include "mujoco_config.hxx"
@@ -211,8 +224,8 @@ public:
                 joint_controls,
                 pressure_controls,
                 table_geometry,
-		robot1_base,
-		robot2_base,
+                robot1_base,
+                robot2_base,
                 racket1_geometry,
                 racket2_geometry);
     }

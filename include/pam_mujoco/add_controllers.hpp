@@ -58,7 +58,7 @@ void add_contact_free_joint(std::string segment_id,
                             int index_qpos,
                             int index_qvel,
                             std::string geom,
-			    std::string robot_base,			    
+                            std::string robot_base,			    
                             std::string contactee_geom,
                             ContactItems contact_item);
 

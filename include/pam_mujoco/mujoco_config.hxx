@@ -15,12 +15,16 @@ MujocoItemsControl<NB_ITEMS>::MujocoItemsControl(
     std::array<std::string, NB_ITEMS> _geometry,
     std::string _robot_geom,
     bool _active_only,
-    ContactTypes _contact_type)
+    bool _contact_robot1,
+    bool _contact_robot2,
+    bool _contact_table)
     : type{_type},
       index_qpos{_index_qpos},
       index_qvel{_index_qvel},
       active_only{_active_only},
-      contact_type{_contact_type}
+      contact_robot1{_contact_robot1},
+      contact_robot2{_contact_robot2},
+      contact_table{_contact_table}
 {
     strcpy(segment_id, _segment_id.c_str());
     strcpy(robot_geom, _robot_geom.c_str());
@@ -38,15 +42,15 @@ std::string MujocoItemsControl<NB_ITEMS>::to_string() const
     ss << "\t";
     ss << "collection of " << NB_ITEMS << " items:";
     ss << "segment_id: " << segment_id << " ";
-    if (contact_type == ContactTypes::table)
+    if (contact_table)
     {
         ss << "(interrupted on contact with table) ";
     }
-    if (contact_type == ContactTypes::racket1)
+    if (contact_robot1)
     {
         ss << "(interrupted on contact with racket 1) ";
     }
-    if (contact_type == ContactTypes::racket2)
+    if (contact_robot2)
     {
         ss << "(interrupted on contact with racket 2) ";
     }

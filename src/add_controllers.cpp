@@ -72,7 +72,7 @@ void add_contact_free_joint(std::string segment_id,
                             int index_qpos,
                             int index_qvel,
                             std::string geom,
-			    std::string robot_base,			    
+                            std::string robot_base,			    
                             std::string contactee_geom,
                             ContactItems contact_item)
 {
@@ -189,7 +189,7 @@ void add_items_control(const MujocoConfig& config,
         str_joints[i] = std::string(mic.joint[i]);
     }
 
-    if (mic.contact_type != ContactTypes::no_contact)
+    if (mic.contact_table || mic.contact_robot1 || mic.contact_robot2)
     {
         std::array<std::string, NB_ITEMS> contact_segment_ids;
 
@@ -200,7 +200,7 @@ void add_items_control(const MujocoConfig& config,
                 mic.type[item] == MujocoItemTypes::goal)
             {
                 std::string contact_segment_id;
-                if (mic.contact_type == ContactTypes::table)
+                if (mic.contact_table)
                 {
                     contact_segment_id = std::string(mic.segment_id) +
                                          std::string("_table_") +
@@ -212,7 +212,7 @@ void add_items_control(const MujocoConfig& config,
                         std::string(mic.geometry[item]),
                         std::string(config.table_geometry));
                 }
-                if (mic.contact_type == ContactTypes::racket1)
+                if (mic.contact_robot1)
                 {
                     contact_segment_id = std::string(mic.segment_id) +
                                          std::string("_racket1_") +
@@ -222,21 +222,21 @@ void add_items_control(const MujocoConfig& config,
                         mic.index_qpos[item],
                         mic.index_qvel[item],
                         std::string(mic.geometry[item]),
-			std::string(config.robot1_base),
+                        std::string(config.robot1_base),
                         std::string(config.racket1_geometry));
                 }
-                if (mic.contact_type == ContactTypes::racket2)
+                if (mic.contact_robot2)
                 {
                     contact_segment_id = std::string(mic.segment_id) +
                                          std::string("_racket2") +
                                          std::to_string(item);
-                    add_robot1_contact_free_joint(
-                        contact_segment_id,
-                        mic.index_qpos[item],
-                        mic.index_qvel[item],
-                        std::string(mic.geometry[item]),
-			std::string(config.robot2_base),
-                        std::string(config.racket2_geometry));
+                    add_robot2_contact_free_joint(
+                                                  contact_segment_id,
+                                                  mic.index_qpos[item],
+                                                  mic.index_qvel[item],
+                                                  std::string(mic.geometry[item]),
+                                                  std::string(config.robot2_base),
+                                                  std::string(config.racket2_geometry));
                 }
 
                 contact_segment_ids[item] = contact_segment_id;
@@ -300,10 +300,10 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
         mic.type == MujocoItemTypes::hit_point ||
         mic.type == MujocoItemTypes::goal)
     {
-        if (mic.contact_type != ContactTypes::no_contact)
+        if (mic.contact_table || mic.contact_robot1 || mic.contact_robot2)
         {
             std::string contact_segment_id;
-            if (mic.contact_type == ContactTypes::table)
+            if (mic.contact_table)
             {
                 contact_segment_id =
                     std::string(mic.segment_id) + std::string("_table");
@@ -314,7 +314,7 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
                     std::string(mic.geometry),
                     std::string(config.table_geometry));
             }
-            if (mic.contact_type == ContactTypes::racket1)
+            if (mic.contact_robot1)
             {
                 contact_segment_id =
                     std::string(mic.segment_id) + std::string("_racket1");
@@ -323,19 +323,19 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
                     mic.index_qpos,
                     mic.index_qvel,
                     std::string(mic.geometry),
-		    std::string(config.robot1_base),
+                    std::string(config.robot1_base),
                     std::string(config.racket1_geometry));
             }
-            if (mic.contact_type == ContactTypes::racket2)
+            if (mic.contact_robot2)
             {
                 contact_segment_id =
                     std::string(mic.segment_id) + std::string("_racket2");
-                add_robot1_contact_free_joint(
+                add_robot2_contact_free_joint(
                     contact_segment_id,
                     mic.index_qpos,
                     mic.index_qvel,
                     std::string(mic.geometry),
-   		    std::string(config.robot2_base),
+                    std::string(config.robot2_base),
                     std::string(config.racket2_geometry));
             }
             add_mirror_until_contact_free_joint(std::string(mic.segment_id),

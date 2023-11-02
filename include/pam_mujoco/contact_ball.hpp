@@ -34,7 +34,7 @@ public:
                 int index_qpos,
                 int index_qvel,
                 std::string geom,
-		std::string robot_base,
+                std::string robot_base,
                 std::string geom_contactee,
                 ContactItems contact_item);
 
