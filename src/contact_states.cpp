@@ -9,10 +9,10 @@ ContactStates::ContactStates() : time_stamp(-1), velocity_time_stamp(-1)
 }
 
 template<typename Array>
-void print_array(std::string label, Array& a);
+void print_array(std::string label, const Array& a);
 
 template<std::size_t N>
-void print_array(std::string label, std::array<double, N>& a)
+void print_array(std::string label, const std::array<double, N>& a)
 {
   std::cout << "\t" << label << "\t";
   for(auto& elem : a)
@@ -22,7 +22,7 @@ void print_array(std::string label, std::array<double, N>& a)
   std::cout << std::endl;
 }
   
-void ContactStates::print()
+void ContactStates::print() const
 {
   std::cout << "contact state:" << std::endl;
   std::cout << "\ttime stamp: " << time_stamp << std::endl;
@@ -32,7 +32,7 @@ void ContactStates::print()
   print_array(std::string("contactee position"), contactee_position);
   print_array(std::string("contactee velocity"), contactee_velocity);
   print_array(std::string("ball position"), ball_position);
-    print_array(std::string("ball velocity"), ball_velocity);
+  print_array(std::string("ball velocity"), ball_velocity);
 }
 
 bool should_update_velocity(internal::ContactStates& previous_state,
@@ -48,7 +48,6 @@ bool should_update_velocity(internal::ContactStates& previous_state,
     if ((time - previous_state.velocity_time_stamp) >= time_threshold)
     {
         return true;
-        
     }
 
     std::array<double, 3> new_velocities;
@@ -82,7 +81,6 @@ bool should_update_velocity(internal::ContactStates& previous_state,
     
 }
   
-
 /**
  * extract information from d to update the instance
  * of get_states. position of the ball, velocity of the ball,
@@ -94,7 +92,7 @@ bool should_update_velocity(internal::ContactStates& previous_state,
  * state).
  */
 void save_state(const mjData* d,
-		int index_robot_qpos,
+                int index_robot_qpos,
                 int index_qpos,
                 int index_qvel,
                 int index_geom_contactee,
@@ -104,7 +102,6 @@ void save_state(const mjData* d,
     if (get_states.time_stamp < 0)
     {
         for (size_t i = 0; i < 3; i++) get_states.contactee_velocity[i] = 0;
-        get_states.time_stamp = d->time;
     }
     else
     {
@@ -134,34 +131,32 @@ void save_state(const mjData* d,
                         dt;
                 }
                 get_states.velocity_time_stamp = d->time;
-
-                // rest is just copied from d to get_states
-		if (index_robot_qpos >= 0)
-		{
-		  for (size_t i = 0; i < 4; i++)
-		  {
-		    get_states.robot_joint_positions[i] = d->qpos[index_robot_qpos + i];
-		  }
-		}
-                for (size_t i = 0; i < 3; i++)
-                {
-                    get_states.ball_position[i] = d->qpos[index_qpos + i];
-                    get_states.ball_velocity[i] = d->qvel[index_qvel + i];
-                    get_states.contactee_position[i] =
-                        d->geom_xpos[index_geom_contactee * 3 + i];
-                }
-                for (size_t i = 0; i < 9; i++)
-                {
-                    get_states.contactee_orientation[i] =
-                        d->geom_xmat[index_geom_contactee * 9 + i];
-                }
             }
-            get_states.time_stamp = d->time;
         }
-    }    
-    
+    }
+    if (index_robot_qpos >= 0)
+    {
+        for (size_t i = 0; i < 4; i++)
+            {
+                get_states.robot_joint_positions[i] = d->qpos[index_robot_qpos + i];
+            }
+    }
+    // rest is just copied from d to get_states
+    for (size_t i = 0; i < 3; i++)
+    {
+        get_states.ball_position[i] = d->qpos[index_qpos + i];
+        get_states.ball_velocity[i] = d->qvel[index_qvel + i];
+        get_states.contactee_position[i] =
+            d->geom_xpos[index_geom_contactee * 3 + i];
+    }
+    for (size_t i = 0; i < 9; i++)
+    {
+        get_states.contactee_orientation[i] =
+            d->geom_xmat[index_geom_contactee * 9 + i];
+    }
+    get_states.time_stamp = d->time;
 }
-  
-}
-  
-}
+
+}  // namespace internal
+
+}  // namespace pam_mujoco

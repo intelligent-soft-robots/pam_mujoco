@@ -90,6 +90,8 @@ static internal::ContactStates in_relative_frame(
     const internal::ContactStates& pre_contact)
 {
     internal::ContactStates states;
+    states.time_stamp = pre_contact.time_stamp;
+    states.velocity_time_stamp = pre_contact.velocity_time_stamp;
 
     std::array<double, 3> translated;
     for (size_t i = 0; i < 3; i++)
@@ -166,6 +168,16 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
     double delta_t_step = current.time_stamp - pre_contact.time_stamp;
     double delta_t_after_impact = delta_t_step - time_until_impact;
 
+    std::cout << "-- recompute state --" << std::endl;
+    std::cout << "-pre-"<< std::endl; 
+    pre_contact.print();
+    std::cout << "-pre-relative-"<< std::endl; 
+    pre_contact_relative.print();
+    std::cout << "-current-"<< std::endl; 
+    current.print();
+    std::cout << axis << " | " << time_until_impact << " | " << delta_t_step
+              << " | " << delta_t_after_impact << "\n\n"; 
+    
     // the contact is not occuring during this time step,
     // exiting
     if (delta_t_after_impact < 0)

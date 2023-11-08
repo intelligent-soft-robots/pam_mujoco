@@ -1,7 +1,7 @@
 import time
 import logging
 from functools import partial
-from typing import Protocol, Optional, Union, cast
+from typing import Protocol, Optional, Union, cast, Dict
 
 import shared_memory
 import o80
@@ -15,8 +15,6 @@ from . import models
 
 class ModelItemLike(Protocol):
     joint: str
-    index_qpos: int
-    index_qvel: int
     geom: str
 
 
@@ -38,9 +36,7 @@ class NoSuchFrontend(Exception):
         if not self._mujoco_handle:
             valid_ids = ""
         else:
-            valid_ids = ", valid ids: {}".format(
-                self._mujoco_handle.frontends.keys()
-            )
+            valid_ids = ", valid ids: {}".format(self._mujoco_handle.frontends.keys())
         return "no frontend corresponding to segment id {}{}".format(
             self._segment_id, valid_ids
         )
@@ -77,8 +73,6 @@ def _get_mujoco_items_control(
 
     types = []
     joints = []
-    qpos = []
-    qvel = []
     geometries = []
 
     for model_type, model_item, item in zip(
@@ -86,16 +80,12 @@ def _get_mujoco_items_control(
     ):
         types.append(model_type)
         joints.append(model_item.joint)
-        qpos.append(model_item.index_qpos)
-        qvel.append(model_item.index_qvel)
         geometries.append(model_item.geom)
 
     return class_(
         types,
         mujoco_items.segment_id,
         joints,
-        qpos,
-        qvel,
         geometries,
         robot_geom,
         active_only,
@@ -117,18 +107,15 @@ def _get_mujoco_item_control(
     if mujoco_item.control == MujocoItem.COMMAND_ACTIVE_CONTROL:
         active_only = True
 
-    if mujoco_item.contact_type is None:
-        mujoco_item.contact_type = pam_mujoco_wrp.ContactTypes.no_contact
-
     return pam_mujoco_wrp.MujocoItemControl(
         mujoco_item_type,
         mujoco_item.segment_id,
         model_item.joint,
-        model_item.index_qpos,
-        model_item.index_qvel,
         model_item.geom,
         active_only,
-        mujoco_item.contact_type,
+        mujoco_item.contact_robot1,
+        mujoco_item.contact_robot2,
+        mujoco_item.contact_table,
     )
 
 
@@ -139,9 +126,7 @@ def _get_mujoco_robot_control(
     pam_mujoco_wrp.MujocoRobotPressureControl,
     None,
 ]:
-    active_only = (
-        mujoco_robot.active_only_control == MujocoRobot.COMMAND_ACTIVE_CONTROL
-    )
+    active_only = mujoco_robot.active_only_control == MujocoRobot.COMMAND_ACTIVE_CONTROL
 
     if mujoco_robot.control == MujocoRobot.JOINT_CONTROL:
         return pam_mujoco_wrp.MujocoRobotJointControl(
@@ -198,16 +183,12 @@ class MujocoHandle:
 
             # creating the mujoco xml model file
 
-            logging.info(
-                "creating the xml model file for {}".format(mujoco_id)
-            )
+            logging.info("creating the xml model file for {}".format(mujoco_id))
 
             if combined:
                 all_balls = list(balls) + combined.items["balls"]
                 all_goals = list(goals) + combined.items["goals"]
-                all_hit_points = (
-                    list(hit_points) + combined.items["hit_points"]
-                )
+                all_hit_points = list(hit_points) + combined.items["hit_points"]
             else:
                 all_balls = balls
                 all_goals = goals
@@ -226,9 +207,7 @@ class MujocoHandle:
 
             # creating the mujoco config
 
-            logging.info(
-                "creating mujoco configuration for {}".format(mujoco_id)
-            )
+            logging.info("creating mujoco configuration for {}".format(mujoco_id))
 
             config = pam_mujoco_wrp.MujocoConfig(mujoco_id)
             config.set_burst_mode(burst_mode)
@@ -260,9 +239,7 @@ class MujocoHandle:
 
             mujoco_item_controls = []
             if balls:
-                logging.info(
-                    "creating item controls for {} balls".format(len(balls))
-                )
+                logging.info("creating item controls for {} balls".format(len(balls)))
                 mujoco_item_controls.extend(
                     [
                         _get_ball(mujoco_item, model_item)
@@ -274,9 +251,7 @@ class MujocoHandle:
 
             if hit_points:
                 logging.info(
-                    "creating item controls for {} hit points".format(
-                        len(hit_points)
-                    )
+                    "creating item controls for {} hit points".format(len(hit_points))
                 )
                 mujoco_item_controls.extend(
                     [
@@ -288,9 +263,7 @@ class MujocoHandle:
                 )
 
             if goals:
-                logging.info(
-                    "creating item controls for {} goals".format(len(goals))
-                )
+                logging.info("creating item controls for {} goals".format(len(goals)))
                 mujoco_item_controls.extend(
                     [
                         _get_goal(mujoco_item, model_item)
@@ -317,9 +290,7 @@ class MujocoHandle:
                 # function name, depending on the number of combined mujoco items.
                 # e.g. add_3_control or add_10_control, see
                 # include/mujoco_config.hpp and/or srcpy/wrappers.cpp
-                add_function_name = "_".join(
-                    ["add", str(combined.size), "control"]
-                )
+                add_function_name = "_".join(["add", str(combined.size), "control"])
 
                 # pointer to the function
                 add_function = getattr(config, add_function_name)
@@ -343,9 +314,7 @@ class MujocoHandle:
             # writing the mujoco config in the shared memory.
             # the mujoco executable is expected to read it and start
 
-            logging.info(
-                "sharing mujoco configuration for {}".format(mujoco_id)
-            )
+            logging.info("sharing mujoco configuration for {}".format(mujoco_id))
 
             pam_mujoco_wrp.set_mujoco_config(config)
 
@@ -421,9 +390,7 @@ class MujocoHandle:
                 if mujoco_items_control_instance:
                     combined = cast(MujocoItems, _Combined())
                     combined.size = nb_balls
-                    combined.segment_id = mujoco_items_control_instance[
-                        0
-                    ].segment_id
+                    combined.segment_id = mujoco_items_control_instance[0].segment_id
                     break
 
         # if bursting mode, creating a burster client
@@ -505,41 +472,46 @@ class MujocoHandle:
                     self.interfaces[robot.segment_id] = interface
 
         if combined:
-            self.frontends[
-                combined.segment_id
-            ] = self.get_extra_balls_frontend(
+            self.frontends[combined.segment_id] = self.get_extra_balls_frontend(
                 combined.segment_id, combined.size
             )
 
         # for tracking contact
-        self.contacts = {}
+        self.contacts: Dict[str, Dict[str, str]] = {}
 
         for item in list(balls) + list(goals) + list(hit_points):
-            if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
-                self.contacts[item.segment_id] = item.segment_id + "_table"
-            if item.contact_type == pam_mujoco_wrp.ContactTypes.racket1:
-                self.contacts[item.segment_id] = item.segment_id + "_racket1"
-            if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
-                self.contacts[item.segment_id] = item.segment_id + "_racket2"
+            self.contacts[item.segment_id] = {}
+            if item.contact_table:
+                self.contacts[item.segment_id]["table"] = item.segment_id + "_table"
+            if item.contact_robot1:
+                self.contacts[item.segment_id]["robot1"] = item.segment_id + "_racket1"
+            if item.contact_robot2 == pam_mujoco_wrp.ContactTypes.racket2:
+                self.contacts[item.segment_id]["robot2"] = item.segment_id + "_racket2"
 
         if combined and not read_only:
             # see src/add_controllers.cpp, function add_items_control
+            for item in combined.iterate():
+                self.contacts[item.segment_id] = {}
             for index, item in enumerate(list(combined.iterate())):
-                if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
-                    self.contacts[item.segment_id] = (
+                if item.contact_table:
+                    self.contacts[item.segment_id]["table_" + str(index)] = (
                         combined.segment_id + "_table_" + str(index)
                     )
-                if item.contact_type == pam_mujoco_wrp.ContactTypes.racket1:
-                    self.contacts[item.segment_id] = (
+                if item.contact_robot1:
+                    self.contacts[item.segment_id]["robot1_" + str(index)] = (
                         combined.segment_id + "_racket1_" + str(index)
                     )
-                if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
-                    self.contacts[item.segment_id] = (
+                if item.contact_robot2:
+                    self.contacts[item.segment_id]["robot2_" + str(index)] = (
                         combined.segment_id + "_racket2_" + str(index)
                     )
 
-        for sid in self.contacts.keys():
-            self.reset_contact(sid)
+        for sid, value in self.contacts.items():
+            if isinstance(value, str):
+                self.reset_contact(sid)
+            else:
+                for item in value.keys():
+                    self.reset_contact(sid, item)
 
         logging.info("handle for mujoco {} created".format(mujoco_id))
 
@@ -574,24 +546,34 @@ class MujocoHandle:
     def pause(self, value):
         shared_memory.set_bool(self._mujoco_id, "pause", value)
 
-    def get_contact(self, segment_id):
-        return pam_mujoco_wrp.get_contact(self.contacts[segment_id])
+    def get_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.get_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.get_contact(self.contacts[segment_id][item])
 
-    def reset_contact(self, segment_id):
-        return pam_mujoco_wrp.reset_contact(self.contacts[segment_id])
+    def reset_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.reset_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.reset_contact(self.contacts[segment_id][item])
 
-    def activate_contact(self, segment_id):
-        return pam_mujoco_wrp.activate_contact(self.contacts[segment_id])
+    def activate_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.activate_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.activate_contact(self.contacts[segment_id][item])
 
-    def deactivate_contact(self, segment_id):
-        return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id])
+    def deactivate_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id][item])
 
     def burst(self, nb_iterations=1):
         self._burster_client.burst(nb_iterations)
 
-    def sleep(
-        self, duration: float, segment_id: str, time_step: float = 0.002
-    ):
+    def sleep(self, duration: float, segment_id: str, time_step: float = 0.002):
         """
         Similar to time.sleep, except that it
         will also work in accelerated time.
@@ -608,9 +590,7 @@ class MujocoHandle:
         if segment_id not in self.frontends:
             raise NoSuchFrontend(segment_id, self)
         if time_step > duration:
-            raise ValueError(
-                str("Can not sleep shorted than" "a mujoco time step")
-            )
+            raise ValueError(str("Can not sleep shorted than" "a mujoco time step"))
         nb_iterations = int((duration / time_step) + 0.5)
         front = self.frontends[segment_id]
         target_iteration = front.latest().get_iteration() + nb_iterations

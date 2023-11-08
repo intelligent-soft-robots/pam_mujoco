@@ -73,8 +73,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<pam_mujoco::MujocoItemTypes,
              std::string,
              std::string,
-             int,
-             int,
              std::string,
              bool,
              bool, bool, bool>())
@@ -89,8 +87,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 3>,
              std::string,
              std::array<std::string, 3>,
-             std::array<int, 3>,
-             std::array<int, 3>,
              std::array<std::string, 3>,
              std::string,
              bool,bool, bool, bool>())
@@ -106,8 +102,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 10>,
              std::string,
              std::array<std::string, 10>,
-             std::array<int, 10>,
-             std::array<int, 10>,
              std::array<std::string, 10>,
              std::string,
              bool, bool, bool, bool>())
@@ -123,8 +117,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 20>,
              std::string,
              std::array<std::string, 20>,
-             std::array<int, 20>,
-             std::array<int, 20>,
              std::array<std::string, 20>,
              std::string,
              bool, bool, bool, bool>())
@@ -140,8 +132,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 50>,
              std::string,
              std::array<std::string, 50>,
-             std::array<int, 50>,
-             std::array<int, 50>,
              std::array<std::string, 50>,
              std::string,
              bool, bool, bool, bool>())
@@ -157,8 +147,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 100>,
              std::string,
              std::array<std::string, 100>,
-             std::array<int, 100>,
-             std::array<int, 100>,
              std::array<std::string, 100>,
              std::string,
              bool, bool, bool, bool>())

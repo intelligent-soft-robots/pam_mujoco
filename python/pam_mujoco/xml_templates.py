@@ -61,9 +61,7 @@ def get_free_joint_body_xml(model_name, name, geom_type, position, size, color, 
 
     xml = _from_template(template, **locals())
 
-    nb_bodies = 1
-
-    return xml, name_geom, name_joint, nb_bodies
+    return xml, name_geom, name_joint
 
 
 def get_table_xml(
@@ -115,9 +113,7 @@ def get_table_xml(
 
     xml.append("</body>\n")
 
-    nb_bodies = 7  # plate, net, 4 legs
-
-    return "\n".join(xml), name_plate_geom, name_net_geom, nb_bodies
+    return "\n".join(xml), name_plate_geom, name_net_geom
 
 
 def get_goal_xml(model_name, name, position, radius1, radius2, color1, color2):
@@ -135,9 +131,7 @@ def get_goal_xml(model_name, name, position, radius1, radius2, color1, color2):
 
     xml = _from_template(template, **locals())
 
-    nb_bodies = 1
-
-    return xml, 1
+    return xml
 
 
 def get_robot_xml(
@@ -173,14 +167,12 @@ def get_robot_xml(
         template, name=name, position=position, filename=filename, **optional
     )
 
-    nb_bodies = 25  # just from counting in the xml template file
-
     # as according to the template xml files
     # in pam_configuration/config/pam_mujoco/models/robot_templates/
     joint = name + "_joint_base_rotation"
     geom_racket = name + "_racket"
 
-    return xml, joint, geom_racket, nb_bodies
+    return xml, joint, geom_racket
 
 
 def get_contacts_xml(robots, balls, tables, solrefs, gaps):

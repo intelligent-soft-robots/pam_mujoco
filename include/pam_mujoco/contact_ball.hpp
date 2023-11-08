@@ -31,8 +31,7 @@ class ContactBall : public ControllerBase
 {
 public:
     ContactBall(std::string segment_id_,
-                int index_qpos,
-                int index_qvel,
+                std::string joint,
                 std::string geom,
                 std::string robot_base,
                 std::string geom_contactee,
@@ -51,11 +50,13 @@ private:
     std::string segment_id_;
     internal::RecomputeStateConfig config_;
     context::ContactInformation contact_information_;
+    internal::ContactStates current_;
     internal::ContactStates previous_;
-    std::string robot_base_;
-    int index_robot_qpos_;
+    std::string joint_;
     int index_qpos_;
     int index_qvel_;
+    std::string robot_base_;
+    int index_robot_qpos_;
     std::string geom_;
     std::string geom_contactee_;
     int index_geom_;
@@ -64,8 +65,12 @@ private:
     double mujoco_detected_dist_;
     bool in_contact_;
     int nb_of_iterations_since_last_contact_;
-    int steps_contact_remaining_ = -1;      // number of steps to before discarding contact (contact is delayed if racket and ball are too close, set to 200 after contact is detected)
-    int steps_overwrite_remaining_ = -1;    // number of steps to overwrite contact (set to 4 after contact, to make sure new ball state is not overwritten by the simulation)
+    // number of steps to before discarding contact
+    // (contact is delayed if racket and ball are too close, set to 200 after contact is detected)
+    int steps_contact_remaining_ = -1;
+    // number of steps to overwrite contact
+    // (set to 4 after contact, to make sure new ball state is not overwritten by the simulation)
+    int steps_overwrite_remaining_ = -1;
     double overwrite_ball_position_[3];
     double overwrite_ball_velocity_[3];
 };
