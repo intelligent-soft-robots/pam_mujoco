@@ -159,6 +159,8 @@ public:
     void set_accelerated_time(bool use_accelerated);
     void set_model_path(std::string path);
     void set_graphics(bool use_graphics);
+    void set_save_data(bool save_data);
+    void set_save_folder(std::string folder);
     std::string to_string() const;
     void set_robot1_base(std::string robot1_base);
     void set_robot2_base(std::string robot2_base);    
@@ -177,6 +179,10 @@ public:
     void add_control(MujocoRobotPressureControl mpc);
 
 public:
+    std::string get_robot_joint() const;
+    std::string get_ball_joint() const;
+    
+public:
     template <class Archive>
     void serialize(Archive& archive)
     {
@@ -185,6 +191,8 @@ public:
                 burst_mode,
                 accelerated_time,
                 use_graphics,
+                save_data,
+                save_folder,
                 item_controls,
                 item_3_controls,
                 item_10_controls,
@@ -194,8 +202,8 @@ public:
                 joint_controls,
                 pressure_controls,
                 table_geometry,
-		robot1_base,
-		robot2_base,
+                robot1_base,
+                robot2_base,
                 racket1_geometry,
                 racket2_geometry);
     }
@@ -205,6 +213,8 @@ public:
     bool burst_mode;
     bool accelerated_time;
     bool use_graphics;
+    bool save_data;
+    char save_folder[200];
     char mujoco_id[200];
     std::vector<MujocoItemControl> item_controls;
     std::vector<MujocoItemsControl<3>> item_3_controls;

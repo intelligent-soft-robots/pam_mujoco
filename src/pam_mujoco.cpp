@@ -25,6 +25,7 @@
 #include "pam_mujoco/listener.hpp"
 #include "pam_mujoco/mj_state_tools.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
+#include "pam_mujoco/mujoco_state.hpp"
 #include "shared_memory/shared_memory.hpp"
 #include "signal_handler/signal_handler.hpp"
 
@@ -2169,6 +2170,17 @@ int main(int argc, const char** argv)
         pam_mujoco::Controllers::add(burster);
     }
 
+    if (config.save_data)
+    {
+        std::cout << "\nsaving data in folder " << config.save_folder << std::endl;
+        auto saver = std::make_shared<
+            pam_mujoco::MujocoStatePrinterController>(mujoco_id,
+                                                      config.save_folder,
+                                                      config.get_robot_joint(),
+                                                      config.get_ball_joint());
+        pam_mujoco::Controllers::add(saver);
+    }
+    
     for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
     {
         std::cout << "\nadding controller:" << std::endl;
