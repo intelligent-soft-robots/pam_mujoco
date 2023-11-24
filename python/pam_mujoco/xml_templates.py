@@ -188,6 +188,8 @@ def get_contacts_xml(robots, balls, tables, solrefs, gaps):
         if gap:
             r += ' gap="' + gap + '"'
 
+        # r += ' margin="0.01"'
+
         return r
 
     def get_xml(geom1, geom2, type1, type2):

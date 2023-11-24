@@ -37,6 +37,24 @@ void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(std::string segment_id)
     segment_id_contact_ = segment_id;
 }
 
+
+template <int QUEUE_SIZE>
+bool MirrorFreeJoint<QUEUE_SIZE>::same(const States& s1, const States& s2) const
+{
+    for (std::size_t d = 0; d < 6; d++)
+    {
+        o80::State1d t1 = s1.get(d);
+        o80::State1d t2 = s2.get(d);
+        if (std::abs(t1.value - t2.value) > 1e-5)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+
 template <int QUEUE_SIZE>
 void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
 {
@@ -99,6 +117,28 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
 
     bool overwrite = (((!interrupted_) || contact_disabled) && active);
 
+
+    if (overwrite && same(set_states_, previous_set_states_))
+    {
+        
+        // printf("ball same\n");
+        if (must_update_counter_ > 0)
+        {
+            overwrite = true;
+            must_update_counter_--;
+        }
+        else
+        {
+            overwrite = false;
+            // printf("don't overwrite\n");
+        }
+        
+    }
+    else{
+        must_update_counter_ = 4;
+    }
+    previous_set_states_ = set_states_;
+
     if (overwrite)
     {
         bool anynan = false;
@@ -112,6 +152,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
         }
         if (!anynan)
         {
+            
             // x,y,z positions
             d->qpos[index_qpos_] = set_states_.get(0).value;
             d->qpos[index_qpos_ + 1] = set_states_.get(2).value;
@@ -120,8 +161,23 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
             d->qvel[index_qvel_] = set_states_.get(1).value;
             d->qvel[index_qvel_ + 1] = set_states_.get(3).value;
             d->qvel[index_qvel_ + 2] = set_states_.get(5).value;
+
+            // if(abs(d->qvel[index_qvel_])>0.001)
+            //     printf("overwriting ");
+
+
         }
     }
+
+    // if(abs(d->qvel[index_qvel_])>0.001)
+    //     printf("ball: pos: %f %f %f vel: %f %f %f\n",
+    //         d->qpos[index_qpos_],
+    //         d->qpos[index_qpos_ + 1],
+    //         d->qpos[index_qpos_ + 2],
+    //         d->qvel[index_qvel_],
+    //         d->qvel[index_qvel_ + 1],
+    //         d->qvel[index_qvel_ + 2]);
+
 }
 
 template <int QUEUE_SIZE>

@@ -1853,6 +1853,7 @@ void simulate(void)
 
                         // run single step, let next iteration deal with timing
                         mj_step(m, d);
+                        printf("(1) %.5f \n", d->time);
                     }
 
                     // in-sync
@@ -1872,6 +1873,7 @@ void simulate(void)
                             // run mj_step
                             mjtNum prevtm = d->time;
                             mj_step(m, d);
+                            printf("(2) %.5f \n", d->time);
 
                             // break on reset
                             if (d->time < prevtm) break;
@@ -1885,6 +1887,7 @@ void simulate(void)
                         frequency_manager.wait();
                     }
                     mj_step(m, d);
+                    printf("(3) %.5f \n", d->time);
                 }
             }
 

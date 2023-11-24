@@ -1860,6 +1860,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
             else
             {
                 mj_step(m, d);
+                // printf("[%.10f, %ld],\n", d->time, o80::time_now().count());
             }
         }
 
@@ -2123,8 +2124,11 @@ int main(int argc, const char** argv)
     // specified value as output directory for mjData snapshots.
     std::string mjdata_nan_snapshot_path;
     char* mjdata_nan_snapshot_path_cstr = std::getenv("DBG_NAN_SNAPSHOT_DIR");
+    cout<<"checking DBG_NAN_SNAPSHOT_DIR..."<<endl;
     if (mjdata_nan_snapshot_path_cstr != nullptr)
     {
+        cout<<"found DBG_NAN_SNAPSHOT_DIR..."<<endl;
+        cout<<"path:"<<mjdata_nan_snapshot_path_cstr<<endl;
         mjdata_nan_snapshot_path = mjdata_nan_snapshot_path_cstr;
     }
     if (!mjdata_nan_snapshot_path.empty())

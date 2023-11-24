@@ -45,6 +45,7 @@ private:
     States set_states_;
     States previous_set_states_;
     o80_pam::RobotFKExtendedState robot_fk_;
+    int must_update_counter_ = -1;
 };
 
 #include "mirror_robot.hxx"
