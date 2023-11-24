@@ -7,6 +7,8 @@
 #include "o80_pam/robot_fk_extended_state.hpp"
 #include "pam_mujoco/controllers.hpp"
 #include "pam_mujoco/joint_state.hpp"
+#include "pam_mujoco/internal/contact_states.hpp"
+
 
 namespace pam_mujoco
 {
@@ -46,6 +48,7 @@ private:
     States previous_set_states_;
     o80_pam::RobotFKExtendedState robot_fk_;
     int must_update_counter_ = -1;              // only overwrite if new robot state
+    internal::ContactStates racket_state_;
 };  
 
 #include "mirror_robot.hxx"

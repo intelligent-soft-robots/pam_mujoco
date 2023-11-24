@@ -2238,6 +2238,16 @@ int main(int argc, const char** argv)
         pam_mujoco::Controllers::add(state_saver);
     }
 
+    if (true)
+    {
+        // add mujoco state save controller
+        std::string prefix = "/tmp/states/" + mujoco_id;
+        auto state_saver =
+            std::make_shared<pam_mujoco::SaveMujocoDataController>(prefix);
+        pam_mujoco::Controllers::add(state_saver);
+
+    }
+
     mjcb_control = pam_mujoco::Controllers::apply;
     mjcb_act_bias = pam_mujoco::Controllers::get_bias;
 

@@ -12,6 +12,10 @@
 #include <mutex>
 #include <string>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
+
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -228,6 +232,12 @@ const char help_title[] =
 // info strings
 char info_title[1000];
 char info_content[1000];
+
+float camera_look_at[3] = {0, 0, 0};
+float camera_azimuth = 0.0;
+float camera_elevation = 0.0;
+float camera_distance = 0.0;
+
 
 //----------------------- profiler, sensor, info, watch
 //---------------------------------
@@ -967,11 +977,19 @@ void makesections(void)
 // align and scale view
 void alignscale(void)
 {
+    cam.azimuth += camera_azimuth;
+    camera_azimuth = 0;
+    cam.elevation += camera_elevation;
+    camera_elevation = 0;
+
     // autoscale
-    cam.lookat[0] = m->stat.center[0];
-    cam.lookat[1] = m->stat.center[1];
-    cam.lookat[2] = m->stat.center[2];
+    cam.lookat[0] = m->stat.center[0] + camera_look_at[0];
+    cam.lookat[1] = m->stat.center[1] + camera_look_at[1];
+    cam.lookat[2] = m->stat.center[2] + camera_look_at[2];
     cam.distance = 1.5 * m->stat.extent;
+
+    cam.distance = 1.5 * m->stat.extent; // Default distance
+    cam.distance += camera_distance;
 
     // set to free camera
     cam.type = mjCAMERA_FREE;
@@ -1799,6 +1817,28 @@ void render(GLFWwindow* window)
     }
 }
 
+void render_without_ui(GLFWwindow* window) {
+    // Check if there's a model to render
+    if (!m) {
+        return; // No model to render
+    }
+
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    mjrRect viewport = {0, 0, width, height};
+
+    // Render the scene to the main framebuffer
+    mjv_updateScene(m, d, &vopt, &pert, &cam, mjCAT_ALL, &scn);
+    mjr_render(viewport, &scn, &con);
+
+    // Note: The UI rendering is skipped in this function
+
+    // Swap buffers if needed (depends on how you want to manage buffer swapping)
+    glfwSwapBuffers(window);
+}
+
+
+
 //-------------------------------- init and main
 //----------------------------------------
 
@@ -1891,16 +1931,97 @@ void init()
     }
 }
 
+
+bool isDirectory(const std::string& path) {
+    return std::filesystem::is_directory(std::filesystem::status(path));
+}
+
+// Get all files in a given directory
+std::vector<std::string> getFilesInDirectory(const std::string& path) {
+    std::vector<std::string> files;
+    for (const auto& entry : std::filesystem::directory_iterator(path))
+        if (entry.is_regular_file())
+            files.push_back(entry.path().string());
+    return files;
+}
+
+std::vector<std::string> getDatFilesInDirectory(const std::string& path) {
+    std::vector<std::string> files;
+    for (const auto& entry : std::filesystem::directory_iterator(path))
+        if (entry.is_regular_file() && entry.path().extension() == ".dat")
+            files.push_back(entry.path().string());
+    return files;
+}
+
+void flipImageVertically(unsigned char* pixels, int width, int height, int channels) {
+    int rowSize = width * channels;
+    auto* rowBuffer = new unsigned char[rowSize];
+    int halfHeight = height / 2;
+
+    for (int i = 0; i < halfHeight; ++i) {
+        memcpy(rowBuffer, pixels + i * rowSize, rowSize);
+        memcpy(pixels + i * rowSize, pixels + (height - i - 1) * rowSize, rowSize);
+        memcpy(pixels + (height - i - 1) * rowSize, rowBuffer, rowSize);
+    }
+    delete[] rowBuffer;
+}
+
+void captureAndSaveScene(const std::string& save_path, int image_index) {
+    // Get the size of the framebuffer
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+
+    // Allocate array for pixels
+    int size = 3 * width * height; // Assuming 3 channels (RGB)
+    unsigned char* pixels = new unsigned char[size];
+
+    // Read pixels from the framebuffer
+    mjrRect viewport = {0, 0, width, height};
+    mjr_readPixels(pixels, nullptr, viewport, &con);
+
+    // Flip the image vertically
+    flipImageVertically(pixels, width, height, 3);
+
+    // File name for the image
+    char filename[256];
+    sprintf(filename, "%s/captured_scene_%d.png", save_path.c_str(), image_index);
+
+    // Save image as PNG
+    stbi_write_png(filename, width, height, 3, pixels, 3 * width);
+
+    // Free the allocated memory
+    delete[] pixels;
+}
+
+
 // run event loop
 int main(int argc, const char** argv)
 {
-    if (argc != 3)
+    if (argc <3 || argc > 9)
     {
         std::cerr << "Invalid number of arguments" << std::endl;
         std::cerr << "Usage: " << argv[0]
-                  << " <model_path> <data_snapshot_path>" << std::endl;
+                  << " <model_path> <data_snapshot_path> [<camera_look_at_x> <camera_look_at_y> <camera_look_at_z> [<camera_azimuth> <camera_elevation> <camera_distance>]]"
+                  << std::endl;
         return 1;
     }
+
+    if (argc >= 6) {
+        camera_look_at[0] = std::stof(argv[3]);
+        camera_look_at[1] = std::stof(argv[4]);
+        camera_look_at[2] = std::stof(argv[5]);
+        printf("camera_look_at +=: %f %f %f\n", camera_look_at[0], camera_look_at[1], camera_look_at[2]);
+    }
+
+    if (argc >= 9) {
+        camera_azimuth = std::stof(argv[6]);
+        camera_elevation = std::stof(argv[7]);
+        camera_distance = std::stof(argv[8]);
+        printf("camera_azimuth +=: %f\n", camera_azimuth);
+        printf("camera_elevation +=: %f\n", camera_elevation);
+        printf("camera_distance +=: %f\n", camera_distance);
+    }
+
 
     std::string model_path{argv[1]};
     std::string snapshot_path{argv[2]};
@@ -1915,6 +2036,53 @@ int main(int argc, const char** argv)
     std::cout << "\nloading model: " << filename << std::endl;
     settings.loadrequest = 2;
     std::cout << "model loaded" << std::endl;
+
+
+    if (isDirectory(snapshot_path)) {
+
+        for(int i = 0; i < 3; i++)
+        {
+            // start exclusive access (block simulation thread)
+            mtx.lock();
+
+            auto first_file_in_snapshot_path = getDatFilesInDirectory(snapshot_path)[0];
+
+            // load model (not on first pass, to show "loading" label)
+            if (settings.loadrequest == 1)
+                loadmodel(first_file_in_snapshot_path);
+            else if (settings.loadrequest > 1)
+                settings.loadrequest = 1;
+
+            // handle events (calls all callbacks)
+            if (settings.graphics) glfwPollEvents();
+
+            // prepare to render
+            prepare();
+
+            // end exclusive access (allow simulation thread to run)
+            mtx.unlock();
+
+            // render while simulation is running
+            if (settings.graphics) render(window);
+        }
+        
+
+        for (const auto& snapshot_file : getDatFilesInDirectory(snapshot_path)) {
+            printf("snapshot_file: %s\n", snapshot_file.c_str());
+            loadmodel(snapshot_file);
+            mtx.lock();
+            prepare();
+            mtx.unlock();
+            render_without_ui(window);
+            
+            // index same as digits in filename (e.g. /tmp/states/simulation000000000041.dat -> 000000000041)
+            int index = std::stoi(snapshot_file.substr(snapshot_file.size() - 16, 12));
+            captureAndSaveScene(snapshot_path, index++);
+        }
+    }
+
+    printf("done with snapshots\n");
+
 
     // event loop
     while (true)

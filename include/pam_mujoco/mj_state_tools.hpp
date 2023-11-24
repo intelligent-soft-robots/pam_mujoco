@@ -147,16 +147,21 @@ class SaveMujocoDataController : public ControllerBase, public MujocoDataSaver
 {
 public:
     SaveMujocoDataController(const std::string& mujoco_id)
-        : MujocoDataSaver(mujoco_id)
+        : MujocoDataSaver(mujoco_id, 10000)
     {
     }
     virtual void apply(const mjModel* m, mjData* d)
     {
+        if (d->time - last_save_time_ < 0.01)
+            return;
+        last_save_time_ += 0.01;
         save(m, d);
+        printf("save mjdata to file, time: %f\n", d->time);
     }
 
 private:
     std::string mujoco_id_;
+    double last_save_time_ = 0;
 };
 
 /**

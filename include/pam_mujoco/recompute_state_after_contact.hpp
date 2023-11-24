@@ -4,6 +4,11 @@
 #include "mujoco.h"
 #include "pam_mujoco/contact_items.hpp"
 #include "pam_mujoco/internal/contact_states.hpp"
+#include <cereal/archives/json.hpp>
+#include <cereal/types/array.hpp>
+#include <cereal/types/vector.hpp>
+#include <fstream>
+#include <ctime>
 
 namespace pam_mujoco
 {
@@ -32,6 +37,8 @@ RecomputeStateConfig get_robot2_recompute_config();
 
 RecomputeStateConfig get_recompute_state_config(ContactItems item);
 
+
+
 /**
  * Assuming there is a contact between the ball and the contactee
  * (i.e. racket or table), compute the position and velocity of the
@@ -51,6 +58,13 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
                                    const internal::ContactStates& current,
                                    double get_ball_position[3],
                                    double get_ball_velocity[3]);
+
+void save_contact_and_ball_data_to_file(
+    const internal::ContactStates& pre_contact,
+    const double get_ball_position[3],
+    const double get_ball_velocity[3]);
+
+std::string get_unique_filename();
 
 }  // namespace internal
 

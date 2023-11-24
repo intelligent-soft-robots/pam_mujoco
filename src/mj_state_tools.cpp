@@ -269,6 +269,7 @@ void MujocoDataSaver::save(const mjModel* model, const mjData* data)
     std::string path = fmt::format(FILENAME_FMT_, filename_prefix_, index_);
 
     save_mjdata(model, data, path);
+    printf("Saved state to %s\n", path.c_str());
 
     // only keep the newest files, so delete old ones
     if (index_ >= num_keep_files_)

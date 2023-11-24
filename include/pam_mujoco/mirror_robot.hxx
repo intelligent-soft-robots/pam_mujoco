@@ -11,6 +11,7 @@ MirrorRobot<QUEUE_SIZE, NB_DOFS>::MirrorRobot(std::string segment_id,
       index_q_robot_(-1),
       index_qvel_robot_(-1)
 {
+    racket_state_ = internal::ContactStates{};
 }
 
 template <int QUEUE_SIZE, int NB_DOFS>
@@ -37,13 +38,24 @@ bool MirrorRobot<QUEUE_SIZE, NB_DOFS>::same(const States& s1,
 template <int QUEUE_SIZE, int NB_DOFS>
 void MirrorRobot<QUEUE_SIZE, NB_DOFS>::update_robot_fk(const mjData* d)
 {
+    internal::save_state(
+            d, index_q_robot_, 0, 0, index_geom_, racket_state_);
+
+
     for (int dim = 0; dim < 3; dim++)
     {
-        robot_fk_.set_position(dim, d->geom_xpos[index_geom_ * 3 + dim]);
+        // robot_fk_.set_position(dim, d->geom_xpos[index_geom_ * 3 + dim]);
+        robot_fk_.set_position(dim, racket_state_.contactee_position[dim]);
     }
+    for (int dim = 0; dim < 3; dim++)
+    {
+        robot_fk_.set_velocity(dim, racket_state_.contactee_velocity[dim]);
+    }
+    // printf("contactee and joint velocity: %f %f %f %f %f %f %f %f %f %f\n", d->time, racket_state_.contactee_velocity[0], racket_state_.contactee_velocity[1], racket_state_.contactee_velocity[2], d->qvel[index_qvel_robot_], d->qvel[index_qvel_robot_+1], d->qvel[index_qvel_robot_+2], d->qpos[index_q_robot_], d->qpos[index_q_robot_+1], d->qpos[index_q_robot_+2]);
     for (int dim = 0; dim < 9; dim++)
     {
-        robot_fk_.set_orientation(dim, d->geom_xmat[index_geom_ * 9 + dim]);
+        //robot_fk_.set_orientation(dim, d->geom_xmat[index_geom_ * 9 + dim]);
+        robot_fk_.set_orientation(dim, racket_state_.contactee_orientation[dim]);
     }
 }
 

@@ -42,8 +42,21 @@ bool should_update_velocity(internal::ContactStates& previous_state,
                             double time,
                             double time_threshold = 0.1,
                             double position_threshold = 0.0000001,
-                            double max_acc = 200.0)
+                            double max_acc = 200.0,
+                            double time_step = 0.002)
 {
+    // check if time * 1/time_step is an integer
+    if (abs(time / time_step - round(time / time_step)) > 0.0000001)
+    {
+        // printf("f");
+        return false;
+    }
+    else
+    // {
+    //     printf("t");
+    // }
+    
+
 
     if ((time - previous_state.velocity_time_stamp) >= time_threshold)
     {
@@ -94,7 +107,7 @@ bool should_update_velocity(internal::ContactStates& previous_state,
  * state).
  */
 void save_state(const mjData* d,
-		int index_robot_qpos,
+		        int index_robot_qpos,
                 int index_qpos,
                 int index_qvel,
                 int index_geom_contactee,

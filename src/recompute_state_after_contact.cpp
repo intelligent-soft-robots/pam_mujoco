@@ -1,5 +1,6 @@
 #include "pam_mujoco/recompute_state_after_contact.hpp"
 
+
 namespace pam_mujoco
 {
 namespace internal
@@ -209,7 +210,45 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
         get_ball_velocity[i] = absolute.ball_velocity[i] + config.vel_plus[i];
     }
 
+    printf(" ------------------------------- contact ------------------------------- \n");
+    save_contact_and_ball_data_to_file(pre_contact, get_ball_position, get_ball_velocity);
+
+    
+
     return true;
+}
+
+std::string get_unique_filename() {
+    // Get current time as a timestamp
+    std::time_t t = std::time(nullptr);
+    char timestamp[100];
+    std::strftime(timestamp, sizeof(timestamp), "%Y%m%d%H%M%S", std::localtime(&t));
+    
+    // Construct the full path
+    std::string path = "/home/sguist/data/contacts_mujoco/";
+    return path + "contact_" + timestamp + ".json";
+}
+
+
+void save_contact_and_ball_data_to_file(const ContactStates& pre_contact,
+                                        const double get_ball_position[3], 
+                                        const double get_ball_velocity[3]) 
+{
+    std::string filename = get_unique_filename();
+    printf("Saving contact and ball data to %s\n", filename.c_str());
+    std::ofstream os(filename);
+    cereal::JSONOutputArchive archive(os);
+    
+    // Serialize the pre_contact
+    archive(cereal::make_nvp("pre_contact", pre_contact));
+
+    // Convert raw arrays to std::array for serialization
+    std::array<double, 3> arr_ball_position = { get_ball_position[0], get_ball_position[1], get_ball_position[2] };
+    std::array<double, 3> arr_ball_velocity = { get_ball_velocity[0], get_ball_velocity[1], get_ball_velocity[2] };
+    
+    // Serialize the converted ball data
+    archive(cereal::make_nvp("get_ball_position", arr_ball_position));
+    archive(cereal::make_nvp("get_ball_velocity", arr_ball_velocity));
 }
 
 }  // namespace internal
