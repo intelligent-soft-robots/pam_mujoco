@@ -2066,10 +2066,15 @@ int main(int argc, const char** argv)
             if (settings.graphics) render(window);
         }
         
+        // measure time for first 100 snapshots
+        auto start = std::chrono::high_resolution_clock::now();
+        int i = 0;
 
         for (const auto& snapshot_file : getDatFilesInDirectory(snapshot_path)) {
             printf("snapshot_file: %s\n", snapshot_file.c_str());
-            loadmodel(snapshot_file);
+            pam_mujoco::load_mjdata(snapshot_file, m, d);
+            mj_forward(m, d);
+            // loadmodel(snapshot_file);
             mtx.lock();
             prepare();
             mtx.unlock();
@@ -2078,6 +2083,12 @@ int main(int argc, const char** argv)
             // index same as digits in filename (e.g. /tmp/states/simulation000000000041.dat -> 000000000041)
             int index = std::stoi(snapshot_file.substr(snapshot_file.size() - 16, 12));
             captureAndSaveScene(snapshot_path, index++);
+
+            if (i++ == 100) {
+                auto end = std::chrono::high_resolution_clock::now();
+                auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                std::cout << "Time for first 100 snapshots: " << duration.count() << "ms" << std::endl;
+            }
         }
     }
 
