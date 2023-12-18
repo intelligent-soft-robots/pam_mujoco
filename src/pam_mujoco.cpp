@@ -2238,7 +2238,7 @@ int main(int argc, const char** argv)
         pam_mujoco::Controllers::add(state_saver);
     }
 
-    if (true)
+    if (false)
     {
         // add mujoco state save controller
         std::string prefix = "/tmp/states/" + mujoco_id;

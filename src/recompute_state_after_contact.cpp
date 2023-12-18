@@ -210,8 +210,11 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
         get_ball_velocity[i] = absolute.ball_velocity[i] + config.vel_plus[i];
     }
 
-    printf(" ------------------------------- contact ------------------------------- \n");
-    save_contact_and_ball_data_to_file(pre_contact, get_ball_position, get_ball_velocity);
+    if (false)
+    {
+        printf(" ------------------------------- contact ------------------------------- \n");
+        save_contact_and_ball_data_to_file(pre_contact, get_ball_position, get_ball_velocity);
+    }
 
     
 
