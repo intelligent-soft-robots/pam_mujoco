@@ -27,11 +27,9 @@ class HitPoint:
         # function (in this file)
         self.geom = None
         self.joint = None
-        self.index_qpos = -1
-        self.index_qvel = -1
 
     def get_xml(self):
-        (xml, name_geom, name_joint, nb_bodies) = xml_templates.get_free_joint_body_xml(
+        (xml, name_geom, name_joint) = xml_templates.get_free_joint_body_xml(
             self.model_name,
             self.name,
             "cylinder",
@@ -40,7 +38,7 @@ class HitPoint:
             self.color,
             0,
         )
-        return (xml, name_geom, name_joint, nb_bodies)
+        return (xml, name_geom, name_joint)
 
 
 class Goal(HitPoint):
@@ -77,11 +75,9 @@ class Ball:
         # function (in this file)
         self.geom = None
         self.joint = None
-        self.index_qpos = -1
-        self.index_qvel = -1
 
     def get_xml(self):
-        (xml, name_geom, name_joint, nb_bodies) = xml_templates.get_free_joint_body_xml(
+        (xml, name_geom, name_joint) = xml_templates.get_free_joint_body_xml(
             self.model_name,
             self.name,
             "sphere",
@@ -90,7 +86,7 @@ class Ball:
             self.color,
             self.mass,
         )
-        return (xml, name_geom, name_joint, nb_bodies)
+        return (xml, name_geom, name_joint)
 
 
 class Table:
@@ -114,8 +110,8 @@ class Table:
         self.geom_plate: t.Optional[str] = None
         self.geom_net: t.Optional[str] = None
 
-    def get_xml(self) -> t.Tuple[str, str, str, int]:
-        (xml, name_plate_geom, name_net_geom, nb_bodies) = xml_templates.get_table_xml(
+    def get_xml(self) -> t.Tuple[str, str, str]:
+        (xml, name_plate_geom, name_net_geom) = xml_templates.get_table_xml(
             self.model_name,
             self.name,
             self.position,
@@ -123,7 +119,7 @@ class Table:
             self.color,
             self.orientation,
         )
-        return (xml, name_plate_geom, name_net_geom, nb_bodies)
+        return (xml, name_plate_geom, name_net_geom)
 
 
 class Robot:
@@ -147,11 +143,9 @@ class Robot:
         # function (in this file)
         self.geom_racket: t.Optional[str] = None
         self.joint: t.Optional[str] = None
-        self.index_qpos = -1
-        self.index_qvel = -1
 
     def get_xml(self) -> t.Tuple[str, str, str, int]:
-        (xml, joint, geom_racket, nb_bodies) = xml_templates.get_robot_xml(
+        (xml, joint, geom_racket) = xml_templates.get_robot_xml(
             self.model_name,
             self.name,
             self.position,
@@ -159,7 +153,7 @@ class Robot:
             self.muscles,
             self.robot_type,
         )
-        return (xml, joint, geom_racket, nb_bodies)
+        return (xml, joint, geom_racket)
 
 
 def defaults_solrefs() -> t.Dict[str, t.Dict[str, t.Tuple[float, float]]]:
@@ -195,61 +189,41 @@ def generate_model(
     template = template.replace("$models_path$", paths.get_models_path())
 
     bodies = []
-    index_qpos = 0
-    index_qvel = 0
 
     # ball: instance of Ball (in this file)
     for ball in balls:
-        xml, geom, joint, nb_bodies = ball.get_xml()
+        xml, geom, joint = ball.get_xml()
         bodies.append(xml)
-        ball.index_qpos = index_qpos
-        ball.index_qvel = index_qvel
         ball.geom = geom
         ball.joint = joint
-        index_qpos += 7
-        index_qvel += 6
 
     # hit_point, instance of HitPoint
     for hit_point in hit_points:
-        xml, geom, joint, nb_bodies = hit_point.get_xml()
+        xml, geom, joint = hit_point.get_xml()
         bodies.append(xml)
-        hit_point.index_qpos = index_qpos
-        hit_point.index_qvel = index_qvel
         hit_point.geom = geom
         hit_point.joint = joint
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
 
     # goal, instance of Goal
     for goal in goals:
-        xml, geom, joint, nb_bodies = goal.get_xml()
+        xml, geom, joint = goal.get_xml()
         bodies.append(xml)
-        goal.index_qpos = index_qpos
-        goal.index_qvel = index_qvel
         goal.geom = geom
         goal.joint = joint
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
 
     # ...
     for table in tables:
-        (xml, name_plate_geom, name_net_geom, nb_bodies) = table.get_xml()
+        (xml, name_plate_geom, name_net_geom) = table.get_xml()
         bodies.append(xml)
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
         table.geom_plate = name_plate_geom
         table.geom_net = name_net_geom
 
     # ...
     for robot in robots:
-        (xml, joint, geom_racket, nb_bodies) = robot.get_xml()
+        (xml, joint, geom_racket) = robot.get_xml()
         bodies.append(xml)
         robot.geom_racket = geom_racket
-        robot.index_qpos = index_qpos
-        robot.index_qvel = index_qvel
         robot.joint = joint
-        index_qpos += nb_bodies * 7
-        index_qvel += nb_bodies * 6
 
     template = template.replace("<!-- bodies -->", "\n".join(bodies))
 

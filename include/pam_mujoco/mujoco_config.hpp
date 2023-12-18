@@ -86,8 +86,6 @@ public:
     MujocoItemControl(MujocoItemTypes _type,
                       std::string _segment_id,
                       std::string _joint,
-                      int _index_qpos,
-                      int _index_qvel,
                       std::string _geometry,
                       bool _active_only,
                       ContactTypes _contact_type);
@@ -99,22 +97,13 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(type,
-                segment_id,
-                joint,
-                index_qpos,
-                index_qvel,
-                geometry,
-                active_only,
-                contact_type);
+        archive(type, segment_id, joint, geometry, active_only, contact_type);
     }
 
 public:
     MujocoItemTypes type;
     char segment_id[200];
     char joint[200];
-    int index_qpos;
-    int index_qvel;
     char geometry[100];
     bool active_only;
     ContactTypes contact_type;
@@ -128,8 +117,6 @@ public:
     MujocoItemsControl(std::array<MujocoItemTypes, NB_ITEMS> _type,
                        std::string _segment_id,
                        std::array<std::string, NB_ITEMS> _joint,
-                       std::array<int, NB_ITEMS> _index_qpos,
-                       std::array<int, NB_ITEMS> _index_qvel,
                        std::array<std::string, NB_ITEMS> _geometry,
                        std::string _robot_geom,
                        bool _active_only,
@@ -145,8 +132,6 @@ public:
         archive(type,
                 segment_id,
                 joint,
-                index_qpos,
-                index_qvel,
                 geometry,
                 robot_geom,
                 active_only,
@@ -157,8 +142,6 @@ public:
     std::array<MujocoItemTypes, NB_ITEMS> type;
     char segment_id[200];
     std::array<char[200], NB_ITEMS> joint;
-    std::array<int, NB_ITEMS> index_qpos;
-    std::array<int, NB_ITEMS> index_qvel;
     std::array<char[100], NB_ITEMS> geometry;
     char robot_geom[200];
     bool active_only;
@@ -176,6 +159,8 @@ public:
     void set_accelerated_time(bool use_accelerated);
     void set_model_path(std::string path);
     void set_graphics(bool use_graphics);
+    void set_save_data(bool save_data);
+    void set_save_folder(std::string folder);
     std::string to_string() const;
     void set_robot1_base(std::string robot1_base);
     void set_robot2_base(std::string robot2_base);    
@@ -194,6 +179,10 @@ public:
     void add_control(MujocoRobotPressureControl mpc);
 
 public:
+    std::string get_robot_joint() const;
+    std::string get_ball_joint() const;
+    
+public:
     template <class Archive>
     void serialize(Archive& archive)
     {
@@ -202,6 +191,8 @@ public:
                 burst_mode,
                 accelerated_time,
                 use_graphics,
+                save_data,
+                save_folder,
                 item_controls,
                 item_3_controls,
                 item_10_controls,
@@ -211,8 +202,8 @@ public:
                 joint_controls,
                 pressure_controls,
                 table_geometry,
-		robot1_base,
-		robot2_base,
+                robot1_base,
+                robot2_base,
                 racket1_geometry,
                 racket2_geometry);
     }
@@ -222,6 +213,8 @@ public:
     bool burst_mode;
     bool accelerated_time;
     bool use_graphics;
+    bool save_data;
+    char save_folder[200];
     char mujoco_id[200];
     std::vector<MujocoItemControl> item_controls;
     std::vector<MujocoItemsControl<3>> item_3_controls;

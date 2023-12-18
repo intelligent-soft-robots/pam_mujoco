@@ -65,16 +65,10 @@ MujocoItemControl::MujocoItemControl()
 MujocoItemControl::MujocoItemControl(MujocoItemTypes _type,
                                      std::string _segment_id,
                                      std::string _joint,
-                                     int _index_qpos,
-                                     int _index_qvel,
                                      std::string _geometry,
                                      bool _active_only,
                                      ContactTypes _contact_type)
-    : type{_type},
-      index_qpos{_index_qpos},
-      index_qvel{_index_qvel},
-      active_only{_active_only},
-      contact_type{_contact_type}
+    : type{_type}, active_only{_active_only}, contact_type{_contact_type}
 {
     strcpy(segment_id, _segment_id.c_str());
     strcpy(joint, _joint.c_str());
@@ -109,7 +103,7 @@ std::string MujocoItemControl::to_string() const
 }
 
 MujocoConfig::MujocoConfig()
-    : burst_mode{false}, accelerated_time{false}, use_graphics{true}
+    : burst_mode{false}, accelerated_time{false}, use_graphics{true}, save_data{true}
 {
 }
 
@@ -133,6 +127,16 @@ void MujocoConfig::set_graphics(bool graphics)
     use_graphics = graphics;
 }
 
+void MujocoConfig::set_save_data(bool _save_data)
+{
+    save_data = _save_data;
+}
+
+void MujocoConfig::set_save_folder(std::string folder)
+{
+    strcpy(save_folder, folder.c_str());
+}
+    
 void MujocoConfig::set_model_path(std::string path)
 {
     strcpy(model_path, path.c_str());
@@ -221,6 +225,31 @@ void MujocoConfig::add_50_control(MujocoItemsControl<50> misc)
 void MujocoConfig::add_100_control(MujocoItemsControl<100> misc)
 {
     item_100_controls.push_back(misc);
+}
+
+std::string MujocoConfig::get_robot_joint() const
+{
+    if (pressure_controls.size()!=0)
+        {
+            return std::string(pressure_controls[0].joint);
+        }
+    if (joint_controls.size()!=0)
+        {
+            return std::string(joint_controls[0].joint);
+        }
+    return std::string("");
+}
+
+std::string MujocoConfig::get_ball_joint() const
+{
+    for (const MujocoItemControl& ic: item_controls)
+        {
+            if (ic.type==MujocoItemTypes::ball)
+                {
+                    return std::string(ic.joint);
+                }
+        }
+    return std::string("");
 }
 
 void set_mujoco_config(const MujocoConfig& config)

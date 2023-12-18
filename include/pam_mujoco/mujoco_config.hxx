@@ -10,17 +10,11 @@ MujocoItemsControl<NB_ITEMS>::MujocoItemsControl(
     std::array<MujocoItemTypes, NB_ITEMS> _type,
     std::string _segment_id,
     std::array<std::string, NB_ITEMS> _joint,
-    std::array<int, NB_ITEMS> _index_qpos,
-    std::array<int, NB_ITEMS> _index_qvel,
     std::array<std::string, NB_ITEMS> _geometry,
     std::string _robot_geom,
     bool _active_only,
     ContactTypes _contact_type)
-    : type{_type},
-      index_qpos{_index_qpos},
-      index_qvel{_index_qvel},
-      active_only{_active_only},
-      contact_type{_contact_type}
+    : type{_type}, active_only{_active_only}, contact_type{_contact_type}
 {
     strcpy(segment_id, _segment_id.c_str());
     strcpy(robot_geom, _robot_geom.c_str());

@@ -8,6 +8,7 @@
 #include "pam_mujoco/extra_balls_extended_state.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/read_robot_state.hpp"
+#include "pam_mujoco/mj_state_tools.hpp"
 #include "shared_memory/serializer.hpp"
 
 #define NB_DOFS 4
@@ -73,8 +74,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<pam_mujoco::MujocoItemTypes,
                             std::string,
                             std::string,
-                            int,
-                            int,
                             std::string,
                             bool,
                             pam_mujoco::ContactTypes>())
@@ -89,8 +88,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 3>,
                             std::string,
                             std::array<std::string, 3>,
-                            std::array<int, 3>,
-                            std::array<int, 3>,
                             std::array<std::string, 3>,
                             std::string,
                             bool,
@@ -107,8 +104,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 10>,
                             std::string,
                             std::array<std::string, 10>,
-                            std::array<int, 10>,
-                            std::array<int, 10>,
                             std::array<std::string, 10>,
                             std::string,
                             bool,
@@ -125,8 +120,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 20>,
                             std::string,
                             std::array<std::string, 20>,
-                            std::array<int, 20>,
-                            std::array<int, 20>,
                             std::array<std::string, 20>,
                             std::string,
                             bool,
@@ -143,8 +136,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 50>,
                             std::string,
                             std::array<std::string, 50>,
-                            std::array<int, 50>,
-                            std::array<int, 50>,
                             std::array<std::string, 50>,
                             std::string,
                             bool,
@@ -161,8 +152,6 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 100>,
                             std::string,
                             std::array<std::string, 100>,
-                            std::array<int, 100>,
-                            std::array<int, 100>,
                             std::array<std::string, 100>,
                             std::string,
                             bool,
@@ -181,6 +170,8 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
         .def("set_accelerated_time",
              &pam_mujoco::MujocoConfig::set_accelerated_time)
         .def("set_graphics", &pam_mujoco::MujocoConfig::set_graphics)
+        .def("set_save_data", &pam_mujoco::MujocoConfig::set_save_data)
+        .def("set_save_folder", &pam_mujoco::MujocoConfig::set_save_folder)
         .def("set_robot1_base", &pam_mujoco::MujocoConfig::set_robot1_base)
         .def("set_robot2_base", &pam_mujoco::MujocoConfig::set_robot2_base)
         .def("set_racket_robot1", &pam_mujoco::MujocoConfig::set_racket_robot1)
