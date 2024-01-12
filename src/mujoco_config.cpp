@@ -109,7 +109,7 @@ std::string MujocoItemControl::to_string() const
 }
 
 MujocoConfig::MujocoConfig()
-    : burst_mode{false}, accelerated_time{false}, use_graphics{true}
+    : burst_mode{false}, accelerated_time{false}, use_graphics{true}, save_data{true}
 {
 }
 

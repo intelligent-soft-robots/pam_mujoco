@@ -2,6 +2,77 @@
 
 namespace pam_mujoco
 {
+
+
+ContactMode::ContactMode()
+    : steps_since_contact_{-1},
+      steps_since_overwrite_{-1}
+{}
+
+void ContactMode::set_contact_overwrite()
+{
+    steps_since_overwrite_ = 0;
+}
+
+void ContactMode::reset()
+{
+    steps_since_contact_=-1;
+    steps_since_overwrite_=-1;
+}
+    
+bool ContactMode::contact_active(const mjModel* m, mjData* d,
+                                 int index_geom, int index_geom_contactee)
+{
+    if(steps_since_overwrite_ >=0)
+        {
+            // there has been a contact, and the custom contact model
+            // has been applied. We turn contact off for a while, so that
+            // the same contact is not applied twice.
+            if(steps_since_overwrite_<NB_ITERATIONS_CONTACT_MUTED)
+                {
+                    steps_since_overwrite_++;
+                    return false;
+                }
+            else
+                {
+                    // we muted contacts long enough, resetting
+                    steps_since_overwrite_ = -1;
+                }
+        }
+    
+    if(steps_since_contact_>=0)
+        {
+            // A contact has been detected by mujoco, but not "applied" yet
+            // (i.e. the custom contact model has not been applied to the ball yet)
+            // If this mujoco detected contact is recent, we consider it as still
+            // active
+            if(steps_since_contact_<NB_ITERATIONS_CONTACT_ACTIVE)
+                {
+                    steps_since_contact_++;
+                    return true;
+                }
+            else
+                {
+                    // we kept this contact "alive" long enough, resetting
+                    steps_since_contact_ = -1;
+                }
+        }
+
+    // contacts are neither "active" (from a contact detected in a previous iteration)
+    // or "muted" (because a contact has been applied recently). Evaluating things anew.
+    bool mujoco_contact = internal::is_in_contact(m, d,
+                                                  index_geom, index_geom_contactee);
+    if(mujoco_contact)
+        {
+            // entering contact mode !
+            steps_since_contact_ = 0;
+            steps_since_overwrite_ = 0;
+        }
+    
+    return mujoco_contact;
+}
+
+    
 ContactBall::ContactBall(std::string segment_id,
                          std::string joint,
                          std::string geom,
@@ -9,6 +80,7 @@ ContactBall::ContactBall(std::string segment_id,
                          std::string geom_contactee,
                          ContactItems contact_item)
     : segment_id_{segment_id},
+      contact_mode_{},
       config_{internal::get_recompute_state_config(contact_item)},
       joint_{joint},
       index_qpos_{-1},
@@ -20,8 +92,7 @@ ContactBall::ContactBall(std::string segment_id,
       index_geom_{-1},
       index_geom_contactee_{-1},
       mujoco_detected_contact_{false},
-      in_contact_{false},
-      nb_of_iterations_since_last_contact_{-1}
+      in_contact_{false}
 {
     shared_memory::clear_shared_memory(segment_id_);
     shared_memory::set<bool>(segment_id_, "reset", false);
@@ -43,7 +114,35 @@ void printxd(P p, V v)
     }
 }
 
-bool ContactBall::update(const mjModel* m, mjData* d)
+
+void ContactBall::init(const mjModel* m)
+{
+
+    if (index_geom_ >= 0)
+    {
+        // init does something only at first call
+        return;
+    }
+    index_qpos_ = m->jnt_qposadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];
+    index_qvel_ = m->jnt_dofadr[mj_name2id(m, mjOBJ_JOINT, joint_.c_str())];
+    index_geom_ = mj_name2id(m, mjOBJ_GEOM, geom_.c_str());
+    index_geom_contactee_ = mj_name2id(m, mjOBJ_GEOM, geom_contactee_.c_str());
+    if (index_robot_qpos_ < 0 && robot_base_ != "")
+    {
+      index_robot_qpos_ = m->jnt_qposadr[mj_name2id(
+            m, mjOBJ_JOINT, robot_base_.c_str())];
+    }
+}
+
+void ContactBall::reset()
+{
+    contact_information_ = context::ContactInformation{};
+    previous_ = internal::ContactStates{};
+    contact_mode_.reset();
+}
+
+
+bool ContactBall::user_signals()
 {
     // check if receiving from outside a request for reset
     // (e.g. a new episode starts)
@@ -67,162 +166,129 @@ bool ContactBall::update(const mjModel* m, mjData* d)
     {
         contact_information_.disabled = false;
     }
+    return true;
+}
 
-    // if there have been a recent contact,
-    // contacts are ignored for a while (to avoid
-    // the "same" contact to be applied twice)
-    if (nb_of_iterations_since_last_contact_ >= 0)
-    {
-        if (nb_of_iterations_since_last_contact_ < NB_ITERATIONS_CONTACT_MUTED)
-        {
-            nb_of_iterations_since_last_contact_++;
-            return false;
-        }
-        else
-        {
-            // reactivating contact detection
-            nb_of_iterations_since_last_contact_ = -1;
-        }
-    }
-    // contact are not being ignored
-    // does mujoco reports a contact ?
-    bool in_contact =
-        internal::is_in_contact(m, d, index_geom_, index_geom_contactee_);
+void ContactBall::share_contact_info()
+{
+    // sharing contact information with the world
+    shared_memory::serialize(segment_id_,
+                             segment_id_,
+                             contact_information_);
 
-    if (in_contact)
+}
+
+bool ContactBall::no_apply(const mjData* d)
+{
+    // check if the simulation is running
+    if (d->time < 0.02)
+        return true;
+
+    double thres = 0.01;
+    bool no_skip = true;
+    for(int index=0;index<3;index++)
         {
-            std::cout << "!!!!!!! " << segment_id_ << " | " << in_contact << std::endl;
+            
+            if(std::abs(d->qvel[index_qvel_+index])<thres || std::abs(d->qpos[index_qpos_+index])<thres)
+                {
+                    no_skip=false;
+                    break;
+                }
+        }
+    return !no_skip;
+}
+
+    
+void ContactBall::save_state(const mjData* d, internal::ContactStates& cs)
+{
+    internal::save_state(
+                         d,
+                         index_robot_qpos_,
+                         index_qpos_,
+                         index_qvel_,
+                         index_geom_contactee_,
+                         cs
+                         );
+}
+    
+void ContactBall::execute(const mjModel* m, mjData* d)
+{
+
+    // the user may use the python API to
+    // disable or reset the contacts. This method
+    // check for it. We exit if the contacts are ignored.
+    if(!user_signals())
+      {
+          return ;
+      }
+
+    // in some corner case we should not apply the
+    // contacts: the simulation just started, or
+    // the position and speed of the ball is too close to 0
+    if(no_apply(d))
+        {
+            return;
+        }
+
+    // evaluating if there is a contact to deal with
+    bool contact = contact_mode_.contact_active(m,d,
+                                                index_geom_,index_geom_contactee_);
+
+    if(!contact)
+        {
+            // no contact to deal with, exit after saving state and
+            // monitoring shorter distance between ball and contactee
+            save_state(d, previous_);
+            double d_ball_contactee =
+                mju_dist3(previous_.ball_position.data(),
+                          previous_.contactee_position.data());
+            contact_information_.register_distance(d_ball_contactee);
+            return;
         }
     
-    // no, so exiting
-    if (!in_contact)
-    {
-        // before exiting, saving the state of the ball.
-        // it will be used if at the next iteration there
-        // is a contact (to compute velocity)
-        internal::save_state(d,
-                             index_robot_qpos_,
-                             index_qpos_,
-                             index_qvel_,
-                             index_geom_contactee_,
-                             previous_);
-        // saving also the distance between the ball
-        // and the contactee.
-        // computing the distance between the 2 objects
-        double d_ball_contactee =
-            mju_dist3(previous_.ball_position.data(),
-                      previous_.contactee_position.data());
-        // updating contact_information with this distance. register_distance
-        // will check wether or not this is the smallest distance ever observed,
-        // and if so, save it as minimal distance
-        contact_information_.register_distance(d_ball_contactee);
-        return false;
-    }
+    // we deal with the contact only for "fresh" mujoco iteration
+    if(!this->must_update(d))
+        return;
 
-    // there is a contact: applying the custom contact model
-    // first, converting data encapsulated by "d"
-    // into an instance of ContactStates
-    internal::save_state(d, index_robot_qpos_,
-                         index_qpos_, index_qvel_,
-                         index_geom_contactee_, current_);
-
-    // the command below updates overwite_ball_position_
-    // and overwrite_ball_velocity_ with the values
-    // commanded by the contact_model
+    // we arrive here because there is a contact that has not been
+    // applied yet (i.e. ball trajectory has not been changed
+    // based on the custom model)
+    // computing the custom model
+    internal::ContactStates current;
+    save_state(d,current);
     bool success = recompute_state_after_contact(config_,
                                                  previous_,
-                                                 current_,
+                                                 current,
                                                  overwrite_ball_position_,
                                                  overwrite_ball_velocity_);
+    
     if (!success)
     {
-        // failed to apply the custom model because
+        // failed to applie the custom model because
         // the ball and the contactee were too close.
         // we postpone to next iteration ...
-        internal::save_state(d, index_robot_qpos_,
-                             index_qpos_, index_qvel_,
-                             index_geom_contactee_, previous_);
-        std::cout << "\t---> failed to recompute state\n";
-        return false;
+        save_state(d, previous_);
+        return;
     }
 
-    // to "shut down" the few next contact detection
-    // (which may come from the same contact)
-    nb_of_iterations_since_last_contact_ = 0;
+    // custom model has been applied with success.
+    // informing contact model, so that the contact
+    // is not applied a second time in the upcoming iterations
+    contact_mode_.set_contact_overwrite();
     // informing the outside world about the contact
     // (via shared memory)
-    contact_information_.register_contact(current_.ball_position, d->time);
-    shared_memory::serialize(segment_id_, segment_id_, contact_information_);
-    std::cout << "\t---> recomputed state\n";
-    return true;
+    contact_information_.register_contact(current.ball_position, d->time);
 }
 
 void ContactBall::apply(const mjModel* m, mjData* d)
 {
-    // checking if it is a new mujoco iteration
-    if (this->must_update(d))
-    {
-        // setup the indexes (e.g. index_qpos, ...)
-        // based on the model and the configuration string
-        // (has effect only at first call)
-        init(m);
-
-        // updating the variables:
-        // - contact_information_ // information about contacts, for the
-        // external
-        //                           world (written in shared memory)
-        // - overwrite_ball_position_ // position as computed by custom contact
-        // model
-        // - overwrite_ball_velocity_ // velocity as computed by custom contact
-        // model
-        in_contact_ = update(m, d);
-
-        // sharing contact information with the world
-        shared_memory::serialize(
-            segment_id_, segment_id_, contact_information_);
-    }
-
-    // no contact, so nothing to do
-    if (!in_contact_)
-    {
-        return;
-    }
-
-    // we reach here only if in contact,
-    // so overwritting mujoco data
-    // with custom contact model data
-    for (int dim = 0; dim < 3; dim++)
-    {
-        std::cout << "\t----> overwrite qpos " << dim << " | " << overwrite_ball_position_[dim] << "\n";
-        (&(d->qpos[index_qpos_]))[dim] = overwrite_ball_position_[dim];
-        (&(d->qvel[index_qvel_]))[dim] = overwrite_ball_velocity_[dim];
-    }
+    init(m);
+    execute(m,d);
+    share_contact_info();
 }
 
-void ContactBall::init(const mjModel* m)
-{
-    if (index_robot_qpos_ < 0 && robot_base_ != "")
-    {
-      index_robot_qpos_ = m->jnt_qposadr[mj_name2id(
-            m, mjOBJ_JOINT, robot_base_.c_str())];
-    }
-  
-    if (index_geom_ >= 0)
-    {
-        // init does something only at first call
-        return;
-    }
-    index_geom_ = mj_name2id(m, mjOBJ_GEOM, geom_.c_str());
-    index_geom_contactee_ = mj_name2id(m, mjOBJ_GEOM, geom_contactee_.c_str());
-}
 
-void ContactBall::reset()
-{
-    contact_information_ = context::ContactInformation{};
-    previous_ = internal::ContactStates{};
-    current_ = internal::ContactStates{};
-    nb_of_iterations_since_last_contact_ = -1;
-}
+    
 
 void reset_contact(const std::string& segment_id)
 {

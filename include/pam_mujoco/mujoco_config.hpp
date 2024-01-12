@@ -199,6 +199,7 @@ public:
                 burst_mode,
                 accelerated_time,
                 use_graphics,
+                save_data,
                 item_controls,
                 item_3_controls,
                 item_10_controls,
@@ -219,6 +220,7 @@ public:
     bool burst_mode;
     bool accelerated_time;
     bool use_graphics;
+    bool save_data;
     char mujoco_id[200];
     std::vector<MujocoItemControl> item_controls;
     std::vector<MujocoItemsControl<3>> item_3_controls;

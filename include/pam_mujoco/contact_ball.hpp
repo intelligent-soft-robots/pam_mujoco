@@ -9,6 +9,7 @@
 #include "shared_memory/serializer.hpp"
 #include "shared_memory/shared_memory.hpp"
 
+#define NB_ITERATIONS_CONTACT_ACTIVE 200
 #define NB_ITERATIONS_CONTACT_MUTED 1000
 
 namespace pam_mujoco
@@ -21,6 +22,22 @@ void save_state(const mjData* d,
                 internal::ContactStates& get_states,
                 bool verbose);
 
+
+class ContactMode
+{
+public:
+    ContactMode();
+    void reset();
+    void set_contact_overwrite();
+    bool contact_active(const mjModel* m, mjData* d,
+                        int index_geom, int index_geom_contactee);
+private:
+    int steps_since_contact_;
+    int steps_since_overwrite_;
+};
+
+    
+    
 /**
  * controller for managing the contact between the ball
  * and a contactee (i.e. racket or table), i.e.
@@ -44,10 +61,15 @@ public:
 private:
     void init(const mjModel* m);
     void reset();
-    bool update(const mjModel* m, mjData* d);
+    bool user_signals();
+    void share_contact_info();
+    bool no_apply(const mjData* d);
+    void save_state(const mjData* m, internal::ContactStates& cs);
+    void execute(const mjModel* m, mjData* d);
 
 private:
     std::string segment_id_;
+    ContactMode contact_mode_;
     internal::RecomputeStateConfig config_;
     context::ContactInformation contact_information_;
     internal::ContactStates current_;
@@ -64,7 +86,6 @@ private:
     bool mujoco_detected_contact_;
     double mujoco_detected_dist_;
     bool in_contact_;
-    int nb_of_iterations_since_last_contact_;
     // number of steps to before discarding contact
     // (contact is delayed if racket and ball are too close, set to 200 after contact is detected)
     int steps_contact_remaining_ = -1;

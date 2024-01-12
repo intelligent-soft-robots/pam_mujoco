@@ -1850,7 +1850,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                         // run mj_step
                         mjtNum prevtm = d->time;
                         mj_step(m, d);
-
+                        
                         // break on reset
                         if (d->time < prevtm) break;
                     }
@@ -2169,6 +2169,13 @@ int main(int argc, const char** argv)
         pam_mujoco::Controllers::add(burster);
     }
 
+    if (config.save_data)
+    {
+        std::cout << "\nsaving data in file" << std::endl;
+        auto saver = std::make_shared<pam_mujoco::SaveMujocoDataController>(mujoco_id);
+        pam_mujoco::Controllers::add(saver);
+    }
+    
     for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
     {
         std::cout << "\nadding controller:" << std::endl;
