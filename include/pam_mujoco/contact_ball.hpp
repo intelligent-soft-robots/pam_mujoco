@@ -27,13 +27,23 @@ class ContactMode
 {
 public:
     ContactMode();
+    void init(int index_qpos, int index_qvel, int index_geom, int index_contactee_geom);
     void reset();
-    void set_contact_overwrite();
-    bool contact_active(const mjModel* m, mjData* d,
-                        int index_geom, int index_geom_contactee);
+    void set_contact_overwrite(mjData* d, const double* ball_position, const double* ball_velocity);
+    bool contact_active(const mjModel* m, mjData* d);
+private:
+    void apply_model(mjData* d);
 private:
     int steps_since_contact_;
     int steps_since_overwrite_;
+    int index_qpos_;
+    int index_qvel_;
+    int index_geom_;
+    int index_geom_contactee_;
+    std::array<double,3> ball_position_;
+    std::array<double,3> ball_velocity_;
+    double contact_time_;
+    o80::Milliseconds mujoco_time_step_;
 };
 
     
@@ -83,14 +93,7 @@ private:
     std::string geom_contactee_;
     int index_geom_;
     int index_geom_contactee_;  // contactee : racket or table
-    bool mujoco_detected_contact_;
     double mujoco_detected_dist_;
-    bool in_contact_;
-    // number of steps to before discarding contact
-    // (contact is delayed if racket and ball are too close, set to 200 after contact is detected)
-    int steps_contact_remaining_ = -1;
-    // number of steps to overwrite contact
-    // (set to 4 after contact, to make sure new ball state is not overwritten by the simulation)
     int steps_overwrite_remaining_ = -1;
     double overwrite_ball_position_[3];
     double overwrite_ball_velocity_[3];

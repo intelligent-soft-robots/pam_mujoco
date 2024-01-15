@@ -33,7 +33,7 @@ private:
     o80::Milliseconds mujoco_time_step_;
     o80::TimePoint previous_stamp_;
 
-private:
+public:
     static const int MUJOCO_TIME_STEP_MS = 2;
 };
 
