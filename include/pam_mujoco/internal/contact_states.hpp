@@ -28,7 +28,7 @@ public:
 
 public:
     ContactStates();
-    void print();
+    void print() const;
   
 public:
     // contactee: likely to be a racket or a table

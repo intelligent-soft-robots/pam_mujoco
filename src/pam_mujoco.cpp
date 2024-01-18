@@ -1851,7 +1851,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                         // run mj_step
                         mjtNum prevtm = d->time;
                         mj_step(m, d);
-
+                        
                         // break on reset
                         if (d->time < prevtm) break;
                     }

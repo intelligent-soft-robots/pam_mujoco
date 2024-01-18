@@ -1,7 +1,7 @@
 import time
 import logging
 from functools import partial
-from typing import Protocol, Optional, Union, cast
+from typing import Protocol, Optional, Union, cast, Dict
 
 import shared_memory
 import o80
@@ -107,16 +107,15 @@ def _get_mujoco_item_control(
     if mujoco_item.control == MujocoItem.COMMAND_ACTIVE_CONTROL:
         active_only = True
 
-    if mujoco_item.contact_type is None:
-        mujoco_item.contact_type = pam_mujoco_wrp.ContactTypes.no_contact
-
     return pam_mujoco_wrp.MujocoItemControl(
         mujoco_item_type,
         mujoco_item.segment_id,
         model_item.joint,
         model_item.geom,
         active_only,
-        mujoco_item.contact_type,
+        mujoco_item.contact_robot1,
+        mujoco_item.contact_robot2,
+        mujoco_item.contact_table,
     )
 
 
@@ -482,34 +481,41 @@ class MujocoHandle:
             )
 
         # for tracking contact
-        self.contacts = {}
+        self.contacts: Dict[str, Dict[str, str]] = {}
 
         for item in list(balls) + list(goals) + list(hit_points):
-            if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
-                self.contacts[item.segment_id] = item.segment_id + "_table"
-            if item.contact_type == pam_mujoco_wrp.ContactTypes.racket1:
-                self.contacts[item.segment_id] = item.segment_id + "_racket1"
-            if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
-                self.contacts[item.segment_id] = item.segment_id + "_racket2"
+            self.contacts[item.segment_id] = {}
+            if item.contact_table:
+                self.contacts[item.segment_id]["table"] = item.segment_id + "_table"
+            if item.contact_robot1:
+                self.contacts[item.segment_id]["robot1"] = item.segment_id + "_racket1"
+            if item.contact_robot2:
+                self.contacts[item.segment_id]["robot2"] = item.segment_id + "_racket2"
 
         if combined and not read_only:
             # see src/add_controllers.cpp, function add_items_control
+            for item in combined.iterate():
+                self.contacts[item.segment_id] = {}
             for index, item in enumerate(list(combined.iterate())):
-                if item.contact_type == pam_mujoco_wrp.ContactTypes.table:
-                    self.contacts[item.segment_id] = (
+                if item.contact_table:
+                    self.contacts[item.segment_id]["table_" + str(index)] = (
                         combined.segment_id + "_table_" + str(index)
                     )
-                if item.contact_type == pam_mujoco_wrp.ContactTypes.racket1:
-                    self.contacts[item.segment_id] = (
+                if item.contact_robot1:
+                    self.contacts[item.segment_id]["robot1_" + str(index)] = (
                         combined.segment_id + "_racket1_" + str(index)
                     )
-                if item.contact_type == pam_mujoco_wrp.ContactTypes.racket2:
-                    self.contacts[item.segment_id] = (
+                if item.contact_robot2:
+                    self.contacts[item.segment_id]["robot2_" + str(index)] = (
                         combined.segment_id + "_racket2_" + str(index)
                     )
 
-        for sid in self.contacts.keys():
-            self.reset_contact(sid)
+        for sid, value in self.contacts.items():
+            if isinstance(value, str):
+                self.reset_contact(sid)
+            else:
+                for item in value.keys():
+                    self.reset_contact(sid, item)
 
         logging.info("handle for mujoco {} created".format(mujoco_id))
 
@@ -544,17 +550,29 @@ class MujocoHandle:
     def pause(self, value):
         shared_memory.set_bool(self._mujoco_id, "pause", value)
 
-    def get_contact(self, segment_id):
-        return pam_mujoco_wrp.get_contact(self.contacts[segment_id])
+    def get_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.get_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.get_contact(self.contacts[segment_id][item])
 
-    def reset_contact(self, segment_id):
-        return pam_mujoco_wrp.reset_contact(self.contacts[segment_id])
+    def reset_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.reset_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.reset_contact(self.contacts[segment_id][item])
 
-    def activate_contact(self, segment_id):
-        return pam_mujoco_wrp.activate_contact(self.contacts[segment_id])
+    def activate_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.activate_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.activate_contact(self.contacts[segment_id][item])
 
-    def deactivate_contact(self, segment_id):
-        return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id])
+    def deactivate_contact(self, segment_id, item: Optional[str] = None):
+        if item is None:
+            return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id])
+        else:
+            return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id][item])
 
     def burst(self, nb_iterations=1):
         self._burster_client.burst(nb_iterations)

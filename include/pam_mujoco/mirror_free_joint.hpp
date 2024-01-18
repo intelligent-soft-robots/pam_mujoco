@@ -1,6 +1,8 @@
 #pragma once
 
 #include <map>
+#include <tuple>
+#include <vector>
 #include "context/contact_information.hpp"
 #include "o80/back_end.hpp"
 #include "o80/memory_clearing.hpp"
@@ -10,6 +12,18 @@
 
 namespace pam_mujoco
 {
+
+class ContactInterrupt
+{
+public:
+    ContactInterrupt(std::string segment_id);
+    std::tuple<bool,bool> interrupted();
+private:
+    context::ContactInformation ci_;
+    std::string segment_id_;
+    bool interrupted_;
+};
+    
 template <int QUEUE_SIZE>
 class MirrorFreeJoint : public ControllerBase
 {
@@ -27,9 +41,9 @@ public:
                     bool active_only = true);
     MirrorFreeJoint(std::string segment_id,
                     std::string joint,
-                    std::string interrupt_segment_id,
+                    const std::vector<std::string>& interrupt_segment_ids,
                     bool active_only = true);
-    void set_contact_interrupt(std::string segment_id);
+    void set_contact_interrupt(const std::vector<std::string>& segment_ids);
     bool same(const States& s1, const States& s2) const;    // only overwrite if new ball state
     void apply(const mjModel* m, mjData* d);
 
@@ -43,13 +57,12 @@ private:
     int index_qpos_;
     int index_qvel_;
     bool contact_interrupt_;
-    bool interrupted_;
     bool active_only_;
     States read_states_;
     States set_states_;
     States previous_set_states_;    // only overwrite if new ball state
     int must_update_counter_ = -1;      // only overwrite if new ball state
-    std::string segment_id_contact_;
+    std::vector<ContactInterrupt> contact_interrupts_;
    
 };
 

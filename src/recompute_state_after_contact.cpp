@@ -138,78 +138,78 @@ static internal::ContactStates in_absolute_frame(
 // generic version
 bool recompute_state_after_contact(const RecomputeStateConfig& config,
                                    const internal::ContactStates& pre_contact,
-                                   const internal::ContactStates& current,
+                                   double time_now,
                                    double get_ball_position[3],
                                    double get_ball_velocity[3])
 {
-    // rotations
-    std::array<double, 4> rotation, rotation_negative;
-    get_rotations(config, pre_contact, rotation, rotation_negative);
+  // rotations
+  std::array<double, 4> rotation, rotation_negative;
+  get_rotations(config, pre_contact, rotation, rotation_negative);
 
-    // pre-contact in contactee relative frame
-    internal::ContactStates pre_contact_relative =
-        in_relative_frame(rotation, pre_contact);
+  // pre-contact in contactee relative frame
+  internal::ContactStates pre_contact_relative =
+    in_relative_frame(rotation, pre_contact);
 
-    int axis;
-    if (config.mirror_y)
+  int axis;
+  if (config.mirror_y)
     {
-        axis = 1;  // racket: y axis
+      axis = 1;  // racket: y axis
     }
-    else
+  else
     {
-        axis = 2;  // table: z axis
-    }
-
-    double time_until_impact = -pre_contact_relative.ball_position[axis] /
-                               (pre_contact_relative.ball_velocity[axis] -
-                                pre_contact_relative.contactee_velocity[axis]);
-    double delta_t_step = current.time_stamp - pre_contact.time_stamp;
-    double delta_t_after_impact = delta_t_step - time_until_impact;
-
-    // the contact is not occuring during this time step,
-    // exiting
-    if (delta_t_after_impact < 0)
-    {
-        return false;
+      axis = 2;  // table: z axis
     }
 
-    // post-contact in relative frame
-    internal::ContactStates post_contact_relative;
+  double time_until_impact = -pre_contact_relative.ball_position[axis] /
+    (pre_contact_relative.ball_velocity[axis] -
+     pre_contact_relative.contactee_velocity[axis]);
+  double delta_t_step = time_now - pre_contact.time_stamp;
+  double delta_t_after_impact = delta_t_step - time_until_impact;
 
-    // 1. velocity
-    // loss of velocity after impact
-    for (std::size_t i = 0; i < 3; i++)
+  // the contact is not occuring during this time step,
+  // exiting
+  if (delta_t_after_impact < 0)
     {
-        post_contact_relative.ball_velocity[i] =
-            pre_contact_relative.ball_velocity[i] * config.epsilon[i];
-    }
-    // change of direction
-    post_contact_relative.ball_velocity[axis] =
-        -pre_contact_relative.ball_velocity[axis] * config.epsilon[axis] +
-        (1.0 + config.epsilon[axis]) *
-            pre_contact_relative.contactee_velocity[axis];
-
-    // 2. position
-    for (size_t i = 0; i < 3; i++)
-    {
-        post_contact_relative.ball_position[i] =
-            pre_contact_relative.ball_position[i] +
-            pre_contact_relative.ball_velocity[i] * time_until_impact +
-            post_contact_relative.ball_velocity[i] * delta_t_after_impact;
+      return false;
     }
 
-    // final result in absolute frame
-    internal::ContactStates absolute = in_absolute_frame(
-        rotation_negative, post_contact_relative, pre_contact);
+  // post-contact in relative frame
+  internal::ContactStates post_contact_relative;
 
-    // copying/returning final result
-    for (size_t i = 0; i < 3; i++)
+  // 1. velocity
+  // loss of velocity after impact
+  for (std::size_t i = 0; i < 3; i++)
     {
-        get_ball_position[i] = absolute.ball_position[i];
-        get_ball_velocity[i] = absolute.ball_velocity[i] + config.vel_plus[i];
+      post_contact_relative.ball_velocity[i] =
+        pre_contact_relative.ball_velocity[i] * config.epsilon[i];
+    }
+  // change of direction
+  post_contact_relative.ball_velocity[axis] =
+    -pre_contact_relative.ball_velocity[axis] * config.epsilon[axis] +
+    (1.0 + config.epsilon[axis]) *
+    pre_contact_relative.contactee_velocity[axis];
+
+  // 2. position
+  for (size_t i = 0; i < 3; i++)
+    {
+      post_contact_relative.ball_position[i] =
+        pre_contact_relative.ball_position[i] +
+        pre_contact_relative.ball_velocity[i] * time_until_impact +
+        post_contact_relative.ball_velocity[i] * delta_t_after_impact;
     }
 
-    return true;
+  // final result in absolute frame
+  internal::ContactStates absolute = in_absolute_frame(
+                                                       rotation_negative, post_contact_relative, pre_contact);
+
+  // copying/returning final result
+  for (size_t i = 0; i < 3; i++)
+    {
+      get_ball_position[i] = absolute.ball_position[i];
+      get_ball_velocity[i] = absolute.ball_velocity[i] + config.vel_plus[i];
+    }
+
+  return true;
 }
 
 }  // namespace internal

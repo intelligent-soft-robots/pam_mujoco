@@ -1,4 +1,26 @@
 
+ContactInterrupt::ContactInterrupt(std::string segment_id)
+    : segment_id_{segment_id},
+      interrupted_{false}
+{}
+
+std::tuple<bool,bool> ContactInterrupt::interrupted()
+{
+    shared_memory::deserialize(segment_id_, segment_id_, ci_);
+    bool contact_disabled = ci_.disabled;
+    if (ci_.contact_occured && !interrupted_)
+        {
+            interrupted_ = true;
+        }
+    if (interrupted_ && !ci_.contact_occured)
+        {
+            // contact has been reset
+            interrupted_ = false;
+        }
+    return std::make_tuple(contact_disabled,interrupted_);
+}
+
+
 
 template <int QUEUE_SIZE>
 MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
@@ -10,7 +32,6 @@ MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
       index_qpos_(-1),
       index_qvel_(-1),
       contact_interrupt_(false),
-      interrupted_(false),
       active_only_(active_only)
 {
 }
@@ -18,19 +39,22 @@ MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
 template <int QUEUE_SIZE>
 MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
                                              std::string joint,
-                                             std::string interrupt_segment_id,
+                                             const std::vector<std::string>& interrupt_segment_ids,
                                              bool active_only)
     : MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint{
           segment_id, joint, active_only}
 {
-    set_contact_interrupt(interrupt_segment_id);
+    set_contact_interrupt(interrupt_segment_ids);
 }
 
 template <int QUEUE_SIZE>
-void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(std::string segment_id)
+void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(const std::vector<std::string>& segment_ids)
 {
     contact_interrupt_ = true;
-    segment_id_contact_ = segment_id;
+    for(const std::string& segment_id: segment_ids)
+        {
+            contact_interrupts_.push_back(ContactInterrupt(segment_id));
+        }
 }
 
 // only overwrite if new ball state
@@ -84,21 +108,19 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     // (note: see Contacts.hpp to see what serialize ContactInformation
     // instances into the shared memory)
     bool contact_disabled = false;
+    bool interrupted = false;
     if (contact_interrupt_)
     {
-        context::ContactInformation ci;
-        shared_memory::deserialize(
-            segment_id_contact_, segment_id_contact_, ci);
-        contact_disabled = ci.disabled;
-        if (ci.contact_occured && !interrupted_)
-        {
-            interrupted_ = true;
-        }
-        if (interrupted_ && !ci.contact_occured)
-        {
-            // contact has been reset
-            interrupted_ = false;
-        }
+        for(ContactInterrupt& ci: contact_interrupts_)
+            {
+                std::tuple<bool,bool> t = ci.interrupted();
+                bool _contact_disabled = std::get<0>(t);
+                bool _interrupted = std::get<1>(t);
+                if(_contact_disabled)
+                    contact_disabled = true;
+                if(_interrupted)
+                    interrupted = true;
+            }
     }
 
     bool active;
@@ -118,7 +140,7 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     // and
     // 2. the backend is active (i.e. no o80 command is active)
 
-    bool overwrite = (((!interrupted_) || contact_disabled) && active);
+    bool overwrite = (((!interrupted) || contact_disabled) && active);
 
     // only overwrite if new ball state
     // (to let mujoco play its course between ball trajectory points)

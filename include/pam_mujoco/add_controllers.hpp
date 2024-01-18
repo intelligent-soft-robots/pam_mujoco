@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <array>
 #include <set>
 #include <string>
@@ -43,7 +44,7 @@ void add_mirror_until_contact_free_joints(
 
 void add_mirror_until_contact_free_joint(std::string segment_id,
                                          std::string joint,
-                                         std::string contact_segment_id,
+                                         std::vector<std::string> contact_segment_ids,
                                          bool active_only);
 
 void add_contact_free_joint(std::string segment_id,

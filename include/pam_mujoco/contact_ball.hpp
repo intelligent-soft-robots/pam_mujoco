@@ -9,7 +9,8 @@
 #include "shared_memory/serializer.hpp"
 #include "shared_memory/shared_memory.hpp"
 
-#define NB_ITERATIONS_CONTACT_MUTED 1000
+#define NB_ITERATIONS_CONTACT_ACTIVE 200
+#define NB_ITERATIONS_CONTACT_MUTED 500
 
 namespace pam_mujoco
 {
@@ -21,6 +22,32 @@ void save_state(const mjData* d,
                 internal::ContactStates& get_states,
                 bool verbose);
 
+
+class ContactMode
+{
+public:
+    ContactMode();
+    void init(int index_qpos, int index_qvel, int index_geom, int index_contactee_geom);
+    void reset();
+    void set_contact_overwrite(mjData* d, const double* ball_position, const double* ball_velocity);
+    bool contact_active(const mjModel* m, mjData* d);
+private:
+    void apply_model(mjData* d);
+private:
+    int steps_since_contact_;
+    int steps_since_overwrite_;
+    int index_qpos_;
+    int index_qvel_;
+    int index_geom_;
+    int index_geom_contactee_;
+    std::array<double,3> ball_position_;
+    std::array<double,3> ball_velocity_;
+    double contact_time_;
+    o80::Milliseconds mujoco_time_step_;
+};
+
+    
+    
 /**
  * controller for managing the contact between the ball
  * and a contactee (i.e. racket or table), i.e.
@@ -44,12 +71,18 @@ public:
 private:
     void init(const mjModel* m);
     void reset();
-    bool update(const mjModel* m, mjData* d);
+    bool user_signals();
+    void share_contact_info();
+    bool no_apply(const mjData* d);
+    void save_state(const mjData* m, internal::ContactStates& cs);
+    void execute(const mjModel* m, mjData* d);
 
 private:
     std::string segment_id_;
+    ContactMode contact_mode_;
     internal::RecomputeStateConfig config_;
     context::ContactInformation contact_information_;
+    internal::ContactStates current_;
     internal::ContactStates previous_;
     std::string joint_;
     int index_qpos_;
@@ -60,15 +93,7 @@ private:
     std::string geom_contactee_;
     int index_geom_;
     int index_geom_contactee_;  // contactee : racket or table
-    bool mujoco_detected_contact_;
     double mujoco_detected_dist_;
-    bool in_contact_;
-    int nb_of_iterations_since_last_contact_;
-    // number of steps to before discarding contact
-    // (contact is delayed if racket and ball are too close, set to 200 after contact is detected)
-    int steps_contact_remaining_ = -1;
-    // number of steps to overwrite contact
-    // (set to 4 after contact, to make sure new ball state is not overwritten by the simulation)
     int steps_overwrite_remaining_ = -1;
     double overwrite_ball_position_[3];
     double overwrite_ball_velocity_[3];
