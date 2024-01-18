@@ -550,29 +550,24 @@ class MujocoHandle:
     def pause(self, value):
         shared_memory.set_bool(self._mujoco_id, "pause", value)
 
+    def _contact_sid(self, segment_id, item: Optional[str]):
+        if item is not None:
+            return self.contacts[segment_id][item]
+        if isinstance(self.contacts[segment_id], str):
+            return self.contacts[segment_id]
+        return list(self.contacts[segment_id].values())[0]
+
     def get_contact(self, segment_id, item: Optional[str] = None):
-        if item is None:
-            return pam_mujoco_wrp.get_contact(self.contacts[segment_id])
-        else:
-            return pam_mujoco_wrp.get_contact(self.contacts[segment_id][item])
+        return pam_mujoco_wrp.get_contact(self._contact_sid(segment_id, item))
 
     def reset_contact(self, segment_id, item: Optional[str] = None):
-        if item is None:
-            return pam_mujoco_wrp.reset_contact(self.contacts[segment_id])
-        else:
-            return pam_mujoco_wrp.reset_contact(self.contacts[segment_id][item])
+        return pam_mujoco_wrp.reset_contact(self._contact_sid(segment_id, item))
 
     def activate_contact(self, segment_id, item: Optional[str] = None):
-        if item is None:
-            return pam_mujoco_wrp.activate_contact(self.contacts[segment_id])
-        else:
-            return pam_mujoco_wrp.activate_contact(self.contacts[segment_id][item])
+        return pam_mujoco_wrp.activate_contact(self._contact_sid(segment_id, item))
 
     def deactivate_contact(self, segment_id, item: Optional[str] = None):
-        if item is None:
-            return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id])
-        else:
-            return pam_mujoco_wrp.deactivate_contact(self.contacts[segment_id][item])
+        return pam_mujoco_wrp.deactivate_contact(self._contact_sid(segment_id, item))
 
     def burst(self, nb_iterations=1):
         self._burster_client.burst(nb_iterations)
