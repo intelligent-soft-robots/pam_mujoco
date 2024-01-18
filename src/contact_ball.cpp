@@ -101,6 +101,7 @@ bool ContactMode::contact_active(const mjModel* m, mjData* d)
     // or "muted" (because a contact has been applied recently). Evaluating things anew.
     bool mujoco_contact = internal::is_in_contact(m, d,
                                                   index_geom_, index_geom_contactee_);
+
     if(mujoco_contact)
         {
             // entering contact mode !
@@ -275,31 +276,35 @@ void ContactBall::execute(const mjModel* m, mjData* d)
     // evaluating if there is a contact to deal with
     bool contact = contact_mode_.contact_active(m,d);
 
+    // "fresh" iteration ?
+    bool update = this->must_update(d);
+    
     if(!contact)
         {
-            // no contact to deal with, exit after saving state and
-            // monitoring shorter distance between ball and contactee
-            save_state(d, previous_);
-            double d_ball_contactee =
+          if (update)
+            {
+              // no contact to deal with, exit after saving state and
+              // monitoring shorter distance between ball and contactee
+              save_state(d, previous_);
+              double d_ball_contactee =
                 mju_dist3(previous_.ball_position.data(),
                           previous_.contactee_position.data());
-            contact_information_.register_distance(d_ball_contactee);
-            return;
+              contact_information_.register_distance(d_ball_contactee);
+              return;
+            }
         }
     
     // we deal with the contact only for "fresh" mujoco iteration
-    if(!this->must_update(d))
+    if(!update)
         return;
 
     // we arrive here because there is a contact that has not been
     // applied yet (i.e. ball trajectory has not been changed
     // based on the custom model)
     // computing the custom model
-    internal::ContactStates current;
-    save_state(d,current);
     bool success = recompute_state_after_contact(config_,
                                                  previous_,
-                                                 current,
+                                                 d->time,
                                                  overwrite_ball_position_,
                                                  overwrite_ball_velocity_);
 
@@ -319,7 +324,10 @@ void ContactBall::execute(const mjModel* m, mjData* d)
     contact_mode_.set_contact_overwrite(d, overwrite_ball_position_, overwrite_ball_velocity_);
     // informing the outside world about the contact
     // (via shared memory)
-    contact_information_.register_contact(current.ball_position, d->time);
+    std::array<double,3> ball_position;
+    for(size_t i=0;i<3;i++)
+      ball_position[i] = overwrite_ball_position_[i];
+    contact_information_.register_contact(ball_position, d->time);
 }
 
 void ContactBall::apply(const mjModel* m, mjData* d)

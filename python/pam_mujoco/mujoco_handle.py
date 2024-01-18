@@ -485,7 +485,7 @@ class MujocoHandle:
                 self.contacts[item.segment_id]["table"] = item.segment_id + "_table"
             if item.contact_robot1:
                 self.contacts[item.segment_id]["robot1"] = item.segment_id + "_racket1"
-            if item.contact_robot2 == pam_mujoco_wrp.ContactTypes.racket2:
+            if item.contact_robot2:
                 self.contacts[item.segment_id]["robot2"] = item.segment_id + "_racket2"
 
         if combined and not read_only:

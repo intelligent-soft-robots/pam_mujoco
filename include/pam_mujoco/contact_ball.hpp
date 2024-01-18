@@ -10,7 +10,7 @@
 #include "shared_memory/shared_memory.hpp"
 
 #define NB_ITERATIONS_CONTACT_ACTIVE 200
-#define NB_ITERATIONS_CONTACT_MUTED 1000
+#define NB_ITERATIONS_CONTACT_MUTED 500
 
 namespace pam_mujoco
 {
