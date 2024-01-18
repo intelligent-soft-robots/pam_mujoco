@@ -32,10 +32,10 @@ class MujocoItem:
         self.segment_id = segment_id
         self.color = color
         self.control = control
-        _contact_from_contact_type(self, contact_type)
         self.contact_robot1 = contact_robot1
         self.contact_robot2 = contact_robot2
         self.contact_table = contact_table
+        _contact_from_contact_type(self, contact_type)
 
 
 class MujocoItems:
@@ -48,19 +48,19 @@ class MujocoItems:
     def __init__(
         self,
         segment_id,
-        contact_robot1=False,
-        contact_robot2=False,
-        contact_table=False,
+        contact_robot1=None,
+        contact_robot2=None,
+        contact_table=None,
         contact_type=None,
-        control=False,
+        control=None,
     ):
         self.items = {"balls": [], "goals": [], "hit_points": []}
         self.segment_id = segment_id
-        # for retro-compatibility
-        _contact_from_contact_type(self, contact_type)
         self.contact_robot1 = contact_robot1
         self.contact_robot2 = contact_robot2
         self.contact_table = contact_table
+        # for retro-compatibility
+        _contact_from_contact_type(self, contact_type)
         self.control = control
         self.size = 0
 
@@ -86,6 +86,9 @@ class MujocoItems:
         return True
 
     def _add(self, item: MujocoItem, category):
+        for attr in ("control", "contact_table", "contact_robot1", "contact_robot2"):
+            if getattr(self, attr) is None:
+                setattr(self, attr, getattr(item, attr))
         if not self.control == item.control:
             raise ValueError(
                 "MujocoItems: all added items should be of " "same control type"

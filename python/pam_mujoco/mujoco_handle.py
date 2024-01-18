@@ -61,9 +61,6 @@ def _get_mujoco_items_control(
     if mujoco_items.control == MujocoItem.COMMAND_ACTIVE_CONTROL:
         active_only = True
 
-    if mujoco_items.contact_type is None:
-        mujoco_items.contact_type = pam_mujoco_wrp.ContactTypes.no_contact
-
     all_model_items = balls + goals + hit_points
     all_model_types = (
         [pam_mujoco_wrp.MujocoItemTypes.ball] * len(balls)
@@ -89,7 +86,9 @@ def _get_mujoco_items_control(
         geometries,
         robot_geom,
         active_only,
-        mujoco_items.contact_type,
+        mujoco_items.contact_robot1,
+        mujoco_items.contact_robot2,
+        mujoco_items.contact_table,
     )
 
 
@@ -509,7 +508,6 @@ class MujocoHandle:
                     self.contacts[item.segment_id]["robot2_" + str(index)] = (
                         combined.segment_id + "_racket2_" + str(index)
                     )
-
         for sid, value in self.contacts.items():
             if isinstance(value, str):
                 self.reset_contact(sid)
