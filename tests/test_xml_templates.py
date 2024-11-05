@@ -41,7 +41,7 @@ def test_mujoco_quaternion() -> None:
 
 
 def test_get_table_xml() -> None:
-    out_xml, out_name_plate_geom, out_name_net_geom, out_nb_bodies = m.get_table_xml(
+    out_xml, out_name_plate_geom, out_name_net_geom = m.get_table_xml(
         "MODEL-NAME",
         "NAME",
         [0, 1, 2],
@@ -72,13 +72,12 @@ def test_get_table_xml() -> None:
 
     assert out_name_plate_geom == "NAME_plate"
     assert out_name_net_geom == "NAME_net"
-    assert out_nb_bodies == 7
 
 
 def test_get_robot_xml_with_orientation() -> None:
     model_name = "pam_mujoco_test_xml_template"
 
-    out_xml, out_joint, out_geom_racket, out_nb_bodies = m.get_robot_xml(
+    out_xml, out_joint, out_geom_racket = m.get_robot_xml(
         model_name,
         "NAME",
         [0, 1, 2],
@@ -98,7 +97,6 @@ def test_get_robot_xml_with_orientation() -> None:
     )
     assert out_joint == "NAME_joint_base_rotation"
     assert out_geom_racket == "NAME_racket"
-    assert out_nb_bodies == 25
 
     assert pathlib.Path(
         "/tmp/pam_mujoco_test_xml_template/robot_body_NAME.xml"

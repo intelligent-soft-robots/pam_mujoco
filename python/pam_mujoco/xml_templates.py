@@ -71,7 +71,7 @@ def get_table_xml(
     size: t.Sequence[float],
     color: t.Tuple[float, float, float, float],
     orientation: Rotation,
-) -> t.Tuple[str, str, str, int]:
+) -> t.Tuple[str, str, str]:
     mujoco_quat = _mujoco_quaternion(orientation)
 
     template_body = '<body pos="{position}" name="{name}" quat="{mujoco_quat}">'
@@ -141,7 +141,7 @@ def get_robot_xml(
     orientation: t.Optional[Rotation],
     muscles: bool,
     robot_type: RobotType,
-) -> t.Tuple[str, str, str, int]:
+) -> t.Tuple[str, str, str]:
     # using the robot template xml file in pam_mujoco/models/robot_templates
     # to generate robot description xml file that will be included in the main
     # xml file
