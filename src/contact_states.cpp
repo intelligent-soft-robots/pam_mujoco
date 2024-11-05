@@ -92,7 +92,6 @@ namespace pam_mujoco
             dt;
         }
     }
-
     
     void update_contactee_velocity(const mjData* d,
                                    int index_geom_contactee,
@@ -110,16 +109,6 @@ namespace pam_mujoco
           return;
         }
 
-      // When running learning_table_tennis_from_scratch, the positions of
-      // the robot joints are updated at a lower frequency: during the
-      // intermediate iterations, this thread "sees" an immobile racket,
-      // i.e. a velocity of zero, which is incorrect. We update the robot velocity
-      // only after it has been updated by the learning algorithm
-      if (!new_step)
-        {
-          return;
-        }
-
       double dt = d->time - get_states.velocity_time_stamp;
       set_contactee_velocity(d,dt,index_geom_contactee,
                              get_states.contactee_position,
@@ -127,9 +116,6 @@ namespace pam_mujoco
       get_states.velocity_time_stamp = d->time;
     }
   
-
-
-    
     /**
      * extract information from d to update the instance
      * of get_states. position of the ball, velocity of the ball,
@@ -148,11 +134,16 @@ namespace pam_mujoco
                     bool new_step,
                     internal::ContactStates& get_states)
     {
-      update_contactee_velocity(d, index_geom_contactee, new_step, get_states);
+      // When running learning_table_tennis_from_scratch, the positions of
+      // the robot joints are updated at a lower frequency: during the
+      // intermediate iterations, this thread "sees" an immobile racket,
+      // i.e. a velocity of zero, which is incorrect. We update the robot velocity
+      // only after it has been updated by the learning algorithm
       if (!new_step)
-      {
-        return;
-      }
+        {
+          return;
+        }
+      update_contactee_velocity(d, index_geom_contactee, new_step, get_states);
       save_robot_joints(d,index_robot_qpos, get_states.robot_joint_positions);
       save_ball(d,
                 index_qpos, get_states.ball_position,
