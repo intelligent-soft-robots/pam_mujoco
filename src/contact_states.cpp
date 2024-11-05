@@ -36,51 +36,6 @@ namespace pam_mujoco
       print_array(std::string("ball velocity"), ball_velocity);
     }
 
-    bool should_update_velocity(internal::ContactStates& previous_state,
-                                mjtNum* m,
-                                const mjData* d,
-                                int index_geom_contactee,
-                                double time,
-                                double time_threshold = 0.1,
-                                double position_threshold = 0.0000001,
-                                double max_acc = 200.0)
-    {
-
-      if ((time - previous_state.velocity_time_stamp) >= time_threshold)
-        {
-          return true;
-        }
-
-      std::array<double, 3> new_velocities;
-      double dt = time - previous_state.velocity_time_stamp;
-      for (size_t i = 0; i < 3; i++)
-        {
-          new_velocities[i] =
-            (d->geom_xpos[index_geom_contactee * 3 + i] -
-             previous_state.contactee_position[i]) /
-            dt;
-        }
-
-      for (size_t i = 0; i < 3; i++)
-        {
-          if (abs(previous_state.contactee_velocity[i] - new_velocities[i]) / dt > max_acc)
-            {
-              return false;
-            }
-        }
-
-      for (size_t i = 0; i < 3; i++)
-        {
-          if (abs(previous_state.contactee_position[i] - m[i])>position_threshold)
-            {
-              return true;
-            }
-        }
-
-      return false;
-    
-    }
-
     void save_robot_joints(const mjData* d,
                            int index_robot_qpos,
                            std::array<double, 4>& robot_joints)
@@ -109,7 +64,6 @@ namespace pam_mujoco
           contactee_orientation[i] = d->geom_xmat[index_geom_contactee*9+i];
         }
     }
-    
     
     void save_ball(const mjData* d,
                    int index_qpos,
@@ -142,6 +96,7 @@ namespace pam_mujoco
     
     void update_contactee_velocity(const mjData* d,
                                    int index_geom_contactee,
+                                   bool new_step,
                                    internal::ContactStates& get_states)
     {
       // velocity of contactee computed with finite differences
@@ -154,23 +109,17 @@ namespace pam_mujoco
           get_states.time_stamp = d->time;
           return;
         }
-      
-      // ! this is quite hacky.
+
       // When running learning_table_tennis_from_scratch, the positions of
       // the robot joints are updated at a lower frequency: during the
       // intermediate iterations, this thread "sees" an immobile racket,
-      // i.e. a velocity of zero, which is incorrect.
-      // "should_update_velocity" returns true only if the racket moved,
-      // or if a time threshold passed.
-      if (!should_update_velocity(
-                                 get_states,
-                                 &(d->geom_xpos[index_geom_contactee * 3]),
-                                 d,
-                                 index_geom_contactee,
-                                 d->time))
+      // i.e. a velocity of zero, which is incorrect. We update the robot velocity
+      // only after it has been updated by the learning algorithm
+      if (!new_step)
         {
           return;
         }
+
       double dt = d->time - get_states.velocity_time_stamp;
       set_contactee_velocity(d,dt,index_geom_contactee,
                              get_states.contactee_position,
@@ -196,10 +145,14 @@ namespace pam_mujoco
                     int index_qpos,
                     int index_qvel,
                     int index_geom_contactee,
+                    bool new_step,
                     internal::ContactStates& get_states)
     {
-      update_contactee_velocity(d, index_geom_contactee,
-                                get_states);
+      update_contactee_velocity(d, index_geom_contactee, new_step, get_states);
+      if (!new_step)
+      {
+        return;
+      }
       save_robot_joints(d,index_robot_qpos, get_states.robot_joint_positions);
       save_ball(d,
                 index_qpos, get_states.ball_position,

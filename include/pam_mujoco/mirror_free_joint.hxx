@@ -23,10 +23,12 @@ std::tuple<bool,bool> ContactInterrupt::interrupted()
 
 
 template <int QUEUE_SIZE>
-MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
+MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string mujoco_id,
+                                             std::string segment_id,
                                              std::string joint,
                                              bool active_only)
     : backend_{segment_id},
+      mujoco_id_{mujoco_id},
       segment_id_{segment_id},
       joint_(joint),
       index_qpos_(-1),
@@ -37,12 +39,13 @@ MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
 }
 
 template <int QUEUE_SIZE>
-MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
+MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string mujoco_id,
+                                             std::string segment_id,
                                              std::string joint,
                                              const std::vector<std::string>& interrupt_segment_ids,
                                              bool active_only)
     : MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint{
-          segment_id, joint, active_only}
+          mujoco_id, segment_id, joint, active_only}
 {
     set_contact_interrupt(interrupt_segment_ids);
 }

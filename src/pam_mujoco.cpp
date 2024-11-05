@@ -2180,7 +2180,21 @@ int main(int argc, const char** argv)
                                                       config.get_ball_joint());
         pam_mujoco::Controllers::add(saver);
     }
-    
+
+    for (const pam_mujoco::MujocoRobotJointControl& mrc : config.joint_controls)
+    {
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mrc.to_string() << std::endl;
+        pam_mujoco::add_joints_control(mrc);
+    }
+    for (const pam_mujoco::MujocoRobotPressureControl& mpc :
+         config.pressure_controls)
+    {
+        std::cout << "\nadding controller:" << std::endl;
+        std::cout << mpc.to_string() << std::endl;
+        pam_mujoco::add_pressures_control(mpc);
+    }
+
     for (const pam_mujoco::MujocoItemControl& mic : config.item_controls)
     {
         std::cout << "\nadding controller:" << std::endl;
@@ -2227,19 +2241,6 @@ int main(int argc, const char** argv)
         pam_mujoco::add_100_items_control(config, mic);
     }
 
-    for (const pam_mujoco::MujocoRobotJointControl& mrc : config.joint_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mrc.to_string() << std::endl;
-        pam_mujoco::add_joints_control(mrc);
-    }
-    for (const pam_mujoco::MujocoRobotPressureControl& mpc :
-         config.pressure_controls)
-    {
-        std::cout << "\nadding controller:" << std::endl;
-        std::cout << mpc.to_string() << std::endl;
-        pam_mujoco::add_pressures_control(mpc);
-    }
 
     if (!mjdata_nan_snapshot_path.empty())
     {

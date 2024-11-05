@@ -112,13 +112,15 @@ bool ContactMode::contact_active(const mjModel* m, mjData* d)
 }
 
     
-ContactBall::ContactBall(std::string segment_id,
+ContactBall::ContactBall(std::string mujoco_id,
+                         std::string segment_id,
                          std::string joint,
                          std::string geom,
                          std::string robot_base,
                          std::string geom_contactee,
                          ContactItems contact_item)
-    : segment_id_{segment_id},
+    : mujoco_id_{mujoco_id},
+      segment_id_{segment_id},
       contact_mode_{},
       config_{internal::get_recompute_state_config(contact_item)},
       joint_{joint},
@@ -129,12 +131,14 @@ ContactBall::ContactBall(std::string segment_id,
       geom_{geom},
       geom_contactee_{geom_contactee},
       index_geom_{-1},
-      index_geom_contactee_{-1}
+      index_geom_contactee_{-1},
+      step_{-2}
 {
     shared_memory::clear_shared_memory(segment_id_);
     shared_memory::set<bool>(segment_id_, "reset", false);
     shared_memory::set<bool>(segment_id_, "activated", true);
     shared_memory::serialize(segment_id_, segment_id_, contact_information_);
+    shared_memory::set<long int>(mujoco_id_, "step", -2);
 }
 
 template <int DIM, class P, class V>
@@ -240,9 +244,8 @@ bool ContactBall::no_apply(const mjData* d)
 
     return false;
 }
-
     
-void ContactBall::save_state(const mjData* d, internal::ContactStates& cs)
+void ContactBall::save_state(const mjData* d, bool new_step, internal::ContactStates& cs)
 {
     internal::save_state(
                          d,
@@ -250,6 +253,7 @@ void ContactBall::save_state(const mjData* d, internal::ContactStates& cs)
                          index_qpos_,
                          index_qvel_,
                          index_geom_contactee_,
+                         new_step,
                          cs
                          );
 }
@@ -273,6 +277,11 @@ void ContactBall::execute(const mjModel* m, mjData* d)
             return;
         }
 
+    // True if a new algorithm step, i.e. the robot position
+    // and velocity have just been updated ("mirrored") by the
+    // learning algo (learning table tennis from scratch,hysr_on_ball.py)
+    bool new_step = new_algo_step();
+
     // evaluating if there is a contact to deal with
     bool contact = contact_mode_.contact_active(m,d);
 
@@ -285,7 +294,7 @@ void ContactBall::execute(const mjModel* m, mjData* d)
             {
               // no contact to deal with, exit after saving state and
               // monitoring shorter distance between ball and contactee
-              save_state(d, previous_);
+              save_state(d, new_step, previous_);
               double d_ball_contactee =
                 mju_dist3(previous_.ball_position.data(),
                           previous_.contactee_position.data());
@@ -313,7 +322,7 @@ void ContactBall::execute(const mjModel* m, mjData* d)
         // failed to apply the custom model because
         // the ball and the contactee were too close.
         // we postpone to next iteration ...
-        save_state(d, previous_);
+        save_state(d, new_step, previous_);
         return;
     }
 
@@ -330,6 +339,19 @@ void ContactBall::execute(const mjModel* m, mjData* d)
     contact_information_.register_contact(ball_position, d->time);
 }
 
+bool ContactBall::new_algo_step()
+{
+    long int current_step;
+    shared_memory::get<long int>(mujoco_id_, "step", current_step);
+    bool r = false;
+    if(current_step != step_)
+    {
+      r = true;
+    }
+    step_ = current_step;
+    return r;
+}
+
 void ContactBall::apply(const mjModel* m, mjData* d)
 {
     init(m);
@@ -337,8 +359,6 @@ void ContactBall::apply(const mjModel* m, mjData* d)
     share_contact_info();
 }
 
-
-    
 
 void reset_contact(const std::string& segment_id)
 {

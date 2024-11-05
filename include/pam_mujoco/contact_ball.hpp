@@ -19,6 +19,7 @@ void save_state(const mjData* d,
                 int index_qvel_ball,
                 int index_geom_ball,
                 int index_geom_contactee,
+                bool new_step,
                 internal::ContactStates& get_states,
                 bool verbose);
 
@@ -57,7 +58,8 @@ private:
 class ContactBall : public ControllerBase
 {
 public:
-    ContactBall(std::string segment_id_,
+    ContactBall(std::string mujoco_id,
+                std::string segment_id_,
                 std::string joint,
                 std::string geom,
                 std::string robot_base,
@@ -74,10 +76,12 @@ private:
     bool user_signals();
     void share_contact_info();
     bool no_apply(const mjData* d);
-    void save_state(const mjData* m, internal::ContactStates& cs);
+    void save_state(const mjData* m, bool new_step, internal::ContactStates& cs);
     void execute(const mjModel* m, mjData* d);
+    bool new_algo_step();
 
 private:
+    std::string mujoco_id_;
     std::string segment_id_;
     ContactMode contact_mode_;
     internal::RecomputeStateConfig config_;
@@ -97,6 +101,7 @@ private:
     int steps_overwrite_remaining_ = -1;
     double overwrite_ball_position_[3];
     double overwrite_ball_velocity_[3];
+    long int step_;
 };
 
 void activate_contact(const std::string& segment_id);

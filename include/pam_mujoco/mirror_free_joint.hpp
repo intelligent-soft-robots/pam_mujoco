@@ -36,10 +36,12 @@ private:
     typedef o80::States<6, o80::State1d> States;
 
 public:
-    MirrorFreeJoint(std::string segment_id,
+    MirrorFreeJoint(std::string mujoco_id,
+                    std::string segment_id,
                     std::string joint,
                     bool active_only = true);
-    MirrorFreeJoint(std::string segment_id,
+    MirrorFreeJoint(std::string mujoco_id,
+                    std::string segment_id,
                     std::string joint,
                     const std::vector<std::string>& interrupt_segment_ids,
                     bool active_only = true);
@@ -52,6 +54,7 @@ public:
 
 private:
     Backend backend_;
+    std::string mujoco_id_;
     std::string segment_id_;
     std::string joint_;
     int index_qpos_;
