@@ -48,7 +48,7 @@ RecomputeStateConfig get_recompute_state_config(ContactItems item);
  */
 bool recompute_state_after_contact(const RecomputeStateConfig& config,
                                    const internal::ContactStates& pre_contact,
-                                   double time_now,
+                                   double mujoco_time_step,
                                    double get_ball_position[3],
                                    double get_ball_velocity[3]);
 

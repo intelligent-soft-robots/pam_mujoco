@@ -57,8 +57,15 @@ void save_state(const mjData* d,
                 int index_qpos,
                 int index_qvel,
                 int index_geom_contactee,
-                bool new_step,
                 internal::ContactStates& get_states);
+
+internal::ContactStates update_positions(const mjData* d,
+		        int index_robot_qpos,
+                int index_qpos,
+                int index_qvel,
+                int index_geom_contactee,
+                const internal::ContactStates& previous);
+
 
 }  // namespace internal
 

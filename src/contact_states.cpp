@@ -95,7 +95,6 @@ namespace pam_mujoco
     
     void update_contactee_velocity(const mjData* d,
                                    int index_geom_contactee,
-                                   bool new_step,
                                    internal::ContactStates& get_states)
     {
       // velocity of contactee computed with finite differences
@@ -131,7 +130,6 @@ namespace pam_mujoco
                     int index_qpos,
                     int index_qvel,
                     int index_geom_contactee,
-                    bool new_step,
                     internal::ContactStates& get_states)
     {
       // When running learning_table_tennis_from_scratch, the positions of
@@ -139,11 +137,7 @@ namespace pam_mujoco
       // intermediate iterations, this thread "sees" an immobile racket,
       // i.e. a velocity of zero, which is incorrect. We update the robot velocity
       // only after it has been updated by the learning algorithm
-      if (!new_step)
-        {
-          return;
-        }
-      update_contactee_velocity(d, index_geom_contactee, new_step, get_states);
+      update_contactee_velocity(d, index_geom_contactee, get_states);
       save_robot_joints(d,index_robot_qpos, get_states.robot_joint_positions);
       save_ball(d,
                 index_qpos, get_states.ball_position,
@@ -152,6 +146,26 @@ namespace pam_mujoco
                      get_states.contactee_position, get_states.contactee_orientation);
       get_states.time_stamp = d->time;
     }
+
+    internal::ContactStates update_positions(
+                    const mjData* d,
+                    int index_robot_qpos,
+                    int index_qpos,
+                    int index_qvel,
+                    int index_geom_contactee,
+                    const internal::ContactStates& previous)
+    {
+        internal::ContactStates cs = previous;
+        save_robot_joints(d,index_robot_qpos, cs.robot_joint_positions);
+        save_ball(d,
+                index_qpos, cs.ball_position,
+                index_qvel, cs.ball_velocity);
+        save_contactee(d, index_geom_contactee,
+                     cs.contactee_position, cs.contactee_orientation);
+        cs.time_stamp = d->time;
+        return cs;
+    }
+
   
   }
   

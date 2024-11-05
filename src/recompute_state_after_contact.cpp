@@ -138,7 +138,7 @@ static internal::ContactStates in_absolute_frame(
 // generic version
 bool recompute_state_after_contact(const RecomputeStateConfig& config,
                                    const internal::ContactStates& pre_contact,
-                                   double time_now,
+                                   double mujoco_time_step,
                                    double get_ball_position[3],
                                    double get_ball_velocity[3])
 {
@@ -163,8 +163,7 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
   double time_until_impact = -pre_contact_relative.ball_position[axis] /
     (pre_contact_relative.ball_velocity[axis] -
      pre_contact_relative.contactee_velocity[axis]);
-  double delta_t_step = time_now - pre_contact.time_stamp;
-  double delta_t_after_impact = delta_t_step - time_until_impact;
+  double delta_t_after_impact = mujoco_time_step - time_until_impact;
 
   // the contact is not occuring during this time step,
   // exiting

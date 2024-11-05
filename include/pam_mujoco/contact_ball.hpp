@@ -23,6 +23,9 @@ void save_state(const mjData* d,
                 internal::ContactStates& get_states,
                 bool verbose);
 
+internal::ContactStates update_positions(
+    const mjData* d,
+    const internal::ContactStates& previous);
 
 class ContactMode
 {
@@ -76,7 +79,8 @@ private:
     bool user_signals();
     void share_contact_info();
     bool no_apply(const mjData* d);
-    void save_state(const mjData* m, bool new_step, internal::ContactStates& cs);
+    void save_state(const mjData* m, internal::ContactStates& cs);
+    internal::ContactStates update_positions(const mjData* m, const internal::ContactStates& previous);
     void execute(const mjModel* m, mjData* d);
     bool new_algo_step();
 

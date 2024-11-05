@@ -245,7 +245,7 @@ bool ContactBall::no_apply(const mjData* d)
     return false;
 }
     
-void ContactBall::save_state(const mjData* d, bool new_step, internal::ContactStates& cs)
+void ContactBall::save_state(const mjData* d, internal::ContactStates& cs)
 {
     internal::save_state(
                          d,
@@ -253,11 +253,21 @@ void ContactBall::save_state(const mjData* d, bool new_step, internal::ContactSt
                          index_qpos_,
                          index_qvel_,
                          index_geom_contactee_,
-                         new_step,
                          cs
                          );
 }
-    
+
+internal::ContactStates ContactBall::update_positions(const mjData* d, const internal::ContactStates& previous)
+{
+    return internal::update_positions(
+                         d,
+                         index_robot_qpos_,
+                         index_qpos_,
+                         index_qvel_,
+                         index_geom_contactee_,
+                         previous);
+}
+
 void ContactBall::execute(const mjModel* m, mjData* d)
 {
 
@@ -294,10 +304,15 @@ void ContactBall::execute(const mjModel* m, mjData* d)
             {
               // no contact to deal with, exit after saving state and
               // monitoring shorter distance between ball and contactee
-              save_state(d, new_step, previous_);
+              if (new_step)
+              {
+                  save_state(d, previous_);
+
+              }
               double d_ball_contactee =
-                mju_dist3(previous_.ball_position.data(),
-                          previous_.contactee_position.data());
+                mju_dist3(&(d->qpos[index_qpos_]),&(d->geom_xpos[index_geom_contactee_*3]));
+                //mju_dist3(previous_.ball_position.data(),
+                //          previous_.contactee_position.data());
               contact_information_.register_distance(d_ball_contactee);
               return;
             }
@@ -311,18 +326,27 @@ void ContactBall::execute(const mjModel* m, mjData* d)
     // applied yet (i.e. ball trajectory has not been changed
     // based on the custom model)
     // computing the custom model
+
+    // "previous_" are states saved at the algo frequency,
+    // which is suitable for computing the cartesian velocity of the robot.
+    // But for applying our contact model, we use the latest positions (of the
+    // ball and of the robot), as computed by mujoco at its higher frequency
+    internal::ContactStates cs = update_positions(d, previous_);
     bool success = recompute_state_after_contact(config_,
-                                                 previous_,
-                                                 d->time,
+                                                 cs,
+                                                 m->opt.timestep,
                                                  overwrite_ball_position_,
                                                  overwrite_ball_velocity_);
 
     if (!success)
     {
-        // failed to apply the custom model because
-        // the ball and the contactee were too close.
-        // we postpone to next iteration ...
-        save_state(d, new_step, previous_);
+        if (new_step)
+        {
+            // failed to apply the custom model because
+            // the ball and the contactee were too close.
+            // we postpone to next iteration ...
+            save_state(d, previous_);
+        }
         return;
     }
 
