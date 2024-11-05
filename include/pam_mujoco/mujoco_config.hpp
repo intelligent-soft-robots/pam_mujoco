@@ -21,7 +21,7 @@ enum ContactTypes
     racket1,
     racket2
 };
-    
+
 class MujocoRobotJointControl
 {
 public:
@@ -91,7 +91,6 @@ public:
                       bool contact_robot1,
                       bool contact_robot2,
                       bool contact_table);
-    
 
 public:
     std::string to_string() const;
@@ -100,9 +99,13 @@ public:
     template <class Archive>
     void serialize(Archive& archive)
     {
-        archive(type, segment_id, joint,
-                geometry, active_only,
-                contact_robot1, contact_robot2,
+        archive(type,
+                segment_id,
+                joint,
+                geometry,
+                active_only,
+                contact_robot1,
+                contact_robot2,
                 contact_table);
     }
 
@@ -177,7 +180,7 @@ public:
     void set_save_folder(std::string folder);
     std::string to_string() const;
     void set_robot1_base(std::string robot1_base);
-    void set_robot2_base(std::string robot2_base);    
+    void set_robot2_base(std::string robot2_base);
     void set_racket_robot1(std::string _racket1_geometry);
     void set_racket_robot2(std::string _racket2_geometry);
     void set_table(std::string _table_geometry);
@@ -195,7 +198,7 @@ public:
 public:
     std::string get_robot_joint() const;
     std::string get_ball_joint() const;
-    
+
 public:
     template <class Archive>
     void serialize(Archive& archive)

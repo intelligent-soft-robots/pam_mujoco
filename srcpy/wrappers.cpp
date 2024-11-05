@@ -6,9 +6,9 @@
 #include "pam_mujoco/add_controllers.hpp"
 #include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/extra_balls_extended_state.hpp"
+#include "pam_mujoco/mj_state_tools.hpp"
 #include "pam_mujoco/mujoco_config.hpp"
 #include "pam_mujoco/read_robot_state.hpp"
-#include "pam_mujoco/mj_state_tools.hpp"
 #include "shared_memory/serializer.hpp"
 
 #define NB_DOFS 4
@@ -72,11 +72,13 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
 
     pybind11::class_<pam_mujoco::MujocoItemControl>(m, "MujocoItemControl")
         .def(pybind11::init<pam_mujoco::MujocoItemTypes,
-             std::string,
-             std::string,
-             std::string,
-             bool,
-             bool, bool, bool>())
+                            std::string,
+                            std::string,
+                            std::string,
+                            bool,
+                            bool,
+                            bool,
+                            bool>())
         .def_readonly("segment_id", &pam_mujoco::MujocoItemControl::segment_id)
         .def_readonly("type", &pam_mujoco::MujocoItemControl::type)
         .def_readonly("active_only",
@@ -86,11 +88,14 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     pybind11::class_<pam_mujoco::MujocoItemsControl<3>>(m,
                                                         "Mujoco3ItemsControl")
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 3>,
-             std::string,
-             std::array<std::string, 3>,
-             std::array<std::string, 3>,
-             std::string,
-             bool,bool, bool, bool>())
+                            std::string,
+                            std::array<std::string, 3>,
+                            std::array<std::string, 3>,
+                            std::string,
+                            bool,
+                            bool,
+                            bool,
+                            bool>())
         .def_readonly("segment_id",
                       &pam_mujoco::MujocoItemsControl<3>::segment_id)
         .def_readonly("type", &pam_mujoco::MujocoItemsControl<3>::type)
@@ -101,11 +106,14 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     pybind11::class_<pam_mujoco::MujocoItemsControl<10>>(m,
                                                          "Mujoco10ItemsControl")
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 10>,
-             std::string,
-             std::array<std::string, 10>,
-             std::array<std::string, 10>,
-             std::string,
-             bool, bool, bool, bool>())
+                            std::string,
+                            std::array<std::string, 10>,
+                            std::array<std::string, 10>,
+                            std::string,
+                            bool,
+                            bool,
+                            bool,
+                            bool>())
         .def_readonly("segment_id",
                       &pam_mujoco::MujocoItemsControl<10>::segment_id)
         .def_readonly("type", &pam_mujoco::MujocoItemsControl<10>::type)
@@ -116,11 +124,14 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     pybind11::class_<pam_mujoco::MujocoItemsControl<20>>(m,
                                                          "Mujoco20ItemsControl")
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 20>,
-             std::string,
-             std::array<std::string, 20>,
-             std::array<std::string, 20>,
-             std::string,
-             bool, bool, bool, bool>())
+                            std::string,
+                            std::array<std::string, 20>,
+                            std::array<std::string, 20>,
+                            std::string,
+                            bool,
+                            bool,
+                            bool,
+                            bool>())
         .def_readonly("segment_id",
                       &pam_mujoco::MujocoItemsControl<20>::segment_id)
         .def_readonly("type", &pam_mujoco::MujocoItemsControl<20>::type)
@@ -131,11 +142,14 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     pybind11::class_<pam_mujoco::MujocoItemsControl<50>>(m,
                                                          "Mujoco50ItemsControl")
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 50>,
-             std::string,
-             std::array<std::string, 50>,
-             std::array<std::string, 50>,
-             std::string,
-             bool, bool, bool, bool>())
+                            std::string,
+                            std::array<std::string, 50>,
+                            std::array<std::string, 50>,
+                            std::string,
+                            bool,
+                            bool,
+                            bool,
+                            bool>())
         .def_readonly("segment_id",
                       &pam_mujoco::MujocoItemsControl<50>::segment_id)
         .def_readonly("type", &pam_mujoco::MujocoItemsControl<50>::type)
@@ -146,11 +160,14 @@ PYBIND11_MODULE(pam_mujoco_wrp, m)
     pybind11::class_<pam_mujoco::MujocoItemsControl<100>>(
         m, "Mujoco100ItemsControl")
         .def(pybind11::init<std::array<pam_mujoco::MujocoItemTypes, 100>,
-             std::string,
-             std::array<std::string, 100>,
-             std::array<std::string, 100>,
-             std::string,
-             bool, bool, bool, bool>())
+                            std::string,
+                            std::array<std::string, 100>,
+                            std::array<std::string, 100>,
+                            std::string,
+                            bool,
+                            bool,
+                            bool,
+                            bool>())
         .def_readonly("segment_id",
                       &pam_mujoco::MujocoItemsControl<100>::segment_id)
         .def_readonly("type", &pam_mujoco::MujocoItemsControl<100>::type)

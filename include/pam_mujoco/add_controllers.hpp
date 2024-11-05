@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vector>
 #include <array>
 #include <set>
 #include <string>
 #include <tuple>
+#include <vector>
 #include "pam_interface/configuration.hpp"
 #include "pam_mujoco/contact_ball.hpp"
 #include "pam_mujoco/mirror_free_joint.hpp"
@@ -43,17 +43,18 @@ void add_mirror_until_contact_free_joints(
     std::array<std::string, NB_ITEMS> contact_segment_ids,
     bool active_only);
 
-void add_mirror_until_contact_free_joint(std::string mujoco_id,
-                                         std::string segment_id,
-                                         std::string joint,
-                                         std::vector<std::string> contact_segment_ids,
-                                         bool active_only);
+void add_mirror_until_contact_free_joint(
+    std::string mujoco_id,
+    std::string segment_id,
+    std::string joint,
+    std::vector<std::string> contact_segment_ids,
+    bool active_only);
 
 void add_contact_free_joint(std::string mujoco_id,
                             std::string segment_id,
                             std::string joint,
                             std::string geom,
-                            std::string robot_base,			    
+                            std::string robot_base,
                             std::string contactee_geom,
                             ContactItems contact_item);
 
@@ -68,14 +69,14 @@ void add_robot1_contact_free_joint(std::string mujoco_id,
                                    std::string segment_id,
                                    std::string joint,
                                    std::string geom,
-                                   std::string robot_base,				   
+                                   std::string robot_base,
                                    std::string contactee_geom);
 
 void add_robot2_contact_free_joint(std::string mujoco_id,
                                    std::string segment_id,
                                    std::string joint_name,
                                    std::string geom,
-                                   std::string robot_base,				   
+                                   std::string robot_base,
                                    std::string contactee_geom);
 
 template <int NB_DOFS>

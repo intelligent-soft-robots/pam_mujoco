@@ -25,11 +25,12 @@ void add_mirror_free_joint(std::string mujoco_id,
     pam_mujoco::Controllers::add(mirroring);
 }
 
-void add_mirror_until_contact_free_joint(std::string mujoco_id,
-                                         std::string segment_id,
-                                         std::string joint,
-                                         std::vector<std::string> contact_segment_ids,
-                                         bool active_only)
+void add_mirror_until_contact_free_joint(
+    std::string mujoco_id,
+    std::string segment_id,
+    std::string joint,
+    std::vector<std::string> contact_segment_ids,
+    bool active_only)
 {
     pam_mujoco::MirrorFreeJoint<QUEUE_SIZE>::clear(segment_id);
     typedef pam_mujoco::MirrorFreeJoint<QUEUE_SIZE> mfj;
@@ -66,13 +67,18 @@ void add_contact_free_joint(std::string mujoco_id,
                             std::string segment_id,
                             std::string joint,
                             std::string geom,
-                            std::string robot_base,			    
+                            std::string robot_base,
                             std::string contactee_geom,
                             ContactItems contact_item)
 {
-    std::shared_ptr<ContactBall> cb = std::make_shared<ContactBall>(mujoco_id, segment_id, joint,
-                                                                    geom, robot_base,
-                                                                    contactee_geom, contact_item);
+    std::shared_ptr<ContactBall> cb =
+        std::make_shared<ContactBall>(mujoco_id,
+                                      segment_id,
+                                      joint,
+                                      geom,
+                                      robot_base,
+                                      contactee_geom,
+                                      contact_item);
     pam_mujoco::Controllers::add(cb);
 }
 
@@ -83,8 +89,12 @@ void add_table_contact_free_joint(std::string mujoco_id,
                                   std::string robot_base,
                                   std::string contactee_geom)
 {
-    add_contact_free_joint(mujoco_id, segment_id, joint, geom,
-                           robot_base, contactee_geom,
+    add_contact_free_joint(mujoco_id,
+                           segment_id,
+                           joint,
+                           geom,
+                           robot_base,
+                           contactee_geom,
                            ContactItems::Table);
 }
 
@@ -92,22 +102,32 @@ void add_robot1_contact_free_joint(std::string mujoco_id,
                                    std::string segment_id,
                                    std::string joint,
                                    std::string geom,
-                                   std::string robot_base,				   
+                                   std::string robot_base,
                                    std::string contactee_geom)
 {
-    add_contact_free_joint(mujoco_id, segment_id, joint, geom,
-                           robot_base, contactee_geom, ContactItems::Robot1);
+    add_contact_free_joint(mujoco_id,
+                           segment_id,
+                           joint,
+                           geom,
+                           robot_base,
+                           contactee_geom,
+                           ContactItems::Robot1);
 }
 
 void add_robot2_contact_free_joint(std::string mujoco_id,
                                    std::string segment_id,
                                    std::string joint,
                                    std::string geom,
-                                   std::string robot_base,				   
+                                   std::string robot_base,
                                    std::string contactee_geom)
 {
-    add_contact_free_joint(mujoco_id, segment_id, joint, geom, robot_base,
-                           contactee_geom,ContactItems::Robot2);
+    add_contact_free_joint(mujoco_id,
+                           segment_id,
+                           joint,
+                           geom,
+                           robot_base,
+                           contactee_geom,
+                           ContactItems::Robot2);
 }
 
 void add_joints_control(MujocoRobotJointControl mrc)
@@ -209,12 +229,12 @@ void add_items_control(const MujocoConfig& config,
                                          std::string("_racket2") +
                                          std::to_string(item);
                     add_robot2_contact_free_joint(
-                                                  std::string(config.mujoco_id),
-                                                  contact_segment_id,
-                                                  std::string(mic.joint[item]),
-                                                  std::string(mic.geometry[item]),
-                                                  std::string(config.robot2_base),
-                                                  std::string(config.racket2_geometry));
+                        std::string(config.mujoco_id),
+                        contact_segment_id,
+                        std::string(mic.joint[item]),
+                        std::string(mic.geometry[item]),
+                        std::string(config.robot2_base),
+                        std::string(config.racket2_geometry));
                 }
 
                 contact_segment_ids[item] = contact_segment_id;
@@ -279,7 +299,8 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
             std::vector<std::string> contact_segment_ids;
             if (mic.contact_table)
             {
-                std::string contact_segment_id(std::string(mic.segment_id) + std::string("_table"));
+                std::string contact_segment_id(std::string(mic.segment_id) +
+                                               std::string("_table"));
                 contact_segment_ids.push_back(contact_segment_id);
                 add_table_contact_free_joint(
                     std::string(config.mujoco_id),
@@ -291,7 +312,8 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
             }
             if (mic.contact_robot1)
             {
-                std::string contact_segment_id(std::string(mic.segment_id) + std::string("_racket1"));
+                std::string contact_segment_id(std::string(mic.segment_id) +
+                                               std::string("_racket1"));
                 contact_segment_ids.push_back(contact_segment_id);
                 add_robot1_contact_free_joint(
                     std::string(config.mujoco_id),
@@ -303,7 +325,8 @@ void add_item_control(const MujocoConfig& config, MujocoItemControl mic)
             }
             if (mic.contact_robot2)
             {
-                std::string contact_segment_id(std::string(mic.segment_id) + std::string("_racket2"));
+                std::string contact_segment_id(std::string(mic.segment_id) +
+                                               std::string("_racket2"));
                 contact_segment_ids.push_back(contact_segment_id);
                 add_robot2_contact_free_joint(
                     std::string(config.mujoco_id),

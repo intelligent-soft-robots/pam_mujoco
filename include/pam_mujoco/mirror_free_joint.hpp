@@ -17,13 +17,14 @@ class ContactInterrupt
 {
 public:
     ContactInterrupt(std::string segment_id);
-    std::tuple<bool,bool> interrupted();
+    std::tuple<bool, bool> interrupted();
+
 private:
     context::ContactInformation ci_;
     std::string segment_id_;
     bool interrupted_;
 };
-    
+
 template <int QUEUE_SIZE>
 class MirrorFreeJoint : public ControllerBase
 {
@@ -46,7 +47,8 @@ public:
                     const std::vector<std::string>& interrupt_segment_ids,
                     bool active_only = true);
     void set_contact_interrupt(const std::vector<std::string>& segment_ids);
-    bool same(const States& s1, const States& s2) const;    // only overwrite if new ball state
+    bool same(const States& s1,
+              const States& s2) const;  // only overwrite if new ball state
     void apply(const mjModel* m, mjData* d);
 
 public:
@@ -64,9 +66,8 @@ private:
     States read_states_;
     States set_states_;
     States previous_set_states_;    // only overwrite if new ball state
-    int must_update_counter_ = -1;      // only overwrite if new ball state
+    int must_update_counter_ = -1;  // only overwrite if new ball state
     std::vector<ContactInterrupt> contact_interrupts_;
-   
 };
 
 #include "mirror_free_joint.hxx"

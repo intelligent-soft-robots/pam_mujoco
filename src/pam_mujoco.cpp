@@ -1851,7 +1851,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                         // run mj_step
                         mjtNum prevtm = d->time;
                         mj_step(m, d);
-                        
+
                         // break on reset
                         if (d->time < prevtm) break;
                     }
@@ -2172,12 +2172,13 @@ int main(int argc, const char** argv)
 
     if (config.save_data)
     {
-        std::cout << "\nsaving data in folder " << config.save_folder << std::endl;
-        auto saver = std::make_shared<
-            pam_mujoco::MujocoStatePrinterController>(mujoco_id,
-                                                      config.save_folder,
-                                                      config.get_robot_joint(),
-                                                      config.get_ball_joint());
+        std::cout << "\nsaving data in folder " << config.save_folder
+                  << std::endl;
+        auto saver = std::make_shared<pam_mujoco::MujocoStatePrinterController>(
+            mujoco_id,
+            config.save_folder,
+            config.get_robot_joint(),
+            config.get_ball_joint());
         pam_mujoco::Controllers::add(saver);
     }
 
@@ -2240,7 +2241,6 @@ int main(int argc, const char** argv)
         std::cout << mic.to_string() << std::endl;
         pam_mujoco::add_100_items_control(config, mic);
     }
-
 
     if (!mjdata_nan_snapshot_path.empty())
     {

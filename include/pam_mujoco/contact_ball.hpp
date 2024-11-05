@@ -24,19 +24,25 @@ void save_state(const mjData* d,
                 bool verbose);
 
 internal::ContactStates update_positions(
-    const mjData* d,
-    const internal::ContactStates& previous);
+    const mjData* d, const internal::ContactStates& previous);
 
 class ContactMode
 {
 public:
     ContactMode();
-    void init(int index_qpos, int index_qvel, int index_geom, int index_contactee_geom);
+    void init(int index_qpos,
+              int index_qvel,
+              int index_geom,
+              int index_contactee_geom);
     void reset();
-    void set_contact_overwrite(mjData* d, const double* ball_position, const double* ball_velocity);
+    void set_contact_overwrite(mjData* d,
+                               const double* ball_position,
+                               const double* ball_velocity);
     bool contact_active(const mjModel* m, mjData* d);
+
 private:
     void apply_model(mjData* d);
+
 private:
     int steps_since_contact_;
     int steps_since_overwrite_;
@@ -44,14 +50,12 @@ private:
     int index_qvel_;
     int index_geom_;
     int index_geom_contactee_;
-    std::array<double,3> ball_position_;
-    std::array<double,3> ball_velocity_;
+    std::array<double, 3> ball_position_;
+    std::array<double, 3> ball_velocity_;
     double contact_time_;
     o80::Milliseconds mujoco_time_step_;
 };
 
-    
-    
 /**
  * controller for managing the contact between the ball
  * and a contactee (i.e. racket or table), i.e.
@@ -80,7 +84,8 @@ private:
     void share_contact_info();
     bool no_apply(const mjData* d);
     void save_state(const mjData* m, internal::ContactStates& cs);
-    internal::ContactStates update_positions(const mjData* m, const internal::ContactStates& previous);
+    internal::ContactStates update_positions(
+        const mjData* m, const internal::ContactStates& previous);
     void execute(const mjModel* m, mjData* d);
     bool new_algo_step();
 
