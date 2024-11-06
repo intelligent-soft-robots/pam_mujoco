@@ -144,7 +144,7 @@ class Robot:
         self.geom_racket: t.Optional[str] = None
         self.joint: t.Optional[str] = None
 
-    def get_xml(self) -> t.Tuple[str, str, str, int]:
+    def get_xml(self) -> t.Tuple[str, str, str]:
         (xml, joint, geom_racket) = xml_templates.get_robot_xml(
             self.model_name,
             self.name,

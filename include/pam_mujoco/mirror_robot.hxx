@@ -21,7 +21,8 @@ bool MirrorRobot<QUEUE_SIZE, NB_DOFS>::same(const States& s1,
     {
         o80::State2d t1 = s1.get(dof);
         o80::State2d t2 = s2.get(dof);
-        // only overwrite if new robot state (compare numbers, instead of t1.get<0>() != t2.get<0>() as previously)
+        // only overwrite if new robot state (compare numbers, instead of
+        // t1.get<0>() != t2.get<0>() as previously)
         if (std::abs(t1.get<0>() - t2.get<0>()) > 1e-5)
         {
             return false;
@@ -89,11 +90,13 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
         {
             // there is a new mujoco iteration, and set_states_
             // has also been updated, so mujoco has to mirror this
-            must_update_counter_ = 4;   // update for 4 steps to make sure update is not overwritten by mujoco
+            must_update_counter_ = 4;  // update for 4 steps to make sure update
+                                       // is not overwritten by mujoco
             previous_set_states_ = set_states_;
         }
 
-        // update mujoco if all velocities are zero, hacky and doesn't always work, necessary because overwrite happens only if new robot state
+        // update mujoco if all velocities are zero, hacky and doesn't always
+        // work, necessary because overwrite happens only if new robot state
         if (must_update_counter_ < 1)
         {
             bool all_velocities_zero = true;
@@ -117,7 +120,6 @@ void MirrorRobot<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
         must_update_counter_--;
         set_to_mujoco = true;
     }
-    
 
     if (set_to_mujoco)
     {

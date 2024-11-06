@@ -18,7 +18,7 @@ public:
     void serialize(Archive& archive)
     {
         archive(robot_joint_positions,
-		contactee_position,
+                contactee_position,
                 contactee_orientation,
                 contactee_velocity,
                 ball_position,
@@ -29,7 +29,7 @@ public:
 public:
     ContactStates();
     void print() const;
-  
+
 public:
     // contactee: likely to be a racket or a table
     std::array<double, 4> robot_joint_positions;
@@ -53,11 +53,19 @@ public:
  * state).
  */
 void save_state(const mjData* d,
-		int index_robot_qpos,
+                int index_robot_qpos,
                 int index_qpos,
                 int index_qvel,
                 int index_geom_contactee,
                 internal::ContactStates& get_states);
+
+internal::ContactStates update_positions(
+    const mjData* d,
+    int index_robot_qpos,
+    int index_qpos,
+    int index_qvel,
+    int index_geom_contactee,
+    const internal::ContactStates& previous);
 
 }  // namespace internal
 

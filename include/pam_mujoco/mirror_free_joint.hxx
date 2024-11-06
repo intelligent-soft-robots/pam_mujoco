@@ -1,32 +1,32 @@
 
 ContactInterrupt::ContactInterrupt(std::string segment_id)
-    : segment_id_{segment_id},
-      interrupted_{false}
-{}
+    : segment_id_{segment_id}, interrupted_{false}
+{
+}
 
-std::tuple<bool,bool> ContactInterrupt::interrupted()
+std::tuple<bool, bool> ContactInterrupt::interrupted()
 {
     shared_memory::deserialize(segment_id_, segment_id_, ci_);
     bool contact_disabled = ci_.disabled;
     if (ci_.contact_occured && !interrupted_)
-        {
-            interrupted_ = true;
-        }
+    {
+        interrupted_ = true;
+    }
     if (interrupted_ && !ci_.contact_occured)
-        {
-            // contact has been reset
-            interrupted_ = false;
-        }
-    return std::make_tuple(contact_disabled,interrupted_);
+    {
+        // contact has been reset
+        interrupted_ = false;
+    }
+    return std::make_tuple(contact_disabled, interrupted_);
 }
 
-
-
 template <int QUEUE_SIZE>
-MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
+MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string mujoco_id,
+                                             std::string segment_id,
                                              std::string joint,
                                              bool active_only)
     : backend_{segment_id},
+      mujoco_id_{mujoco_id},
       segment_id_{segment_id},
       joint_(joint),
       index_qpos_(-1),
@@ -37,24 +37,27 @@ MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
 }
 
 template <int QUEUE_SIZE>
-MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(std::string segment_id,
-                                             std::string joint,
-                                             const std::vector<std::string>& interrupt_segment_ids,
-                                             bool active_only)
+MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint(
+    std::string mujoco_id,
+    std::string segment_id,
+    std::string joint,
+    const std::vector<std::string>& interrupt_segment_ids,
+    bool active_only)
     : MirrorFreeJoint<QUEUE_SIZE>::MirrorFreeJoint{
-          segment_id, joint, active_only}
+          mujoco_id, segment_id, joint, active_only}
 {
     set_contact_interrupt(interrupt_segment_ids);
 }
 
 template <int QUEUE_SIZE>
-void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(const std::vector<std::string>& segment_ids)
+void MirrorFreeJoint<QUEUE_SIZE>::set_contact_interrupt(
+    const std::vector<std::string>& segment_ids)
 {
     contact_interrupt_ = true;
-    for(const std::string& segment_id: segment_ids)
-        {
-            contact_interrupts_.push_back(ContactInterrupt(segment_id));
-        }
+    for (const std::string& segment_id : segment_ids)
+    {
+        contact_interrupts_.push_back(ContactInterrupt(segment_id));
+    }
 }
 
 // only overwrite if new ball state
@@ -72,8 +75,6 @@ bool MirrorFreeJoint<QUEUE_SIZE>::same(const States& s1, const States& s2) const
     }
     return true;
 }
-
-
 
 template <int QUEUE_SIZE>
 void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
@@ -111,16 +112,14 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
     bool interrupted = false;
     if (contact_interrupt_)
     {
-        for(ContactInterrupt& ci: contact_interrupts_)
-            {
-                std::tuple<bool,bool> t = ci.interrupted();
-                bool _contact_disabled = std::get<0>(t);
-                bool _interrupted = std::get<1>(t);
-                if(_contact_disabled)
-                    contact_disabled = true;
-                if(_interrupted)
-                    interrupted = true;
-            }
+        for (ContactInterrupt& ci : contact_interrupts_)
+        {
+            std::tuple<bool, bool> t = ci.interrupted();
+            bool _contact_disabled = std::get<0>(t);
+            bool _interrupted = std::get<1>(t);
+            if (_contact_disabled) contact_disabled = true;
+            if (_interrupted) interrupted = true;
+        }
     }
 
     bool active;
@@ -179,7 +178,6 @@ void MirrorFreeJoint<QUEUE_SIZE>::apply(const mjModel* m, mjData* d)
         }
         if (!anynan)
         {
-            
             // x,y,z positions
             d->qpos[index_qpos_] = set_states_.get(0).value;
             d->qpos[index_qpos_ + 1] = set_states_.get(2).value;
