@@ -1801,6 +1801,11 @@ void render(GLFWwindow* window)
     }
 }
 
+double get_current_time() {
+    auto now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch());
+    return static_cast<double>(now.count()) / 1e6;
+}
+
 void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
 {
     // run only if model is present
@@ -1810,7 +1815,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
         if (settings.run)
         {
             // record cpu time at start of iteration
-            double tmstart = glfwGetTime();
+            double tmstart = get_current_time();
 
             if (!accelerated_time)
             {
@@ -1819,6 +1824,7 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                     mju_abs((d->time - simsync) - (tmstart - cpusync)) >
                         syncmisalign)
                 {
+                    std::cout << "out of sync" << std::endl;
                     // re-sync
                     cpusync = tmstart;
                     simsync = d->time;
@@ -1838,8 +1844,8 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                 {
                     // step while simtime lags behind cputime, and within
                     // safefactor
-                    while ((d->time - simsync) < (glfwGetTime() - cpusync) &&
-                           (glfwGetTime() - tmstart) <
+                    while ((d->time - simsync) < (get_current_time() - cpusync) &&
+                           (get_current_time() - tmstart) <
                                refreshfactor / vmode.refreshRate)
                     {
                         // clear old perturbations, apply new
@@ -2096,7 +2102,7 @@ int main(int argc, const char** argv)
     // episode id (if it turns out the client deals with episodes)
     shared_memory::set<long int>(mujoco_id, "episode", -1);
 
-    // indicating potiential clients that it is not running yet
+    // indicating potential clients that it is not running yet
     shared_memory::set<bool>(mujoco_id, "running", false);
 
     pam_mujoco::MujocoConfig config;
