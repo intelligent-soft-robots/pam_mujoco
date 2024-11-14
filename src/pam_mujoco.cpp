@@ -1801,8 +1801,10 @@ void render(GLFWwindow* window)
     }
 }
 
-double get_current_time() {
-    auto now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch());
+double get_current_time()
+{
+    auto now = std::chrono::duration_cast<std::chrono::microseconds>(
+        std::chrono::system_clock::now().time_since_epoch());
     return static_cast<double>(now.count()) / 1e6;
 }
 
@@ -1844,7 +1846,8 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                 {
                     // step while simtime lags behind cputime, and within
                     // safefactor
-                    while ((d->time - simsync) < (get_current_time() - cpusync) &&
+                    while ((d->time - simsync) <
+                               (get_current_time() - cpusync) &&
                            (get_current_time() - tmstart) <
                                refreshfactor / vmode.refreshRate)
                     {
