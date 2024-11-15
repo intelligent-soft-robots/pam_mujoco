@@ -2,14 +2,20 @@ import subprocess
 import time
 
 import numpy as np
+import os
 import pytest
+import signal
 
 import pam_mujoco
 
 
 def test_realtime_step_duration():
     mujoco_id = "simulation"
-    process = subprocess.Popen(f"launch_pam_mujoco {mujoco_id}", shell=True)
+    process = subprocess.Popen(
+        f"launch_pam_mujoco {mujoco_id}",
+        shell=True,
+        preexec_fn=os.setsid
+    )
     time.sleep(1)
 
     try:
@@ -49,4 +55,5 @@ def test_realtime_step_duration():
         # but the average should match the timestep well.
         assert np.mean(durations_wall) == pytest.approx(time_step, abs=5e-5)
     finally:
-        process.kill()
+        # Clean up the launch_pam_mujoco process
+        os.killpg(process.pid, signal.SIGINT)
