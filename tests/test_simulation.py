@@ -12,9 +12,7 @@ import pam_mujoco
 def test_realtime_step_duration():
     mujoco_id = "simulation"
     process = subprocess.Popen(
-        f"launch_pam_mujoco {mujoco_id}",
-        shell=True,
-        preexec_fn=os.setsid
+        f"launch_pam_mujoco {mujoco_id}", shell=True, preexec_fn=os.setsid
     )
     time.sleep(1)
 
