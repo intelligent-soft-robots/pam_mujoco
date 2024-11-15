@@ -1827,7 +1827,6 @@ void do_simulate(bool accelerated_time, double& cpusync, mjtNum& simsync)
                     mju_abs((d->time - simsync) - (tmstart - cpusync)) >
                         syncmisalign)
                 {
-                    std::cout << "out of sync" << std::endl;
                     // re-sync
                     cpusync = tmstart;
                     simsync = d->time;
