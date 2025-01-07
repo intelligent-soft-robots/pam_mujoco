@@ -13,7 +13,8 @@ ControllerBase::ControllerBase()
 bool ControllerBase::must_update(mjData* d)
 {
     o80::TimePoint time_stamp{static_cast<long int>(d->time * 1e9)};
-    if (time_stamp - previous_stamp_ >= mujoco_time_step_)
+    if (previous_stamp_ == o80::TimePoint{-1} ||
+        time_stamp - previous_stamp_ >= mujoco_time_step_)
     {
         previous_stamp_ = time_stamp;
         return true;

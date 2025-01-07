@@ -13,7 +13,7 @@ public:
 
 private:
     o80::Burster burster_;
-    bool first_iteration_;
+    long int iteration_;
 };
 
 }  // namespace pam_mujoco
