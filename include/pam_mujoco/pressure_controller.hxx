@@ -14,6 +14,7 @@ PressureController<QUEUE_SIZE, NB_DOFS>::PressureController(
     std::array<double, NB_DOFS * 2> l_MTC_change_init)
     : ControllerBase{},
       backend_(segment_id),
+      segment_id_{segment_id},
       robot_joint_base_(robot_joint_base),
       index_q_robot_(-1),
       index_qvel_robot_(-1),
@@ -42,6 +43,9 @@ void PressureController<QUEUE_SIZE, NB_DOFS>::apply(const mjModel* m, mjData* d)
     // init
     if (index_q_robot_ < 0)
     {
+        // so that on the client side frontend.get_frequency() works 
+        shared_memory::set<float>(segment_id_, "frequency",1.0/m->opt.timestep);
+
         index_q_robot_ = m->jnt_qposadr[mj_name2id(
             m, mjOBJ_JOINT, robot_joint_base_.c_str())];
         index_qvel_robot_ = m->jnt_dofadr[mj_name2id(
