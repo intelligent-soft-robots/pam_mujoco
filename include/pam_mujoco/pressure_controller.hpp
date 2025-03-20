@@ -44,6 +44,7 @@ private:
 
 private:
     Backend backend_;
+    std::string segment_id_;
     std::string robot_joint_base_;
     int index_q_robot_;
     int index_qvel_robot_;
