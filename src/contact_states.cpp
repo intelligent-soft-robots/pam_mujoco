@@ -114,6 +114,17 @@ void update_contactee_velocity(const mjData* d,
                            get_states.contactee_position,
                            get_states.contactee_velocity);
     get_states.velocity_time_stamp = d->time;
+    if (std::abs(get_states.contactee_velocity[1]) > 1.0)
+    {
+        printf("t: %f, contactee velocity: %f %f %f ball velocity: %f %f %f\n",
+               d->time,
+               get_states.contactee_velocity[0],
+               get_states.contactee_velocity[1],
+               get_states.contactee_velocity[2],
+               get_states.ball_velocity[0],
+               get_states.ball_velocity[1],
+               get_states.ball_velocity[2]);
+        }
 }
 
 /**

@@ -120,7 +120,7 @@ public:
      *      file being deleted.
      */
     MujocoDataSaver(const std::string& filename_prefix,
-                    size_t num_keep_files = 100)
+                    size_t num_keep_files = 10000)
         : num_keep_files_(num_keep_files), filename_prefix_(filename_prefix)
     {
     }
@@ -152,11 +152,21 @@ public:
     }
     virtual void apply(const mjModel* m, mjData* d)
     {
+        // reset last_save_time_ if d->time was reset
+        if (d->time < last_save_time_ - 0.01)
+        {
+            last_save_time_ = 0.0;
+        }
+        if (d->time - last_save_time_ < 0.01)
+            return;
+        last_save_time_ += save_interval_;
         save(m, d);
     }
 
 private:
     std::string mujoco_id_;
+    double last_save_time_ = 0.0;
+    double save_interval_ = 0.01;
 };
 
 /**

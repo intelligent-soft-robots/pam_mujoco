@@ -333,7 +333,7 @@ void ContactBall::execute(const mjModel* m, mjData* d)
 
     if (!success)
     {
-        if (new_step)
+        if (false)
         {
             // failed to apply the custom model because
             // the ball and the contactee were too close.

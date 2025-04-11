@@ -2151,6 +2151,28 @@ int main(int argc, const char** argv)
         std::cout << std::endl;
     }
 
+    // Check if environment variable DBG_DATA_SAVE_DIR is set. If yes
+    // enable mujoco state saving to capture the state of the simulation.
+    std::string mjdata_save_path;
+    char* mjdata_save_path_cstr = std::getenv("DBG_DATA_SAVE_DIR");
+    if (mjdata_save_path_cstr != nullptr)
+    {
+        mjdata_save_path = mjdata_save_path_cstr;
+    }
+    if (!mjdata_save_path.empty())
+    {
+        std::cout << "Enable Data Saving.\n"
+                  << "Output directory for state snapshots: "
+                  << mjdata_save_path << std::endl;
+        if (!std::filesystem::is_directory(mjdata_save_path))
+        {
+            std::cerr << "ERROR: Directory does not exist.  Abort.\n"
+                      << std::endl;
+            return 1;
+        }
+        std::cout << std::endl;
+    }
+
     // initialize everything
     init();
 
@@ -2258,6 +2280,19 @@ int main(int argc, const char** argv)
         auto state_saver =
             std::make_shared<pam_mujoco::SaveNanMujocoDataController>(prefix);
         pam_mujoco::Controllers::add(state_saver);
+    }
+
+    if (!mjdata_save_path.empty())
+    {
+        // add mujoco state save controller
+        std::string prefix = mjdata_save_path + "/" + mujoco_id;
+        std::cout << "\nsaving mujoco state in folder " << prefix
+                  << std::endl;
+        // add mujoco state save controller
+        auto state_saver =
+            std::make_shared<pam_mujoco::SaveMujocoDataController>(prefix);
+        pam_mujoco::Controllers::add(state_saver);
+
     }
 
     mjcb_control = pam_mujoco::Controllers::apply;
