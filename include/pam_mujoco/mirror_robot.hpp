@@ -49,6 +49,7 @@ private:
     o80_pam::RobotFKExtendedState robot_fk_;
     int must_update_counter_ = -1;              // only overwrite if new robot state
     internal::ContactStates racket_state_;
+    internal::ContactStates racket_state_fk_update_;
 };  
 
 #include "mirror_robot.hxx"
