@@ -142,81 +142,89 @@ bool recompute_state_after_contact(const RecomputeStateConfig& config,
     double get_ball_position[3],
     double get_ball_velocity[3])
 {
-std::cout << "C++ Function: Starting recompute_state_after_contact" << std::endl;
-std::cout << "Input - mujoco_time_step: " << mujoco_time_step << std::endl;
+// std::cout << "C++ Function: Starting recompute_state_after_contact" << std::endl;
+// std::cout << "Input - mujoco_time_step: " << mujoco_time_step << std::endl;
 
-std::cout << "Input - pre_contact.ball_position: [" 
-<< pre_contact.ball_position[0] << ", " 
-<< pre_contact.ball_position[1] << ", " 
-<< pre_contact.ball_position[2] << "]" << std::endl;
+// std::cout << "Input - pre_contact.ball_position: [" 
+// << pre_contact.ball_position[0] << ", " 
+// << pre_contact.ball_position[1] << ", " 
+// << pre_contact.ball_position[2] << "]" << std::endl;
 
-std::cout << "Input - pre_contact.ball_velocity: [" 
-<< pre_contact.ball_velocity[0] << ", " 
-<< pre_contact.ball_velocity[1] << ", " 
-<< pre_contact.ball_velocity[2] << "]" << std::endl;
+// std::cout << "Input - pre_contact.ball_velocity: [" 
+// << pre_contact.ball_velocity[0] << ", " 
+// << pre_contact.ball_velocity[1] << ", " 
+// << pre_contact.ball_velocity[2] << "]" << std::endl;
 
-std::cout << "Input - pre_contact.contactee_velocity: [" 
-<< pre_contact.contactee_velocity[0] << ", " 
-<< pre_contact.contactee_velocity[1] << ", " 
-<< pre_contact.contactee_velocity[2] << "]" << std::endl;
+// std::cout << "Input - pre_contact.contactee_position: ["
+// << pre_contact.contactee_position[0] << ", "
+// << pre_contact.contactee_position[1] << ", "
+// << pre_contact.contactee_position[2] << "]" << std::endl;
+
+// std::cout << "Input - pre_contact.contactee_velocity: [" 
+// << pre_contact.contactee_velocity[0] << ", " 
+// << pre_contact.contactee_velocity[1] << ", " 
+// << pre_contact.contactee_velocity[2] << "]" << std::endl;
+
+// std::cout << "Input - pre_contact.contactee_velocity time stamp: "
+// << pre_contact.velocity_time_stamp << std::endl;
 
 // rotations
 std::array<double, 4> rotation, rotation_negative;
 get_rotations(config, pre_contact, rotation, rotation_negative);
 
-std::cout << "Rotation: [" << rotation[0] << ", " << rotation[1] << ", " 
-<< rotation[2] << ", " << rotation[3] << "]" << std::endl;
-std::cout << "Rotation negative: [" << rotation_negative[0] << ", " << rotation_negative[1] << ", " 
-<< rotation_negative[2] << ", " << rotation_negative[3] << "]" << std::endl;
+// std::cout << "Rotation: [" << rotation[0] << ", " << rotation[1] << ", " 
+// << rotation[2] << ", " << rotation[3] << "]" << std::endl;
+// std::cout << "Rotation negative: [" << rotation_negative[0] << ", " << rotation_negative[1] << ", " 
+// << rotation_negative[2] << ", " << rotation_negative[3] << "]" << std::endl;
 
 // pre-contact in contactee relative frame
 internal::ContactStates pre_contact_relative =
 in_relative_frame(rotation, pre_contact);
 
-std::cout << "Pre-contact relative frame - ball_position: [" 
-<< pre_contact_relative.ball_position[0] << ", " 
-<< pre_contact_relative.ball_position[1] << ", " 
-<< pre_contact_relative.ball_position[2] << "]" << std::endl;
+// std::cout << "Pre-contact relative frame - ball_position: [" 
+// << pre_contact_relative.ball_position[0] << ", " 
+// << pre_contact_relative.ball_position[1] << ", " 
+// << pre_contact_relative.ball_position[2] << "]" << std::endl;
 
-std::cout << "Pre-contact relative frame - ball_velocity: [" 
-<< pre_contact_relative.ball_velocity[0] << ", " 
-<< pre_contact_relative.ball_velocity[1] << ", " 
-<< pre_contact_relative.ball_velocity[2] << "]" << std::endl;
+// std::cout << "Pre-contact relative frame - ball_velocity: [" 
+// << pre_contact_relative.ball_velocity[0] << ", " 
+// << pre_contact_relative.ball_velocity[1] << ", " 
+// << pre_contact_relative.ball_velocity[2] << "]" << std::endl;
 
-std::cout << "Pre-contact relative frame - contactee_velocity: [" 
-<< pre_contact_relative.contactee_velocity[0] << ", " 
-<< pre_contact_relative.contactee_velocity[1] << ", " 
-<< pre_contact_relative.contactee_velocity[2] << "]" << std::endl;
+// std::cout << "Pre-contact relative frame - contactee_velocity: [" 
+// << pre_contact_relative.contactee_velocity[0] << ", " 
+// << pre_contact_relative.contactee_velocity[1] << ", " 
+// << pre_contact_relative.contactee_velocity[2] << "]" << std::endl;
 
 int axis;
 if (config.mirror_y)
 {
 axis = 1;  // racket: y axis
-std::cout << "Using axis = 1 (mirror_y is true, racket)" << std::endl;
+// std::cout << "Using axis = 1 (mirror_y is true, racket)" << std::endl;
 }
 else
 {
 axis = 2;  // table: z axis
-std::cout << "Using axis = 2 (mirror_y is false, table)" << std::endl;
+// std::cout << "Using axis = 2 (mirror_y is false, table)" << std::endl;
 }
 
 double time_until_impact = -pre_contact_relative.ball_position[axis] /
 (pre_contact_relative.ball_velocity[axis] -
  pre_contact_relative.contactee_velocity[axis]);
-std::cout << "time_until_impact: " << time_until_impact << std::endl;
+// std::cout << "time_until_impact: " << time_until_impact << std::endl;
 
 double delta_t_after_impact = mujoco_time_step - time_until_impact;
-std::cout << "delta_t_after_impact: " << delta_t_after_impact << std::endl;
+// std::cout << "delta_t_after_impact: " << delta_t_after_impact << std::endl;
 
 // the contact is not occuring during this time step,
 // exiting
 if (delta_t_after_impact < 0)
 {
-std::cout << "Contact not occurring during this time step, exiting" << std::endl;
+// std::cout << "Contact not occurring during this time step, exiting" << std::endl;
 return false;
 }
 
-std::cout << "Contact is occurring, continuing calculation" << std::endl;
+// std::cout << "Contact is occurring, continuing calculation" << std::endl;
 
 // post-contact in relative frame
 internal::ContactStates post_contact_relative;
@@ -229,10 +237,10 @@ post_contact_relative.ball_velocity[i] =
 pre_contact_relative.ball_velocity[i] * config.epsilon[i];
 }
 
-std::cout << "Post-contact relative (initial velocity after loss): [" 
-<< post_contact_relative.ball_velocity[0] << ", " 
-<< post_contact_relative.ball_velocity[1] << ", " 
-<< post_contact_relative.ball_velocity[2] << "]" << std::endl;
+// std::cout << "Post-contact relative (initial velocity after loss): [" 
+// << post_contact_relative.ball_velocity[0] << ", " 
+// << post_contact_relative.ball_velocity[1] << ", " 
+// << post_contact_relative.ball_velocity[2] << "]" << std::endl;
 
 // change of direction
 post_contact_relative.ball_velocity[axis] =
@@ -240,10 +248,10 @@ post_contact_relative.ball_velocity[axis] =
 (1.0 + config.epsilon[axis]) *
 pre_contact_relative.contactee_velocity[axis];
 
-std::cout << "Post-contact relative (after direction change) - ball_velocity: [" 
-<< post_contact_relative.ball_velocity[0] << ", " 
-<< post_contact_relative.ball_velocity[1] << ", " 
-<< post_contact_relative.ball_velocity[2] << "]" << std::endl;
+// std::cout << "Post-contact relative (after direction change) - ball_velocity: [" 
+// << post_contact_relative.ball_velocity[0] << ", " 
+// << post_contact_relative.ball_velocity[1] << ", " 
+// << post_contact_relative.ball_velocity[2] << "]" << std::endl;
 
 // 2. position
 for (size_t i = 0; i < 3; i++)
@@ -254,24 +262,24 @@ pre_contact_relative.ball_velocity[i] * time_until_impact +
 post_contact_relative.ball_velocity[i] * delta_t_after_impact;
 }
 
-std::cout << "Post-contact relative - ball_position: [" 
-<< post_contact_relative.ball_position[0] << ", " 
-<< post_contact_relative.ball_position[1] << ", " 
-<< post_contact_relative.ball_position[2] << "]" << std::endl;
+// std::cout << "Post-contact relative - ball_position: [" 
+// << post_contact_relative.ball_position[0] << ", " 
+// << post_contact_relative.ball_position[1] << ", " 
+// << post_contact_relative.ball_position[2] << "]" << std::endl;
 
 // final result in absolute frame
 internal::ContactStates absolute = in_absolute_frame(
 rotation_negative, post_contact_relative, pre_contact);
 
-std::cout << "Absolute frame (before vel_plus) - ball_position: [" 
-<< absolute.ball_position[0] << ", " 
-<< absolute.ball_position[1] << ", " 
-<< absolute.ball_position[2] << "]" << std::endl;
+// std::cout << "Absolute frame (before vel_plus) - ball_position: [" 
+// << absolute.ball_position[0] << ", " 
+// << absolute.ball_position[1] << ", " 
+// << absolute.ball_position[2] << "]" << std::endl;
 
-std::cout << "Absolute frame (before vel_plus) - ball_velocity: [" 
-<< absolute.ball_velocity[0] << ", " 
-<< absolute.ball_velocity[1] << ", " 
-<< absolute.ball_velocity[2] << "]" << std::endl;
+// std::cout << "Absolute frame (before vel_plus) - ball_velocity: [" 
+// << absolute.ball_velocity[0] << ", " 
+// << absolute.ball_velocity[1] << ", " 
+// << absolute.ball_velocity[2] << "]" << std::endl;
 
 // copying/returning final result
 for (size_t i = 0; i < 3; i++)
@@ -280,17 +288,17 @@ get_ball_position[i] = absolute.ball_position[i];
 get_ball_velocity[i] = absolute.ball_velocity[i] + config.vel_plus[i];
 }
 
-std::cout << "Final result - ball_position: [" 
-<< get_ball_position[0] << ", " 
-<< get_ball_position[1] << ", " 
-<< get_ball_position[2] << "]" << std::endl;
+// std::cout << "Final result - ball_position: [" 
+// << get_ball_position[0] << ", " 
+// << get_ball_position[1] << ", " 
+// << get_ball_position[2] << "]" << std::endl;
 
-std::cout << "Final result - ball_velocity (after vel_plus): [" 
-<< get_ball_velocity[0] << ", " 
-<< get_ball_velocity[1] << ", " 
-<< get_ball_velocity[2] << "]" << std::endl;
+// std::cout << "Final result - ball_velocity (after vel_plus): [" 
+// << get_ball_velocity[0] << ", " 
+// << get_ball_velocity[1] << ", " 
+// << get_ball_velocity[2] << "]" << std::endl;
 
-std::cout << "C++ Function: Completed successfully" << std::endl;
+// std::cout << "C++ Function: Completed successfully" << std::endl;
 
 return true;
 }
